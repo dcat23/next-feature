@@ -1,0 +1,65 @@
+{
+  "name": "next-feature",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "next-feature/src",
+  "projectType": "library",
+  "release": {
+    "version": {
+      "generatorOptions": {
+        "packageRoot": "dist/{projectRoot}",
+        "currentVersionResolver": "git-tag",
+        "fallbackCurrentVersionResolver": "disk"
+      }
+    }
+  },
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/next-feature",
+        "main": "next-feature/src/index.ts",
+        "tsConfig": "next-feature/tsconfig.lib.json",
+        "assets": [
+          "next-feature/*.md",
+          {
+            "input": "./next-feature/src",
+            "glob": "**/!(*.ts)",
+            "output": "./src"
+          },
+          {
+            "input": "./next-feature/src",
+            "glob": "**/*.d.ts",
+            "output": "./src"
+          },
+          {
+            "input": "./next-feature",
+            "glob": "generators.json",
+            "output": "."
+          },
+          {
+            "input": "./next-feature",
+            "glob": "executors.json",
+            "output": "."
+          }
+        ]
+      }
+    },
+    "nx-release-publish": {
+      "options": {
+        "packageRoot": "dist/{projectRoot}"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "next-feature/jest.config.ts"
+      }
+    }
+  }
+}

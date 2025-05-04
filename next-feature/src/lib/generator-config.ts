@@ -1,17 +1,20 @@
-import { type ProjectConfiguration, readProjectConfiguration, Tree } from '@nx/devkit';
-import initGenerator from '../generators/init/init';
+import {
+  type ProjectConfiguration,
+  readProjectConfiguration,
+  Tree,
+} from '@nx/devkit';
+import type { GeneratorSchema } from './types';
+import featureGenerator from '../generators/feature/feature';
 
-export async function initializeGenerator<GeneratorSchema extends { project: string }>(
-  tree: Tree,
-  options: GeneratorSchema,
-  generatorName: string
-) {
+export async function initializeGenerator(tree: Tree, options: GeneratorSchema, generatorName: string) {
   let projectConfiguration: ProjectConfiguration;
   try {
-    projectConfiguration = readProjectConfiguration(tree, options.project);
+    projectConfiguration = readProjectConfiguration(tree, options.featureProject);
   } catch (e) {
-    await initGenerator(tree, {});
-    projectConfiguration = readProjectConfiguration(tree, options.project);
+    await featureGenerator(tree, {
+      name: options.featureProject
+    });
+    projectConfiguration = readProjectConfiguration(tree, options.featureProject);
   }
 
   projectConfiguration.generators ??= {};

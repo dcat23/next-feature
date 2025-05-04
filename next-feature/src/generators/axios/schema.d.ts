@@ -1,9 +1,9 @@
-import type { GeneratorSchema, Normalize } from '../../lib/types';
+import type { GeneratorSchema, Normalized } from '../../lib/types';
 
 export interface AxiosGeneratorSchema extends GeneratorSchema {
 
 }
 
-export interface NormalizedAxiosGeneratorSchema extends Normalize<AxiosGeneratorSchema> {
+export interface NormalizedAxiosGeneratorSchema extends Normalized<AxiosGeneratorSchema> {
 
 }

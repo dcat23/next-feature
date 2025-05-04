@@ -1,8 +1,10 @@
+import type { FeatureGeneratorSchema } from '../generators/feature/schema';
 
 export interface GeneratorSchema {
-  project: string;
+  featureProject: FeatureGeneratorSchema['name'];
+  skipFormat?: boolean;
 }
 
-export type Normalize<Schema extends GeneratorSchema> = Schema & {
+export type Normalized<Schema extends GeneratorSchema> = Schema & {
 
 }

@@ -6,7 +6,7 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "The name where thi",
+      "description": "The name",
       "default": "features"
     },
     "directory": {

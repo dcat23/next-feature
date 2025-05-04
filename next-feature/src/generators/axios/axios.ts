@@ -11,23 +11,15 @@ import { AXIOS_VERSION } from '../../lib/constants';
 import { initializeGenerator } from '../../lib/generator-config';
 import type { AxiosGeneratorSchema, NormalizedAxiosGeneratorSchema } from './schema';
 
-export async function axiosGenerator(tree: Tree, options: AxiosGeneratorSchema) {
-  return axiosGeneratorInternal(tree, {
-    ...options,
-  })
-}
 
 function normalize(options: AxiosGeneratorSchema): NormalizedAxiosGeneratorSchema {
 
-  // const projectRoot = ``;
-
   return {
     ...options,
-    // projectRoot
   }
 }
 
-async function axiosGeneratorInternal(
+export async function axiosGenerator(
   tree: Tree,
   options: AxiosGeneratorSchema
 ) {
@@ -47,7 +39,7 @@ async function axiosGeneratorInternal(
     overwriteStrategy: OverwriteStrategy.KeepExisting,
   });
 
-  await formatFiles(tree);
+  if (!options.skipFormat) await formatFiles(tree);
 }
 
 function updateDependencies(tree: Tree) {

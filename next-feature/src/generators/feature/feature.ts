@@ -1,22 +1,22 @@
 import {
+  addDependenciesToPackageJson,
   addProjectConfiguration,
   formatFiles,
-  generateFiles, readJson,
+  generateFiles, OverwriteStrategy, readJson,
   Tree, writeJson
 } from '@nx/devkit';
+import { writeToDotenv } from 'next-feature/src/lib/dot-env';
+import { ZOD_VERSION } from '../../lib/constants';
+import axiosGenerator from '../../generators/axios/axios';
 import * as path from 'path';
 import { FeatureGeneratorSchema, type NormalizedFeatureGeneratorSchema } from './schema';
 
-export async function featureGenerator(tree: Tree, options: FeatureGeneratorSchema) {
+
+function normalize(options: FeatureGeneratorSchema): NormalizedFeatureGeneratorSchema {
   options.name ??= 'features';
   options.directory ??= "."
   options.srcPath ??= "src"
-  return featureGeneratorInternal(tree, {
-    ...options,
-  })
-}
 
-function normalize(options: FeatureGeneratorSchema): NormalizedFeatureGeneratorSchema {
   const projectRoot = `${options.directory}`;
   const sourceRoot = path.join(projectRoot, options.srcPath);
 
@@ -27,7 +27,7 @@ function normalize(options: FeatureGeneratorSchema): NormalizedFeatureGeneratorS
   }
 }
 
-export async function featureGeneratorInternal(
+export async function featureGenerator(
   tree: Tree,
   options: FeatureGeneratorSchema
 ) {
@@ -42,18 +42,41 @@ export async function featureGeneratorInternal(
 
   updateTsConfig(tree, normalizedOptions);
 
+  const dependencies: Record<string, string> = {
+    zod: ZOD_VERSION
+  };
+  const devDependencies: Record<string, string> = {
+
+  };
+
+  const projectRoot = normalizedOptions.projectRoot;
+
+  // generateFiles(
+  //   tree,
+  //   path.join(__dirname, 'files/root'),
+  //   normalizedOptions.projectRoot,
+  //   {
+  //     ...normalizedOptions,
+  //     tmpl: "",
+  //     overwriteStrategy: OverwriteStrategy.ThrowIfExisting
+  //   }
+  // );
+  //
 
 
 
-  generateFiles(
-    tree,
-    path.join(__dirname, 'files'),
-    normalizedOptions.projectRoot,
-    {
-      ...options,
-      tmpl: ""
-    }
-  );
+  if (normalizedOptions.useAxios) {
+    await axiosGenerator(tree, {
+      featureProject: normalizedOptions.name,
+      skipFormat: true
+    })
+  }
+
+  const dotenvEntries: Record<string, string> = {
+    'BACKEND_API_URL': "http://localhost:8080"
+  };
+  writeToDotenv(tree, normalizedOptions, dotenvEntries, "example")
+
   await formatFiles(tree);
 }
 

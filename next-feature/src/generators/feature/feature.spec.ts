@@ -18,10 +18,14 @@ describe('feature generator', () => {
     expect(config).toBeDefined();
   });
 
-  it('should write to .env.example', async () => {
-    await featureGenerator(tree, options);
 
-    const dotenv = tree.read('.env.example', "utf-8").toString();
-    expect(dotenv.includes("BACKEND_API_URL")).toBeTruthy();
+  it('should generate files', async () => {
+    await featureGenerator(tree, options);
+    const files = tree.children("src/lib")
+    expect(
+      files.some((file) => ["config.ts"]
+        .includes(file))
+    ).toBeTruthy();
   });
+
 });

@@ -6,6 +6,7 @@ import {
   OverwriteStrategy,
   Tree,
 } from '@nx/devkit';
+import { writeToDotenv } from 'next-feature/src/lib/dot-env';
 import * as path from 'path';
 import { AXIOS_VERSION } from '../../lib/constants';
 import { initializeGenerator } from '../../lib/generator-config';
@@ -25,15 +26,16 @@ export async function axiosGenerator(
 ) {
   const normalizedOptions = normalize(options);
 
-  const { sourceRoot } = await initializeGenerator(
+  const { sourceRoot, root: projectRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'axios'
   );
 
-  updateDependencies(tree);
 
-  generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, {
+  const depTask = updateDependencies(tree);
+
+  generateFiles(tree, path.join(__dirname, 'files'), sourceRoot, {
     ...options,
     tmpl: '',
     overwriteStrategy: OverwriteStrategy.KeepExisting,

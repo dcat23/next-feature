@@ -1,21 +1,24 @@
 import {
-  addDependenciesToPackageJson,
   addProjectConfiguration,
-  formatFiles,
-  generateFiles, OverwriteStrategy, readJson,
-  Tree, writeJson
+  formatFiles, generateFiles, OverwriteStrategy,
+  readJson,
+  Tree,
+  writeJson
 } from '@nx/devkit';
-import { writeToDotenv } from 'next-feature/src/lib/dot-env';
-import { ZOD_VERSION } from '../../lib/constants';
-import axiosGenerator from '../../generators/axios/axios';
 import * as path from 'path';
-import { FeatureGeneratorSchema, type NormalizedFeatureGeneratorSchema } from './schema';
+import axiosGenerator from '../../generators/axios/axios';
+import { ZOD_VERSION } from '../../lib/constants';
+import {
+  FeatureGeneratorSchema,
+  type NormalizedFeatureGeneratorSchema,
+} from './schema';
 
-
-function normalize(options: FeatureGeneratorSchema): NormalizedFeatureGeneratorSchema {
+function normalize(
+  options: FeatureGeneratorSchema
+): NormalizedFeatureGeneratorSchema {
   options.name ??= 'features';
-  options.directory ??= "."
-  options.srcPath ??= "src"
+  options.directory ??= '.';
+  options.srcPath ??= 'src';
 
   const projectRoot = `${options.directory}`;
   const sourceRoot = path.join(projectRoot, options.srcPath);
@@ -24,7 +27,7 @@ function normalize(options: FeatureGeneratorSchema): NormalizedFeatureGeneratorS
     ...options,
     projectRoot,
     sourceRoot,
-  }
+  };
 }
 
 export async function featureGenerator(
@@ -42,6 +45,22 @@ export async function featureGenerator(
 
   updateTsConfig(tree, normalizedOptions);
 
+
+
+  const projectRoot = normalizedOptions.projectRoot;
+
+  generateFiles(
+    tree,
+    path.join(__dirname, 'files/src'),
+    normalizedOptions.sourceRoot,
+    {
+      ...normalizedOptions,
+      tmpl: "",
+      overwriteStrategy: OverwriteStrategy.KeepExisting
+    }
+  );
+  //
+
   const dependencies: Record<string, string> = {
     zod: ZOD_VERSION
   };
@@ -49,33 +68,12 @@ export async function featureGenerator(
 
   };
 
-  const projectRoot = normalizedOptions.projectRoot;
-
-  // generateFiles(
-  //   tree,
-  //   path.join(__dirname, 'files/root'),
-  //   normalizedOptions.projectRoot,
-  //   {
-  //     ...normalizedOptions,
-  //     tmpl: "",
-  //     overwriteStrategy: OverwriteStrategy.ThrowIfExisting
-  //   }
-  // );
-  //
-
-
-
   if (normalizedOptions.useAxios) {
     await axiosGenerator(tree, {
       featureProject: normalizedOptions.name,
       skipFormat: true
     })
   }
-
-  const dotenvEntries: Record<string, string> = {
-    'BACKEND_API_URL': "http://localhost:8080"
-  };
-  writeToDotenv(tree, normalizedOptions, dotenvEntries, "example")
 
   await formatFiles(tree);
 }

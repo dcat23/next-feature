@@ -1,5 +1,5 @@
-import { auth } from '../auth';
 import axios from 'axios';
+import { auth } from '../auth';
 import { BACKEND_API_URL } from '../config';
 
 const api = axios.create({

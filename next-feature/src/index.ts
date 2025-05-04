@@ -58,3 +58,6 @@ async function createNodesInternal(
     },
   };
 }
+
+export { initGenerator as featureInitGenerator } from "./generators/init/init"
+export { axiosGenerator as axiosFeatureGenerator } from "./generators/axios/axios"

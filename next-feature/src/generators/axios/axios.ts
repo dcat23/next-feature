@@ -3,21 +3,50 @@ import {
   formatFiles,
   generateFiles,
   type GeneratorCallback,
-  readProjectConfiguration,
+  OverwriteStrategy,
   Tree,
 } from '@nx/devkit';
-import { AXIOS_VERSION } from '../../lib/constants';
 import * as path from 'path';
-import type { AxiosGeneratorSchema } from './schema';
+import { AXIOS_VERSION } from '../../lib/constants';
+import { initializeGenerator } from '../../lib/generator-config';
+import type { AxiosGeneratorSchema, NormalizedAxiosGeneratorSchema } from './schema';
 
-export async function axiosGenerator(
+export async function axiosGenerator(tree: Tree, options: AxiosGeneratorSchema) {
+  return axiosGeneratorInternal(tree, {
+    ...options,
+  })
+}
+
+function normalize(options: AxiosGeneratorSchema): NormalizedAxiosGeneratorSchema {
+
+  // const projectRoot = ``;
+
+  return {
+    ...options,
+    // projectRoot
+  }
+}
+
+async function axiosGeneratorInternal(
   tree: Tree,
   options: AxiosGeneratorSchema
 ) {
-  const projectConfiguration = readProjectConfiguration(tree, 'features');
-  const { sourceRoot, root: projectRoot } = projectConfiguration;
+  const normalizedOptions = normalize(options);
 
-  generateFiles(tree, path.join(__dirname, 'files'), sourceRoot, options);
+  const { sourceRoot } = await initializeGenerator(
+    tree,
+    normalizedOptions,
+    'axios'
+  );
+
+  updateDependencies(tree);
+
+  generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, {
+    ...options,
+    tmpl: '',
+    overwriteStrategy: OverwriteStrategy.KeepExisting,
+  });
+
   await formatFiles(tree);
 }
 

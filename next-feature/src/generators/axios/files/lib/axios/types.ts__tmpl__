@@ -1,0 +1,14 @@
+
+
+export interface ErrorMessage {
+  path: string;
+  message: string;
+  statusCode: string;
+  timestamp: Date;
+}
+
+export type BackendResponse<Response> = Promise<{
+  isError?: boolean;
+  data: Response;
+  error?: ErrorMessage
+}>;

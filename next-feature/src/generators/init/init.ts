@@ -27,7 +27,6 @@ function updateDependencies(tree: Tree) {
       tree,
       {
         '@tanstack/react-query': TANSTACK_VERSION,
-        axios: AXIOS_VERSION,
         sonner: SONNER_VERSION,
         zod: ZOD_VERSION,
         zustand: ZUSTAND_VERSION,

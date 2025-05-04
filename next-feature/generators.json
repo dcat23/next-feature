@@ -4,6 +4,11 @@
       "factory": "./src/generators/init/init",
       "schema": "./src/generators/init/schema.json",
       "description": "init generator"
+    },
+    "axios": {
+      "factory": "./src/generators/axios/axios",
+      "schema": "./src/generators/axios/schema.json",
+      "description": "axios generator"
     }
   }
 }

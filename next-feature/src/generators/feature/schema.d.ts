@@ -1,10 +1,11 @@
 
 export interface FeatureGeneratorSchema {
-  name?: "features" | string;
+  name: string;
   srcPath?: string;
   directory?: string;
   useAxios?: boolean;
   useAuth?: boolean;
+  useDb?: boolean;
   useAll?: boolean;
 }
 

@@ -13,7 +13,7 @@ import { AuthGeneratorSchema } from './schema';
 describe('auth generator', () => {
   let tree: Tree;
   const options: AuthGeneratorSchema = {
-    featureProject: 'test',
+    projectName: 'test',
   };
 
   beforeEach(() => {

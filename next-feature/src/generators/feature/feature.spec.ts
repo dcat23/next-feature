@@ -6,7 +6,9 @@ import { FeatureGeneratorSchema } from './schema';
 
 describe('feature generator', () => {
   let tree: Tree;
-  const options: FeatureGeneratorSchema = {};
+  const options: FeatureGeneratorSchema = {
+    name: 'test'
+  };
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
@@ -14,7 +16,7 @@ describe('feature generator', () => {
 
   it('should run successfully', async () => {
     await featureGenerator(tree, options);
-    const config = readProjectConfiguration(tree, 'features');
+    const config = readProjectConfiguration(tree, 'test');
     expect(config).toBeDefined();
   });
 

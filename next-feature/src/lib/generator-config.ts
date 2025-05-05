@@ -9,12 +9,12 @@ import featureGenerator from '../generators/feature/feature';
 export async function initializeGenerator(tree: Tree, options: GeneratorSchema, generatorName: string) {
   let projectConfiguration: ProjectConfiguration;
   try {
-    projectConfiguration = readProjectConfiguration(tree, options.featureProject);
+    projectConfiguration = readProjectConfiguration(tree, options.projectName);
   } catch (e) {
     await featureGenerator(tree, {
-      name: options.featureProject
+      name: options.projectName
     });
-    projectConfiguration = readProjectConfiguration(tree, options.featureProject);
+    projectConfiguration = readProjectConfiguration(tree, options.projectName);
   }
 
   projectConfiguration.generators ??= {};

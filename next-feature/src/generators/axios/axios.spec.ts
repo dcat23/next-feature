@@ -7,7 +7,7 @@ import { AxiosGeneratorSchema } from './schema';
 describe('axios generator', () => {
   let tree: Tree;
   const options: AxiosGeneratorSchema = {
-    featureProject: 'test'
+    projectName: 'test'
   };
 
   beforeEach(() => {

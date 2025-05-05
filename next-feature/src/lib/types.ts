@@ -1,7 +1,7 @@
 import type { FeatureGeneratorSchema } from '../generators/feature/schema';
 
 export interface GeneratorSchema {
-  featureProject: FeatureGeneratorSchema['name'];
+  projectName: FeatureGeneratorSchema['name'];
   skipFormat?: boolean;
 }
 

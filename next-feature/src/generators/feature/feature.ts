@@ -9,6 +9,7 @@ import * as path from 'path';
 import axiosGenerator from '../../generators/axios/axios';
 import { ZOD_VERSION } from '../../lib/constants';
 import authGenerator from '../auth/auth';
+import databaseGenerator from '../database/database';
 import {
   FeatureGeneratorSchema,
   type NormalizedFeatureGeneratorSchema,
@@ -17,7 +18,6 @@ import {
 function normalize(
   options: FeatureGeneratorSchema
 ): NormalizedFeatureGeneratorSchema {
-  options.name ??= 'features';
   options.directory ??= '.';
   options.srcPath ??= 'src';
 
@@ -71,14 +71,22 @@ export async function featureGenerator(
 
   if (normalizedOptions.useAxios || normalizedOptions.useAll) {
     await axiosGenerator(tree, {
-      featureProject: normalizedOptions.name,
+      projectName: normalizedOptions.name,
       skipFormat: true
     })
   }
+
   if (normalizedOptions.useAuth || normalizedOptions.useAll) {
     await authGenerator(tree, {
-      featureProject: normalizedOptions.name,
+      projectName: normalizedOptions.name,
       skipFormat: true
+    })
+  }
+
+  if (normalizedOptions.useDb || normalizedOptions.useAll) {
+    await databaseGenerator(tree, {
+      skipFormat: true,
+      projectName: normalizedOptions.name
     })
   }
 

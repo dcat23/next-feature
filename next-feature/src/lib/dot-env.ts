@@ -37,7 +37,6 @@ export function writeToDotenv(tree: Tree,options: DotenvOptions, entries: Record
     const text = tree.read(filePath, "utf-8") || "";
     const variables: Record<string, string> = asRecord(text)
 
-    logger.debug(variables);
     for (const [k, v] of Object.entries(entries)) {
       variables[k] ??= v;
     }

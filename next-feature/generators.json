@@ -19,6 +19,11 @@
       "factory": "./src/generators/auth/auth",
       "schema": "./src/generators/auth/schema.json",
       "description": "auth generator"
+    },
+    "database": {
+      "factory": "./src/generators/database/database",
+      "schema": "./src/generators/database/schema.json",
+      "description": "database generator"
     }
   }
 }

@@ -53,4 +53,13 @@ describe('auth generator', () => {
       ['next-auth'].every((dep) => dependencies.includes(dep))
     ).toBeTruthy();
   });
+
+
+  it('should add environment variables', async () => {
+    await authGenerator(tree, options);
+    const dotenv = tree.read(".env")
+    expect(
+      ['NEXTAUTH_URL', 'AUTH_SECRET', ].every((dep) => dotenv.includes(dep))
+    ).toBeTruthy();
+  });
 });

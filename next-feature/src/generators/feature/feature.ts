@@ -69,13 +69,13 @@ export async function featureGenerator(
 
   };
 
-  if (normalizedOptions.useAxios) {
+  if (normalizedOptions.useAxios || normalizedOptions.useAll) {
     await axiosGenerator(tree, {
       featureProject: normalizedOptions.name,
       skipFormat: true
     })
   }
-  if (normalizedOptions.useAuth) {
+  if (normalizedOptions.useAuth || normalizedOptions.useAll) {
     await authGenerator(tree, {
       featureProject: normalizedOptions.name,
       skipFormat: true

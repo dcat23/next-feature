@@ -9,6 +9,7 @@ import {
 } from '@nx/devkit';
 import * as path from 'path';
 import { NEXTAUTH_VERSION } from '../../lib/constants';
+import { writeToDotenv } from '../../lib/dot-env';
 import { initializeGenerator } from '../../lib/generator-config';
 import type {
   AuthGeneratorSchema,
@@ -34,15 +35,23 @@ export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
 
   const depTask = updateDependencies(tree);
 
+  const entries: Record<string, string> = {
+    "NEXTAUTH_URL": "http://localhost:3000",
+    "NEXT_PUBLIC_ROOT_DOMAIN": "localhost:3000",
+    "AUTH_SECRET": generateSecret(),
+  }
+
+  writeToDotenv(tree, { projectRoot }, entries, 'example');
+
   generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, {
     ...options,
     tmpl: '',
     overwriteStrategy: OverwriteStrategy.KeepExisting,
   });
 
-  const authRoute = joinPathFragments(sourceRoot, "app/api/auth/[...nextauth]")
+  const authRoute = joinPathFragments(sourceRoot, "app/api/auth/[...nextauth]/route.ts")
 
-  if (!tree.children(authRoute).includes("route.ts")) {
+  if (!tree.exists(authRoute)) {
     generateFiles(tree, path.join(__dirname, 'files/app'), sourceRoot + "/app", {
       ...options,
       tmpl: '',
@@ -72,3 +81,8 @@ function updateDependencies(tree: Tree) {
 }
 
 export default authGenerator;
+
+function generateSecret(): string {
+  return require('crypto').randomBytes(32).toString('hex');
+}
+

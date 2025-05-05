@@ -3,6 +3,7 @@ export const PROJECT_VERSION = require("../../package.json").version;
 
 export const AXIOS_VERSION = " latest"
 export const SONNER_VERSION = " latest"
+export const NEXTAUTH_VERSION = " 5.0.0-beta.27"
 export const TANSTACK_VERSION = "latest";
 export const ZOD_VERSION = " latest"
 export const ZUSTAND_VERSION = " latest"

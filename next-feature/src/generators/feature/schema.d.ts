@@ -4,6 +4,7 @@ export interface FeatureGeneratorSchema {
   srcPath?: string;
   directory?: string;
   useAxios?: boolean;
+  useAuth?: boolean;
 }
 
 export interface NormalizedFeatureGeneratorSchema extends FeatureGeneratorSchema {

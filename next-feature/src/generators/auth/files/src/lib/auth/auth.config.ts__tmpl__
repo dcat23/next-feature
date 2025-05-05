@@ -1,0 +1,16 @@
+
+import type { NextAuthConfig } from 'next-auth';
+
+export const authConfig = {
+  pages: {
+    signIn: `/login`,
+    verifyRequest: `/login`,
+    error: '/login', // Error code passed in query string as ?error=
+  },
+  callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      return !!auth?.user;
+    },
+  },
+  providers: [],
+} satisfies NextAuthConfig;

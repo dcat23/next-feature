@@ -42,6 +42,8 @@ export async function axiosGenerator(
   });
 
   if (!options.skipFormat) await formatFiles(tree);
+
+  return depTask;
 }
 
 function updateDependencies(tree: Tree) {

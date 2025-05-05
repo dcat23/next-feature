@@ -7,12 +7,12 @@ import { AxiosGeneratorSchema } from './schema';
 describe('axios generator', () => {
   let tree: Tree;
   const options: AxiosGeneratorSchema = {
-    featureProject: 'features'
+    featureProject: 'test'
   };
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
-    addProjectConfiguration(tree, 'features', {
+    addProjectConfiguration(tree, 'test', {
       root: ".",
       sourceRoot: "src",
       projectType: 'library'
@@ -21,7 +21,7 @@ describe('axios generator', () => {
 
   it('should run successfully', async () => {
     await axiosGenerator(tree, options);
-    const config = readProjectConfiguration(tree, 'features');
+    const config = readProjectConfiguration(tree, 'test');
     expect(config).toBeDefined();
   });
 

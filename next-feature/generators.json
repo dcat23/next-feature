@@ -14,6 +14,11 @@
       "factory": "./src/generators/feature/feature",
       "schema": "./src/generators/feature/schema.json",
       "description": "feature generator"
+    },
+    "auth": {
+      "factory": "./src/generators/auth/auth",
+      "schema": "./src/generators/auth/schema.json",
+      "description": "auth generator"
     }
   }
 }

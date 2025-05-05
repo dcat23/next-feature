@@ -8,6 +8,7 @@ import {
 import * as path from 'path';
 import axiosGenerator from '../../generators/axios/axios';
 import { ZOD_VERSION } from '../../lib/constants';
+import authGenerator from '../auth/auth';
 import {
   FeatureGeneratorSchema,
   type NormalizedFeatureGeneratorSchema,
@@ -70,6 +71,12 @@ export async function featureGenerator(
 
   if (normalizedOptions.useAxios) {
     await axiosGenerator(tree, {
+      featureProject: normalizedOptions.name,
+      skipFormat: true
+    })
+  }
+  if (normalizedOptions.useAuth) {
+    await authGenerator(tree, {
       featureProject: normalizedOptions.name,
       skipFormat: true
     })

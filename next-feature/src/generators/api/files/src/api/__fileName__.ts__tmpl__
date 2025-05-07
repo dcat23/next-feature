@@ -1,0 +1,27 @@
+'use server';
+
+import type {
+  <%= typeImports %>
+} from '../types';
+import api from '@/lib/axios';
+import { handleError } from '@/lib/axios/error';
+import type { BackendResponse } from '@/lib/axios/types';
+
+interface BackendRequestBody {
+
+}
+
+export async function <%= methodName %>(
+  body: BackendRequestBody
+): BackendResponse<<%= responseType %>> {
+  const params: URLSearchParams = new URLSearchParams();
+  const endpoint = `/api/<%= endpoint %>${params.toString()}`;
+
+  try {
+    const { data } = await api.<%= httpMethod %><<%= responseType %>>(endpoint, body);
+
+    return { data };
+  } catch (error: any) {
+    return handleError<<%= responseType %>>(error);
+  }
+}

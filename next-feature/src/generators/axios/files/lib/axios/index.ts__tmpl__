@@ -2,7 +2,7 @@ import axios from 'axios';
 import { auth } from '../auth';
 import { BACKEND_API_URL } from '../config';
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: BACKEND_API_URL,
   headers: {
     'Content-Type': 'application/json',

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "Api",
+  "title": "",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What is name for this api method?"
+    },
+    "directory": {
+      "type": "string",
+      "description": "",
+      "$default": {
+        "$source": "argv",
+        "index": 1
+      }
+    },
+    "projectName": {
+      "type": "string",
+      "description": "The package where the generated files will go",
+      "default": "lib"
+    },
+    "useTypes": {
+      "type": "boolean",
+      "description": "Generate type files",
+      "default": true
+    }
+  },
+  "required": ["name"]
+}

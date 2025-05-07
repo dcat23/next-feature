@@ -1,6 +1,6 @@
 
 export interface FeatureGeneratorSchema {
-  name: string;
+  name: "features" | "lib" | string;
   srcPath?: string;
   directory?: string;
   useAxios?: boolean;

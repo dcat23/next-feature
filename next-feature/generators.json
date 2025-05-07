@@ -24,6 +24,11 @@
       "factory": "./src/generators/database/database",
       "schema": "./src/generators/database/schema.json",
       "description": "database generator"
+    },
+    "api": {
+      "factory": "./src/generators/api/api",
+      "schema": "./src/generators/api/schema.json",
+      "description": "api generator"
     }
   }
 }

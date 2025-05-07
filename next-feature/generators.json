@@ -29,6 +29,11 @@
       "factory": "./src/generators/api/api",
       "schema": "./src/generators/api/schema.json",
       "description": "api generator"
+    },
+    "types": {
+      "factory": "./src/generators/types/types",
+      "schema": "./src/generators/types/schema.json",
+      "description": "types generator"
     }
   }
 }

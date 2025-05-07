@@ -15,9 +15,11 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   options.projectName ??= 'features';
   options.directory ??= 'lib';
 
-  const { fileName, propertyName: methodName, className } = names(options.name);
-  const { method: httpMethod , noPrefix: noPrefixClassName } = extractHttpMethod(options.name);
+  const mutatedNames = names(options.name);
+  const {  propertyName, className, name } = mutatedNames;
+  const { method: httpMethod , noPrefix: noPrefixClassName } = extractHttpMethod(name);
 
+  const methodName = propertyName;
   const responseType = noPrefixClassName
   const endpoint = names(responseType).fileName
     .split("-", 1).join()
@@ -30,7 +32,7 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
 
   return {
     ...options,
-    fileName,
+    ...mutatedNames,
     methodName,
     httpMethod,
     responseType,

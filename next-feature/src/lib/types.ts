@@ -1,3 +1,4 @@
+import type { names } from '@nx/devkit';
 import type { FeatureGeneratorSchema } from '../generators/feature/schema';
 
 export interface GeneratorSchema {
@@ -10,6 +11,4 @@ export type Normalized<Schema extends GeneratorSchema> = Schema & {
 
 }
 
-export type LibGeneratorSchema = GeneratorSchema & {
-
-}
+export type WithNames<T extends GeneratorSchema> = ReturnType<typeof names> & T;

@@ -1,11 +1,12 @@
-import type { LibGeneratorSchema, Normalized } from '../../lib/types';
+import type { WithNames } from '../../lib/types';
+import type { GeneratorSchema, Normalized } from '../../lib/types';
 
-export interface ApiGeneratorSchema extends LibGeneratorSchema {
+export interface ApiGeneratorSchema extends GeneratorSchema {
   name: string;
   useTypes?: boolean;
 }
 
-export interface NormalizedApiGeneratorSchema extends Normalized<ApiGeneratorSchema> {
+export interface NormalizedApiGeneratorSchema extends Normalized<WithNames<ApiGeneratorSchema>> {
   fileName: string;
   endpoint: string;
   methodName: string;

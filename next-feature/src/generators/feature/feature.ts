@@ -1,13 +1,16 @@
 import {
   addProjectConfiguration,
-  formatFiles, generateFiles, OverwriteStrategy,
+  formatFiles,
+  generateFiles,
   readJson,
   Tree,
-  writeJson
+  writeJson,
 } from '@nx/devkit';
 import * as path from 'path';
 import axiosGenerator from '../../generators/axios/axios';
 import { ZOD_VERSION } from '../../lib/constants';
+import { writeToDotenv } from '../../lib/dot-env';
+import { updateDependencies } from '../../lib/utils';
 import authGenerator from '../auth/auth';
 import databaseGenerator from '../database/database';
 import {
@@ -25,6 +28,7 @@ function normalize(
   const sourceRoot = path.join(projectRoot, options.srcPath);
 
   return {
+    tmpl: '',
     ...options,
     projectRoot,
     sourceRoot,
@@ -46,28 +50,26 @@ export async function featureGenerator(
 
   updateTsConfig(tree, normalizedOptions);
 
-
-
-  const projectRoot = normalizedOptions.projectRoot;
+  const sourceRoot = normalizedOptions.sourceRoot;
 
   generateFiles(
     tree,
     path.join(__dirname, 'files/src'),
-    normalizedOptions.sourceRoot,
-    {
-      ...normalizedOptions,
-      tmpl: "",
-      overwriteStrategy: OverwriteStrategy.KeepExisting
-    }
+    sourceRoot,
+    normalizedOptions
   );
-  //
 
   const dependencies: Record<string, string> = {
     zod: ZOD_VERSION
   };
-  const devDependencies: Record<string, string> = {
+  const devDependencies: Record<string, string> = {};
 
-  };
+  updateDependencies(tree, dependencies, devDependencies);
+
+  writeToDotenv(tree, normalizedOptions, {
+    '# FEATURES': '',
+    'BACKEND_API_URL': "http://localhost:3000",
+  })
 
   if (normalizedOptions.useAxios || normalizedOptions.useAll) {
     await axiosGenerator(tree, {

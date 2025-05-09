@@ -20,6 +20,7 @@ function normalize(
   options: AuthGeneratorSchema
 ): NormalizedAuthGeneratorSchema {
   return {
+    tmpl: '',
     ...options,
   };
 }

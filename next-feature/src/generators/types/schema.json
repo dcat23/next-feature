@@ -6,12 +6,12 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "",
+      "description": "The name for the type interface",
       "$default": {
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What name would you like to use?"
+      "x-prompt": "What is the name of this interface?"
     }
   },
   "required": ["name"]

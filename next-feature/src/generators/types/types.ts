@@ -1,4 +1,3 @@
-import { logger } from '@nx/devkit';
 import { names } from '@nx/devkit';
 import { formatFiles, Tree } from '@nx/devkit';
 import * as path from 'path';
@@ -19,6 +18,7 @@ function normalize(
   const mutatedNames = names(options.name);
 
   return {
+    tmpl: '',
     ...options,
     ...mutatedNames,
   };
@@ -40,7 +40,7 @@ export async function typesGenerator(
   const { sourceRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
-    'api'
+    'types'
   );
 
   const directory = path.join(
@@ -55,7 +55,7 @@ export async function typesGenerator(
     normalizedOptions,
   );
 
-  await formatFiles(tree);
+  if (!normalizedOptions.skipFormat) await formatFiles(tree);
 }
 
 export default typesGenerator;

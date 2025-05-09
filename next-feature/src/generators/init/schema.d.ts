@@ -1,5 +1,3 @@
-export interface InitGeneratorSchema {
-
-}
+export interface InitGeneratorSchema {}
 
 

@@ -6,18 +6,21 @@ import {
   OverwriteStrategy,
   Tree,
 } from '@nx/devkit';
-import { writeToDotenv } from 'next-feature/src/lib/dot-env';
 import * as path from 'path';
 import { AXIOS_VERSION } from '../../lib/constants';
 import { initializeGenerator } from '../../lib/generator-config';
-import type { AxiosGeneratorSchema, NormalizedAxiosGeneratorSchema } from './schema';
+import type {
+  AxiosGeneratorSchema,
+  NormalizedAxiosGeneratorSchema,
+} from './schema';
 
-
-function normalize(options: AxiosGeneratorSchema): NormalizedAxiosGeneratorSchema {
-
+function normalize(
+  options: AxiosGeneratorSchema
+): NormalizedAxiosGeneratorSchema {
   return {
+    tmpl: '',
     ...options,
-  }
+  };
 }
 
 export async function axiosGenerator(
@@ -26,7 +29,7 @@ export async function axiosGenerator(
 ) {
   const normalizedOptions = normalize(options);
 
-  const { sourceRoot, root: projectRoot } = await initializeGenerator(
+  const { sourceRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'axios'
@@ -35,13 +38,9 @@ export async function axiosGenerator(
 
   const depTask = updateDependencies(tree);
 
-  generateFiles(tree, path.join(__dirname, 'files'), sourceRoot, {
-    ...options,
-    tmpl: '',
-    overwriteStrategy: OverwriteStrategy.KeepExisting,
-  });
+  generateFiles(tree, path.join(__dirname, 'files'), sourceRoot, normalizedOptions);
 
-  if (!options.skipFormat) await formatFiles(tree);
+  if (!normalizedOptions.skipFormat) await formatFiles(tree);
 
   return depTask;
 }

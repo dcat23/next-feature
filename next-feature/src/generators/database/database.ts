@@ -14,6 +14,7 @@ function normalize(
   options: DatabaseGeneratorSchema
 ): NormalizedDatabaseGeneratorSchema {
   return {
+    tmpl: '',
     ...options,
   };
 }

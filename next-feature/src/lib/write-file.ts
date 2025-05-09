@@ -4,10 +4,11 @@ import type { WithNames } from './types';
 import type { GeneratorSchema } from './types';
 import type { Normalized } from './types';
 
-const commentText = (options: Normalized<WithNames<GeneratorSchema>>) => (`/**
+const commentText = (options: Normalized<WithNames<GeneratorSchema>>) => `
+/**
 * ${options.projectName}:${options.name}
 * ${new Date().toDateString()}
-*/`)
+*/`
 
 export async function writeFile<T extends WithNames<GeneratorSchema>>(
   tree: Tree,

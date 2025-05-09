@@ -1,23 +1,20 @@
 import {
-  addDependenciesToPackageJson, addProjectConfiguration,
+  type GeneratorCallback,
+  addDependenciesToPackageJson,
   formatFiles,
-  type GeneratorCallback, readJson,
   readNxJson,
-  removeDependenciesFromPackageJson, runTasksInSerial,
+  removeDependenciesFromPackageJson,
+  runTasksInSerial,
   Tree,
-  updateNxJson, writeJson
+  updateNxJson,
 } from '@nx/devkit';
-import * as path from 'node:path';
 import {
   PROJECT_NAME,
   PROJECT_VERSION,
   SONNER_VERSION,
-  TANSTACK_VERSION,
-  ZOD_VERSION,
   ZUSTAND_VERSION,
 } from '../../lib/constants';
 import type { InitGeneratorSchema } from './schema';
-
 
 export async function initGenerator(tree: Tree, options: InitGeneratorSchema) {
   const nxJson = readNxJson(tree) || {};
@@ -46,9 +43,8 @@ function updateDependencies(tree: Tree) {
     addDependenciesToPackageJson(
       tree,
       {
-        '@tanstack/react-query': TANSTACK_VERSION,
+        // '@tanstack/react-query': TANSTACK_VERSION, //implement this once its needed
         sonner: SONNER_VERSION,
-        zod: ZOD_VERSION,
         zustand: ZUSTAND_VERSION,
       },
       {

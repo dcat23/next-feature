@@ -20,7 +20,8 @@ function normalize(
   options: AuthGeneratorSchema
 ): NormalizedAuthGeneratorSchema {
   options.projectName ??= 'features';
-  options.directory ??= 'lib';
+  options.directory ??= options.projectName;
+  options.package ??= 'lib';
   return {
     tmpl: '',
     ...options,
@@ -39,26 +40,20 @@ export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
   const depTask = updateDependencies(tree);
 
   writeToDotenv(tree, { projectRoot }, {
+    "# AUTH": "",
     "NEXTAUTH_URL": "http://localhost:3000",
     "NEXT_PUBLIC_ROOT_DOMAIN": "localhost:3000",
     "AUTH_SECRET": generateSecret(),
-  }, 'example');
-
-  generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, {
-    ...options,
-    tmpl: '',
-    overwriteStrategy: OverwriteStrategy.KeepExisting,
   });
+
+  generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, normalizedOptions);
 
   const authRoute = joinPathFragments(sourceRoot, "app/api/auth/[...nextauth]/route.ts")
 
   if (!tree.exists(authRoute)) {
-    generateFiles(tree, path.join(__dirname, 'files/app'), sourceRoot + "/app", {
-      ...options,
-      tmpl: '',
-      overwriteStrategy: OverwriteStrategy.KeepExisting,
-    });
+    generateFiles(tree, path.join(__dirname, 'files/app'), sourceRoot + "/app", normalizedOptions);
   }
+
   if (!options.skipFormat) await formatFiles(tree);
 
   return depTask

@@ -3,7 +3,8 @@ import type { FeatureGeneratorSchema } from '../generators/feature/schema';
 
 export interface GeneratorSchema {
   projectName: FeatureGeneratorSchema['name'];
-  directory?: 'lib' | string;
+  directory: FeatureGeneratorSchema['directory'];
+  package?: 'lib' | string;
   skipFormat?: boolean;
 }
 

@@ -15,7 +15,7 @@ export async function initializeGenerator(tree: Tree, options: GeneratorSchema, 
   } catch (e) {
     await featureGenerator(tree, {
       name: options.projectName,
-      directory: options.projectName
+      directory: options.directory
     });
     projectConfiguration = readProjectConfiguration(tree, options.projectName);
 

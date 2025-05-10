@@ -3,7 +3,6 @@ import {
   formatFiles,
   generateFiles,
   type GeneratorCallback,
-  OverwriteStrategy,
   Tree,
 } from '@nx/devkit';
 import * as path from 'path';
@@ -18,7 +17,8 @@ function normalize(
   options: AxiosGeneratorSchema
 ): NormalizedAxiosGeneratorSchema {
   options.projectName ??= 'features';
-  options.directory ??= 'lib';
+  options.directory ??= options.projectName;
+  options.package ??= 'lib';
   return {
     tmpl: '',
     ...options,

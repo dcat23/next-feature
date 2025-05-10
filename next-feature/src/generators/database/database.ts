@@ -14,7 +14,7 @@ function normalize(
   options: DatabaseGeneratorSchema
 ): NormalizedDatabaseGeneratorSchema {
   options.projectName ??= 'features';
-  options.directory ??= 'lib';
+  options.package ??= 'lib';
   return {
     tmpl: '',
     ...options,

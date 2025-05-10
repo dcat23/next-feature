@@ -8,6 +8,7 @@ describe('feature generator', () => {
   let tree: Tree;
   const options: FeatureGeneratorSchema = {
     name: 'test'
+
   };
 
   beforeEach(() => {
@@ -23,9 +24,9 @@ describe('feature generator', () => {
 
   it('should generate files', async () => {
     await featureGenerator(tree, options);
-    const files = tree.children("src/lib")
+    const files = tree.children("test/src/lib/config")
     expect(
-      files.some((file) => ["config.ts"]
+      files.some((file) => ["index.ts"]
         .includes(file))
     ).toBeTruthy();
   });

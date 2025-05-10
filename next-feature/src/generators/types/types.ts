@@ -13,7 +13,7 @@ function normalize(
   options: TypesGeneratorSchema
 ): NormalizedTypesGeneratorSchema {
   options.projectName ??= 'features';
-  options.directory ??= 'lib';
+  options.package ??= 'lib';
 
   const mutatedNames = names(options.name);
 
@@ -45,7 +45,7 @@ export async function typesGenerator(
 
   const directory = path.join(
     sourceRoot,
-    normalizedOptions.directory,
+    normalizedOptions.package,
   );
 
   await writeFile(

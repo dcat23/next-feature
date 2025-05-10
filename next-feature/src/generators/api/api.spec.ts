@@ -34,7 +34,7 @@ describe('api generator', () => {
     await apiGenerator(tree, {
       ...options,
       name: 'create-backend-data',
-      directory: 'features/test',
+      package: 'features/test',
     });
     const file = 'src/features/test/api/create-backend-data.ts';
 

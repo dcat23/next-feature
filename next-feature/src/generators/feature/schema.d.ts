@@ -1,8 +1,8 @@
 
 export interface FeatureGeneratorSchema {
   name: "features" | string;
-  srcPath?: string;
   directory?: string;
+  srcPath?: string;
   useAxios?: boolean;
   useAuth?: boolean;
   useDb?: boolean;

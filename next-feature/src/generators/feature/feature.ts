@@ -1,11 +1,15 @@
+import { logger } from '@nx/devkit';
+import { runTasksInSerial } from '@nx/devkit';
+import type { GeneratorCallback } from '@nx/devkit';
 import {
-  addProjectConfiguration,
   formatFiles,
   generateFiles,
   readJson,
   Tree,
   writeJson,
 } from '@nx/devkit';
+import { Linter } from '@nx/eslint';
+import { libraryGenerator } from '@nx/js';
 import * as path from 'path';
 import axiosGenerator from '../../generators/axios/axios';
 import { ZOD_VERSION } from '../../lib/constants';
@@ -21,7 +25,8 @@ import {
 function normalize(
   options: FeatureGeneratorSchema
 ): NormalizedFeatureGeneratorSchema {
-  options.directory ??= '.';
+
+  options.directory ??= options.name;
   options.srcPath ??= 'src';
 
   const projectRoot = `${options.directory}`;
@@ -40,13 +45,17 @@ export async function featureGenerator(
   options: FeatureGeneratorSchema
 ) {
   const normalizedOptions = normalize(options);
+  const tasks: GeneratorCallback[] = [];
 
-  addProjectConfiguration(tree, options.name, {
-    root: normalizedOptions.projectRoot,
-    projectType: 'library',
-    sourceRoot: normalizedOptions.sourceRoot,
-    targets: {},
-  });
+  tasks.push(await libraryGenerator(tree, {
+    directory: normalizedOptions.directory,
+    name: normalizedOptions.name,
+    buildable: true,
+    unitTestRunner: 'jest',
+    bundler: 'tsc',
+    linter: Linter.EsLint,
+    skipFormat: true,
+  }));
 
   updateTsConfig(tree, normalizedOptions);
 
@@ -64,7 +73,7 @@ export async function featureGenerator(
   };
   const devDependencies: Record<string, string> = {};
 
-  updateDependencies(tree, dependencies, devDependencies);
+  tasks.push(updateDependencies(tree, dependencies, devDependencies))
 
   writeToDotenv(tree, normalizedOptions, {
     '# FEATURES': '',
@@ -72,31 +81,36 @@ export async function featureGenerator(
   })
 
   if (normalizedOptions.useAxios || normalizedOptions.useAll) {
-    await axiosGenerator(tree, {
+    tasks.push(await axiosGenerator(tree, {
       projectName: normalizedOptions.name,
+      directory: normalizedOptions.directory,
       skipFormat: true
-    })
+    }))
   }
 
   if (normalizedOptions.useAuth || normalizedOptions.useAll) {
-    await authGenerator(tree, {
+    tasks.push(await authGenerator(tree, {
       projectName: normalizedOptions.name,
+      directory: normalizedOptions.directory,
       skipFormat: true
-    })
+    }))
   }
 
   if (normalizedOptions.useDb || normalizedOptions.useAll) {
-    await databaseGenerator(tree, {
-      skipFormat: true,
-      projectName: normalizedOptions.name
-    })
+    tasks.push(await databaseGenerator(tree, {
+      projectName: normalizedOptions.name,
+      directory: normalizedOptions.directory,
+      skipFormat: true
+    }))
   }
 
   await formatFiles(tree);
+
+  return runTasksInSerial(...tasks);
 }
 
 function updateTsConfig(tree: Tree, options: NormalizedFeatureGeneratorSchema) {
-  const tsConfigPath = path.join(options.projectRoot, "tsconfig.json")
+  const tsConfigPath = path.join(options.projectRoot, "tsconfig.lib.json")
 
   const tsConfig = tree.exists(tsConfigPath)
     ? readJson(tree, tsConfigPath)
@@ -106,26 +120,14 @@ function updateTsConfig(tree: Tree, options: NormalizedFeatureGeneratorSchema) {
   tsConfig["compilerOptions"]["baseUrl"] ??= '.';
   tsConfig["compilerOptions"]["paths"] ??= {};
   tsConfig["compilerOptions"]["paths"]["@/*"] ??= [];
-  tsConfig["extends"] = "../tsconfig.base.json";
 
-  const srcPath = path.join(options.projectRoot, options.srcPath, "*");
+  const srcPath = path.join(options.srcPath, "*");
 
   const paths = tsConfig["compilerOptions"]["paths"]["@/*"] as string[]
   if (!paths.includes(srcPath)) {
     paths.push(srcPath);
     tsConfig["compilerOptions"]["paths"]["@/*"] = paths;
   }
-
-  const rootTsConfigPath = "tsconfig.json";
-  const rootTsConfig = tree.exists(rootTsConfigPath)
-    ? readJson(tree, rootTsConfigPath)
-    : {}
-
-  rootTsConfig['references'] ??= []
-  rootTsConfig['references'].push({
-    "path": `./${options.directory}`
-  })
-
 
   writeJson(tree, tsConfigPath, tsConfig);
 }

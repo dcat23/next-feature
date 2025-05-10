@@ -8,14 +8,10 @@ import { TypesGeneratorSchema } from './schema';
 
 describe('types generator', () => {
   let tree: Tree;
-  const options: TypesGeneratorSchema = { name: 'test', projectName: 'features' };
+  const options: TypesGeneratorSchema = { name: 'test', projectName: 'features', directory: 'features' };
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
-    addProjectConfiguration(tree, 'features', {
-      root: '.',
-      sourceRoot: 'src',
-    });
   });
 
   it('should run successfully', async () => {
@@ -26,7 +22,7 @@ describe('types generator', () => {
 
   it('should generate files', async () => {
     await typesGenerator(tree, { ...options, name: 'backend-data' });
-    const file = 'src/lib/types/index.ts';
+    const file = 'features/src/lib/types/index.ts';
     const buffer = tree.read(file)
 
     // logger.debug(tree.read(file, 'utf-8'))

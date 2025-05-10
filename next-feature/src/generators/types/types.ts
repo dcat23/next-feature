@@ -13,6 +13,7 @@ function normalize(
   options: TypesGeneratorSchema
 ): NormalizedTypesGeneratorSchema {
   options.projectName ??= 'features';
+  options.directory ??= options.projectName;
   options.package ??= 'lib';
 
   const mutatedNames = names(options.name);
@@ -56,6 +57,9 @@ export async function typesGenerator(
   );
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  return () => {}
 }
 
 export default typesGenerator;

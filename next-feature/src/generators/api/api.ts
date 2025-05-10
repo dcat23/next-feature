@@ -1,3 +1,5 @@
+import { logger, runTasksInSerial } from '@nx/devkit';
+import type { GeneratorCallback } from '@nx/devkit';
 import { names } from '@nx/devkit';
 import { generateFiles } from '@nx/devkit';
 import { formatFiles, Tree } from '@nx/devkit';
@@ -10,11 +12,13 @@ import type { ApiGeneratorSchema } from './schema';
 
 function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   options.projectName ??= 'features';
+  options.directory ??= options.projectName;
   options.package ??= 'lib';
 
   const mutatedNames = names(options.name);
   const { propertyName, className, name } = mutatedNames;
-  const { method: httpMethod, noPrefix: noPrefixClassName } = extractHttpMethod(name);
+  const { method: httpMethod, noPrefix: noPrefixClassName } =
+    extractHttpMethod(name);
 
   const methodName = propertyName;
   const endpoint = names(noPrefixClassName).fileName.replace('-', '/');
@@ -36,6 +40,8 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
 
 export async function apiGenerator(tree: Tree, options: ApiGeneratorSchema) {
   const normalizedOptions = normalize(options);
+  const tasks: GeneratorCallback[] = [];
+
   // logger.debug({ normalizedOptions });
   const { sourceRoot } = await initializeGenerator(
     tree,
@@ -53,10 +59,12 @@ export async function apiGenerator(tree: Tree, options: ApiGeneratorSchema) {
   generateFiles(tree, path.join(__dirname, 'files/src'), directory, normalizedOptions);
 
   if (normalizedOptions.useTypes) {
-    await typesGenerator(tree, { ...normalizedOptions, skipFormat: true });
+    tasks.push(await typesGenerator(tree, { ...normalizedOptions, skipFormat: true }))
   }
 
-  await formatFiles(tree);
+  if (!normalizedOptions.skipFormat) await formatFiles(tree);
+
+  return runTasksInSerial(...tasks);
 }
 
 export default apiGenerator;

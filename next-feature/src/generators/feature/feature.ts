@@ -106,6 +106,7 @@ function updateTsConfig(tree: Tree, options: NormalizedFeatureGeneratorSchema) {
   tsConfig["compilerOptions"]["baseUrl"] ??= '.';
   tsConfig["compilerOptions"]["paths"] ??= {};
   tsConfig["compilerOptions"]["paths"]["@/*"] ??= [];
+  tsConfig["extends"] = "../tsconfig.base.json";
 
   const srcPath = path.join(options.projectRoot, options.srcPath, "*");
 
@@ -114,6 +115,17 @@ function updateTsConfig(tree: Tree, options: NormalizedFeatureGeneratorSchema) {
     paths.push(srcPath);
     tsConfig["compilerOptions"]["paths"]["@/*"] = paths;
   }
+
+  const rootTsConfigPath = "tsconfig.json";
+  const rootTsConfig = tree.exists(rootTsConfigPath)
+    ? readJson(tree, rootTsConfigPath)
+    : {}
+
+  rootTsConfig['references'] ??= []
+  rootTsConfig['references'].push({
+    "path": `./${options.directory}`
+  })
+
 
   writeJson(tree, tsConfigPath, tsConfig);
 }

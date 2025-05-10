@@ -34,6 +34,12 @@
       "factory": "./src/generators/types/types",
       "schema": "./src/generators/types/schema.json",
       "description": "types generator"
+    },
+    "preset": {
+      "factory": "./src/generators/preset/preset",
+      "schema": "./src/generators/preset/schema.json",
+      "description": "preset generator",
+      "x-use-standalone-layout": true
     }
   }
 }

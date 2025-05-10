@@ -40,6 +40,11 @@
       "schema": "./src/generators/preset/schema.json",
       "description": "preset generator",
       "x-use-standalone-layout": true
+    },
+    "component": {
+      "factory": "./src/generators/component/component",
+      "schema": "./src/generators/component/schema.json",
+      "description": "component generator"
     }
   }
 }

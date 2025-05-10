@@ -1,4 +1,3 @@
-import { logger } from '@nx/devkit';
 import { runTasksInSerial } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
 import {
@@ -25,7 +24,6 @@ import {
 function normalize(
   options: FeatureGeneratorSchema
 ): NormalizedFeatureGeneratorSchema {
-
   options.directory ??= options.name;
   options.srcPath ??= 'src';
 
@@ -51,8 +49,8 @@ export async function featureGenerator(
     directory: normalizedOptions.directory,
     name: normalizedOptions.name,
     buildable: true,
-    unitTestRunner: 'jest',
     bundler: 'tsc',
+    unitTestRunner: 'jest',
     linter: Linter.EsLint,
     skipFormat: true,
   }));

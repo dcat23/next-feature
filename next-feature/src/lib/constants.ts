@@ -1,12 +1,8 @@
 export const PROJECT_NAME = require("../../package.json").name;
 export const PROJECT_VERSION = require("../../package.json").version;
 
-export const AXIOS_VERSION = " latest"
-export const SONNER_VERSION = " latest"
+export const AXIOS_VERSION = "1.9.0"
 export const NEXTAUTH_VERSION = " 5.0.0-beta.27"
-export const PRISMA_VERSION = "latest"
-export const PRISMA_AUTH_VERSION = "latest"
-export const TANSTACK_VERSION = "latest";
-export const ZOD_VERSION = "latest"
-export const ZUSTAND_VERSION = "latest"
-
+export const PRISMA_VERSION = "6.7.0"
+export const PRISMA_AUTH_VERSION = "2.9.0"
+export const ZOD_VERSION = "3.24.4"

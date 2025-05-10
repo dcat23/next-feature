@@ -1,33 +1,27 @@
 import {
-  type GeneratorCallback,
   addDependenciesToPackageJson,
   formatFiles,
+  type GeneratorCallback,
   readNxJson,
   removeDependenciesFromPackageJson,
   runTasksInSerial,
   Tree,
   updateNxJson,
 } from '@nx/devkit';
-import {
-  PROJECT_NAME,
-  PROJECT_VERSION,
-  SONNER_VERSION,
-  ZUSTAND_VERSION,
-} from '../../lib/constants';
+import { PROJECT_NAME, PROJECT_VERSION } from '../../lib/constants';
 import type { InitGeneratorSchema } from './schema';
 
 export async function initGenerator(tree: Tree, options: InitGeneratorSchema) {
   const nxJson = readNxJson(tree) || {};
-  // const hasPlugin = nxJson.plugins?.some((p) =>
-  //   typeof p === 'string' ? p === PROJECT_NAME : p.plugin === PROJECT_NAME
-  // );
-  // if (!hasPlugin) {
-  // }
+  const hasPlugin = nxJson.plugins?.some((p) =>
+    typeof p === 'string' ? p === PROJECT_NAME : p.plugin === PROJECT_NAME
+  );
 
-  nxJson.plugins ??= [];
-  nxJson.generators ??= {};
-
-  updateNxJson(tree, nxJson);
+  if (!hasPlugin) {
+    nxJson.plugins ??= [];
+    nxJson.generators ??= {};
+    updateNxJson(tree, nxJson);
+  }
 
   const tasks: GeneratorCallback[] = updateDependencies(tree);
 
@@ -44,8 +38,6 @@ function updateDependencies(tree: Tree) {
       tree,
       {
         // '@tanstack/react-query': TANSTACK_VERSION, //implement this once its needed
-        sonner: SONNER_VERSION,
-        zustand: ZUSTAND_VERSION,
       },
       {
         [PROJECT_NAME]: PROJECT_VERSION,

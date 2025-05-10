@@ -26,11 +26,12 @@ export function asText(variables: Record<string, string>) {
     .join("\n");
 }
 
-export function writeToDotenv(tree: Tree,options: DotenvOptions, entries: Record<string, string>, ...files: string[]) {
-  const fileNames = [
+export function writeToDotenv(tree: Tree, options: DotenvOptions, entries: Record<string, string>, ...files: string[]) {
+  const fileNames = new Set([
     ".env",
+    ".env.example",
     ...files.map(f => ".env.".concat(f))
-  ]
+  ]);
 
   for (const name of fileNames) {
     const filePath = joinPathFragments(options.projectRoot, name);

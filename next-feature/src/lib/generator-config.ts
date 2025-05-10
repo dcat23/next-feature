@@ -1,3 +1,5 @@
+import { updateNxJson } from '@nx/devkit';
+import { readNxJson } from '@nx/devkit';
 import {
   type ProjectConfiguration,
   readProjectConfiguration,
@@ -16,10 +18,14 @@ export async function initializeGenerator(tree: Tree, options: GeneratorSchema, 
       directory: options.projectName
     });
     projectConfiguration = readProjectConfiguration(tree, options.projectName);
-  }
 
-  projectConfiguration.generators ??= {};
-  projectConfiguration.generators[generatorName] ??= {};
+    const nxJson = readNxJson(tree)
+
+    nxJson.generators ??= {};
+    nxJson.generators[generatorName] ??= {};
+
+    updateNxJson(tree, nxJson);
+  }
 
   return projectConfiguration;
 }

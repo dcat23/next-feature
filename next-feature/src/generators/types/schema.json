@@ -20,6 +20,11 @@
     },
     "directory": {
       "type": "string",
+      "description": "The directory of the features plugin",
+      "default": "features"
+    },
+    "package": {
+      "type": "string",
       "description": "The directory in the project",
       "default": "lib"
     }

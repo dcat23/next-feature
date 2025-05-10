@@ -12,6 +12,16 @@
         "index": 0
       },
       "x-prompt": "What is the name of this interface?"
+    },
+    "projectName": {
+      "type": "string",
+      "description": "The name for the features generator plugin",
+      "default": "features"
+    },
+    "directory": {
+      "type": "string",
+      "description": "The directory in the project",
+      "default": "lib"
     }
   },
   "required": ["name"]

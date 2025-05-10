@@ -13,6 +13,8 @@ import { DatabaseGeneratorSchema } from './schema';
 function normalize(
   options: DatabaseGeneratorSchema
 ): NormalizedDatabaseGeneratorSchema {
+  options.projectName ??= 'features';
+  options.directory ??= 'lib';
   return {
     tmpl: '',
     ...options,

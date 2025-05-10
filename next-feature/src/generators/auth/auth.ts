@@ -19,6 +19,8 @@ import type {
 function normalize(
   options: AuthGeneratorSchema
 ): NormalizedAuthGeneratorSchema {
+  options.projectName ??= 'features';
+  options.directory ??= 'lib';
   return {
     tmpl: '',
     ...options,

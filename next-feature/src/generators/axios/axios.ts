@@ -17,6 +17,8 @@ import type {
 function normalize(
   options: AxiosGeneratorSchema
 ): NormalizedAxiosGeneratorSchema {
+  options.projectName ??= 'features';
+  options.directory ??= 'lib';
   return {
     tmpl: '',
     ...options,

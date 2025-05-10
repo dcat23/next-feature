@@ -17,12 +17,11 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   const { method: httpMethod, noPrefix: noPrefixClassName } = extractHttpMethod(name);
 
   const methodName = propertyName;
-  const responseType = noPrefixClassName;
-  const endpoint = names(responseType).fileName.replace('-', '/');
+  const endpoint = names(noPrefixClassName).fileName.replace('-', '/');
 
   const asTypeImport = (dataType: string) => dataType;
 
-  const typeImports = [responseType, className].map(asTypeImport).join(', ');
+  const typeImports = [className].map(asTypeImport).join(', ');
 
   return {
     tmpl: '',
@@ -30,7 +29,6 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
     ...mutatedNames,
     methodName,
     httpMethod,
-    responseType,
     endpoint,
     typeImports,
   };

@@ -12,16 +12,16 @@ interface BackendRequestBody {
 }
 
 export async function <%= methodName %>(
-  body: BackendRequestBody
-): BackendResponse<<%= responseType %>> {
+  body?: BackendRequestBody
+): BackendResponse<<%= className %>> {
   const params: URLSearchParams = new URLSearchParams();
-  const endpoint = `/api/<%= endpoint %>${params.toString()}`;
+  const endpoint = `/api/<%= endpoint %>?${params.toString()}`;
 
   try {
-    const { data } = await api.<%= httpMethod %><<%= responseType %>>(endpoint, body);
+    const { data } = await api.<%= httpMethod %><<%= className %>>(endpoint, body);
 
     return { data };
   } catch (error: any) {
-    return handleError<<%= responseType %>>(error);
+    return handleError<<%= className %>>(error);
   }
 }

@@ -103,7 +103,7 @@ function updateTsConfig(tree: Tree, options: NormalizedFeatureGeneratorSchema) {
     : {}
 
   tsConfig["compilerOptions"] ??= {};
-  tsConfig["compilerOptions"]["baseUrl"] ??= options.projectRoot;
+  tsConfig["compilerOptions"]["baseUrl"] ??= '.';
   tsConfig["compilerOptions"]["paths"] ??= {};
   tsConfig["compilerOptions"]["paths"]["@/*"] ??= [];
 

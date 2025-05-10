@@ -7,8 +7,8 @@ export interface ErrorMessage {
   timestamp: Date;
 }
 
-export type BackendResponse<Response> = Promise<{
+export interface BackendResponse<Response> {
   isError?: boolean;
   data: Response;
   error?: ErrorMessage
-}>;
+}

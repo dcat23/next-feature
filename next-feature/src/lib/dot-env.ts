@@ -17,6 +17,7 @@ export function asRecord(text: string) {
 
 export function asText(variables: Record<string, string>) {
   const toEntry = ([k,v]: string[]) => {
+    if (k.startsWith("#")) return k;
     const key = names(k).constantName;
     return key ? [names(key).constantName, v].join("=") : "";
   };

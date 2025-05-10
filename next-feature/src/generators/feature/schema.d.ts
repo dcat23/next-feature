@@ -7,6 +7,7 @@ export interface FeatureGeneratorSchema {
   useAuth?: boolean;
   useDb?: boolean;
   useAll?: boolean;
+  skipFormat?: boolean;
 }
 
 export interface NormalizedFeatureGeneratorSchema extends FeatureGeneratorSchema {

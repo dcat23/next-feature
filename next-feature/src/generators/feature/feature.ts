@@ -104,7 +104,7 @@ export async function featureGenerator(
     }))
   }
 
-  await formatFiles(tree);
+  if (!normalizedOptions.skipFormat) await formatFiles(tree);
 
   return runTasksInSerial(...tasks);
 }

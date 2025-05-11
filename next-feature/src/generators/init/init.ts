@@ -26,7 +26,6 @@ export async function initGenerator(tree: Tree, options: InitGeneratorSchema) {
 
   const tasks: GeneratorCallback[] = updateDependencies(tree);
 
-  // tasks.push(await featureGenerator(tree, { name: 'features' }));
 
   await formatFiles(tree);
 

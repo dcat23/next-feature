@@ -23,6 +23,9 @@ importers:
       react-dom:
         specifier: 19.0.0
         version: 19.0.0(react@19.0.0)
+      yargs:
+        specifier: ^17.7.2
+        version: 17.7.2
     devDependencies:
       '@eslint/js':
         specifier: ^9.8.0
@@ -66,6 +69,9 @@ importers:
       '@types/node':
         specifier: 18.16.9
         version: 18.16.9
+      '@types/yargs':
+        specifier: ^17.0.33
+        version: 17.0.33
       eslint:
         specifier: ^9.8.0
         version: 9.26.0

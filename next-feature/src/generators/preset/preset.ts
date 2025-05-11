@@ -1,4 +1,3 @@
-import { readNxJson } from '@nx/devkit';
 import { writeJson } from '@nx/devkit';
 import { readJson } from '@nx/devkit';
 import { runTasksInSerial } from '@nx/devkit';
@@ -17,8 +16,9 @@ import databaseGenerator from '../database/database';
 import type { NormalizedPresetGeneratorSchema } from './schema';
 import { PresetGeneratorSchema } from './schema';
 
-
-function normalize(options: PresetGeneratorSchema): NormalizedPresetGeneratorSchema {
+function normalize(
+  options: PresetGeneratorSchema
+): NormalizedPresetGeneratorSchema {
   options.directory ??= options.name;
   options.srcPath ??= 'src';
 
@@ -28,8 +28,8 @@ function normalize(options: PresetGeneratorSchema): NormalizedPresetGeneratorSch
     tmpl: '',
     ...options,
     projectRoot,
-    sourceRoot
-  }
+    sourceRoot,
+  };
 }
 
 export async function presetGenerator(

@@ -31,13 +31,13 @@ export async function axiosGenerator(
 ) {
   const normalizedOptions = normalize(options);
 
-  const { sourceRoot } = await initializeGenerator(
+  const { root: projectRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'axios'
   );
 
-
+  const sourceRoot = projectRoot + "/src";
   const depTask = updateDependencies(tree);
 
   generateFiles(tree, path.join(__dirname, 'files'), sourceRoot, normalizedOptions);

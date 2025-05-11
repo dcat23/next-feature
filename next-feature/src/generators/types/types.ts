@@ -38,14 +38,15 @@ export async function typesGenerator(
 ) {
   const normalizedOptions = normalize(options);
   // logger.debug({ normalizedOptions });
-  const { sourceRoot } = await initializeGenerator(
+  const { root: projectRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'types'
   );
 
   const directory = path.join(
-    sourceRoot,
+    projectRoot,
+    'src',
     normalizedOptions.package,
   );
 

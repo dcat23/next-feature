@@ -6,6 +6,7 @@ import { formatFiles, generateFiles, Tree } from '@nx/devkit';
 import { Linter } from '@nx/eslint';
 import { applicationGenerator } from '@nx/next';
 import * as path from 'path';
+import { SONNER_VERSION } from '../../lib/constants';
 import { TANSTACK_VERSION } from '../../lib/constants';
 import { ZOD_VERSION } from '../../lib/constants';
 import { writeToDotenv } from '../../lib/dot-env';
@@ -50,6 +51,8 @@ export async function presetGenerator(
       appDir: true,
       linter: Linter.EsLint,
       skipFormat: true,
+      skipPackageJson: false,
+      useProjectJson: true,
     })
   );
 
@@ -65,6 +68,7 @@ export async function presetGenerator(
   );
 
   const dependencies: Record<string, string> = {
+    sonner: SONNER_VERSION,
     '@tanstack/react-query': TANSTACK_VERSION,
     zod: ZOD_VERSION,
   };

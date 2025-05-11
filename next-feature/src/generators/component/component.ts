@@ -32,14 +32,16 @@ export async function componentGenerator(
 
   const normalizedOptions = normalize(options);
   // logger.debug({ normalizedOptions });
-  const { sourceRoot } = await initializeGenerator(
+  const { root: projectRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'component'
   );
 
+
   const directory = path.join(
-    sourceRoot,
+    projectRoot,
+    'src',
     normalizedOptions.package,
   );
 

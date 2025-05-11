@@ -7,3 +7,4 @@ export const PRISMA_VERSION = "6.7.0"
 export const PRISMA_AUTH_VERSION = "2.9.0"
 export const ZOD_VERSION = "3.24.4"
 export const TANSTACK_VERSION = "5.75.7";
+export const SONNER_VERSION = "2.0.3";

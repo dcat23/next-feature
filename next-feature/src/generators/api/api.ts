@@ -43,14 +43,15 @@ export async function apiGenerator(tree: Tree, options: ApiGeneratorSchema) {
   const tasks: GeneratorCallback[] = [];
 
   // logger.debug({ normalizedOptions });
-  const { sourceRoot } = await initializeGenerator(
+  const { root: projectRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'api'
   );
 
   const directory = path.join(
-    sourceRoot,
+    projectRoot,
+    'src',
     normalizedOptions.package,
   );
 

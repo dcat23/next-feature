@@ -31,7 +31,7 @@ function normalize(
 export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
   const normalizedOptions = normalize(options);
 
-  const { sourceRoot, root: projectRoot } = await initializeGenerator(
+  const { root: projectRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'auth'
@@ -47,6 +47,8 @@ export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
     "AUTH_GITHUB_ID": "",
     "AUTH_GITHUB_SECRET": "",
   });
+
+  const sourceRoot = projectRoot + "/src";
 
   generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, normalizedOptions);
 

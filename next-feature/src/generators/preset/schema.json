@@ -6,12 +6,41 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "",
+      "description": "Name of the project features will be added to.",
       "$default": {
         "$source": "argv",
         "index": 0
       },
       "x-prompt": "What name would you like to use?"
+    },
+    "directory": {
+      "type": "string",
+      "description": "Where to create this project"
+    },
+    "srcPath": {
+      "type": "string",
+      "description": "The directory where features files will generated to",
+      "default": "src"
+    },
+    "useAxios": {
+      "type": "boolean",
+      "description": "Initialize axios package",
+      "default": true
+    },
+    "useAuth": {
+      "type": "boolean",
+      "description": "Initialize auth package",
+      "default": true
+    },
+    "useDb": {
+      "type": "boolean",
+      "description": "Initialize database files",
+      "default": false
+    },
+    "useAll": {
+      "type": "boolean",
+      "description": "Will initialize all packages (auth, axios, database)",
+      "default": false
     }
   },
   "required": ["name"]

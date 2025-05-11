@@ -6,7 +6,9 @@ import { PresetGeneratorSchema } from './schema';
 
 describe('preset generator', () => {
   let tree: Tree;
-  const options: PresetGeneratorSchema = { name: 'test' };
+  const options: PresetGeneratorSchema = {
+    name: 'test',
+  };
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();

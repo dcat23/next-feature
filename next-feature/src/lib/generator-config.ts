@@ -23,6 +23,8 @@ export async function initializeGenerator(tree: Tree, options: GeneratorSchema, 
 
     nxJson.generators ??= {};
     nxJson.generators[generatorName] ??= {};
+    nxJson.generators[generatorName]['directory'] ??= options.directory;
+    nxJson.generators[generatorName]['projectName'] ??= options.projectName;
 
     updateNxJson(tree, nxJson);
   }

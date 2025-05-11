@@ -44,6 +44,8 @@ export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
     "NEXTAUTH_URL": "http://localhost:3000",
     "NEXT_PUBLIC_ROOT_DOMAIN": "localhost:3000",
     "AUTH_SECRET": generateSecret(),
+    "AUTH_GITHUB_ID": "",
+    "AUTH_GITHUB_SECRET": "",
   });
 
   generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, normalizedOptions);

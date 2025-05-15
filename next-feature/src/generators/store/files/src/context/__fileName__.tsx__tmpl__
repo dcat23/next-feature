@@ -1,0 +1,43 @@
+import { useEffect, useState, createContext, useContext } from "react";
+
+
+type <%= className %> = unknown;
+
+type <%= className %>ContextProviderProps = {
+    children: React.ReactNode;
+};
+
+type <%= className %>ContextType = {
+    <%= propertyName %>: <%= className %>;
+    set<%= className %>: (<%= propertyName %>: <%= className %>) => void;
+};
+
+const <%= className %>Context = createContext<<%= className %>ContextType | null>(null);
+
+
+export default function <%= className %>ContextProvider({
+    children,
+}: <%= className %>ContextProviderProps) {
+    const [<%= propertyName %>, set<%= className %>] = useState<<%= className %>>(null);
+
+    return (
+        <<%= className %>Context.Provider
+            value={{
+                <%= propertyName %>,
+                set<%= className %>,
+            }}
+        >
+            {children}
+        </<%= className %>Context.Provider>
+    );
+}
+
+export function use<%= className %>() {
+    const context = useContext(<%= className %>Context);
+
+    if (context === null) {
+        throw new Error("use<%= className %> must be used within a <%= className %>ContextProvider");
+    }
+
+    return context;
+}

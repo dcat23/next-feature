@@ -1,4 +1,4 @@
-import { logger, runTasksInSerial } from '@nx/devkit';
+import { runTasksInSerial } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
 import { names } from '@nx/devkit';
 import { generateFiles } from '@nx/devkit';
@@ -13,7 +13,7 @@ import type { ApiGeneratorSchema } from './schema';
 function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   options.projectName ??= 'features';
   options.directory ??= options.projectName;
-  options.package ??= 'lib';
+  options.package = 'lib';
 
   const mutatedNames = names(options.name);
   const { propertyName, className, name } = mutatedNames;

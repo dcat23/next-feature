@@ -45,6 +45,11 @@
       "factory": "./src/generators/component/component",
       "schema": "./src/generators/component/schema.json",
       "description": "component generator"
+    },
+    "store": {
+      "factory": "./src/generators/store/store",
+      "schema": "./src/generators/store/schema.json",
+      "description": "store generator"
     }
   }
 }

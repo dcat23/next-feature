@@ -4,6 +4,7 @@ interface CreateMethodOptions {
   className: string;
   propertyName: string;
   persist?: boolean;
+  useContext?: boolean
 }
 
 export function zustandCreateMethod(options: CreateMethodOptions): string {
@@ -31,10 +32,19 @@ create<I${className}Store>((set, get) => ({
 }));
 `}
 
-export function mutateNames(name: string): ReturnType<typeof names> {
+type MutateNamesOptions = {
+  name: string;
+  useContext?: boolean;
+}
+export function mutateNames({ name, useContext }: MutateNamesOptions): ReturnType<typeof names> {
   const n = names(name);
+
   const prefix = /^use/.test(n.fileName) ? "" : "use";
-  const suffix = /store$/.test(n.fileName) ? "" : "store";
+
+  const testStr = useContext ? "context" : "store";
+  const regex = new RegExp(`${testStr}$`)
+  const suffix = regex.test(n.fileName) ? "" : testStr;
+
   const fileName = [prefix, n.fileName, suffix].join("-");
 
   return {

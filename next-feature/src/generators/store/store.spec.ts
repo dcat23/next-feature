@@ -27,4 +27,12 @@ describe('store generator', () => {
     expect(tree.exists(file)).toBeTruthy();
     expect(tree.exists(types)).toBeTruthy();
   });
+  it('should generate context', async () => {
+    await storeGenerator(tree, { ...options, useContext: true });
+    const file = 'test/src/lib/store/use-test-context.tsx';
+    const content = tree.read(file, 'utf-8')
+    // logger.debug(content);
+    expect(tree.exists(file)).toBeTruthy();
+    expect(content.includes("useTest()")).toBeTruthy();
+  });
 });

@@ -23,7 +23,7 @@ function normalize(options: StoreGeneratorSchema): NormalizedStoreGeneratorSchem
   options.persist = Boolean(options.persist);
   options.useTypes = Boolean(options.useTypes);
 
-  const mutatedNames = mutateNames(options.name);
+  const mutatedNames = mutateNames(options);
   const createMethod = zustandCreateMethod({ ...options, ...mutatedNames });
   return {
     tmpl: "",
@@ -40,7 +40,7 @@ export async function storeGenerator(
   const normalizedOptions = normalize(options);
   const tasks: GeneratorCallback[] = [];
 
-  // logger.debug({ normalizedOptions });
+  logger.debug({ normalizedOptions });
   const { root: projectRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
@@ -54,8 +54,8 @@ export async function storeGenerator(
     'store'
   );
 
-  const storeType = normalizedOptions.useContext ? "context" : "zustand";
 
+  const storeType = normalizedOptions.useContext ? "context" : "zustand";
   generateFiles(tree, path.join(__dirname, `files/src/${storeType}`), directory, normalizedOptions);
 
   if (normalizedOptions.useTypes) {

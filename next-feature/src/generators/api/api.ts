@@ -13,7 +13,7 @@ import type { ApiGeneratorSchema } from './schema';
 function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   options.projectName ??= 'features';
   options.directory ??= options.projectName;
-  options.package = 'lib';
+  options.package ??= 'lib';
 
   const mutatedNames = names(options.name);
   const { propertyName, className, name } = mutatedNames;

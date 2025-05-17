@@ -40,7 +40,7 @@ export async function storeGenerator(
   const normalizedOptions = normalize(options);
   const tasks: GeneratorCallback[] = [];
 
-  logger.debug({ normalizedOptions });
+  // logger.debug({ normalizedOptions });
   const { root: projectRoot } = await initializeGenerator(
     tree,
     normalizedOptions,

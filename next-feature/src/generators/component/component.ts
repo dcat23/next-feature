@@ -14,7 +14,7 @@ import { ComponentGeneratorSchema } from './schema';
 function normalize(options: ComponentGeneratorSchema): NormalizedComponentGeneratorSchema {
   options.projectName ??= 'features';
   options.directory ??= options.projectName;
-  options.package ??= 'components';
+  options.package = path.join(options.package ?? "", "components");
 
   const mutatedNames = names(options.name);
 

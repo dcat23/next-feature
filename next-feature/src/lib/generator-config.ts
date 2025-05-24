@@ -13,7 +13,7 @@ export async function initializeGenerator(tree: Tree, options: GeneratorSchema, 
   let projectConfiguration: ProjectConfiguration;
   try {
     projectConfiguration = readProjectConfiguration(tree, options.projectName);
-  } catch (e) {
+  } catch {
     await featureGenerator(tree, {
       name: options.projectName,
       directory: options.directory

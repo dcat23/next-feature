@@ -1,5 +1,5 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
-import { Tree, readProjectConfiguration } from '@nx/devkit';
+import { Tree, logger, readProjectConfiguration } from '@nx/devkit';
 
 import { componentGenerator } from './component';
 import { ComponentGeneratorSchema } from './schema';
@@ -22,6 +22,8 @@ describe('component generator', () => {
   it('should generate files', async () => {
     await componentGenerator(tree, options);
     const file = 'test/src/components/test-component.tsx';
+
+    logger.debug(tree.children("test/src/components"))
 
     expect(tree.exists(file)).toBeTruthy();
   });

@@ -1,4 +1,4 @@
-import { addProjectConfiguration } from '@nx/devkit';
+import { logger } from '@nx/devkit';
 import { readProjectConfiguration, Tree } from '@nx/devkit';
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 
@@ -7,7 +7,7 @@ import { ApiGeneratorSchema } from './schema';
 
 describe('api generator', () => {
   let tree: Tree;
-  const options: ApiGeneratorSchema = { name: 'test', projectName: 'features', directory: 'features' };
+  const options: ApiGeneratorSchema = { name: 'test' };
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
@@ -21,7 +21,7 @@ describe('api generator', () => {
 
   it('should generate files', async () => {
     await apiGenerator(tree, { ...options, name: 'get-backend-data' });
-    const file = 'features/src/lib/api/get-backend-data.ts';
+    const file = 'features/base/src/lib/api/get-backend-data.ts';
 
     expect(tree.exists(file)).toBeTruthy();
   });
@@ -32,7 +32,21 @@ describe('api generator', () => {
       name: 'create-backend-data',
       package: 'test/nested/package',
     });
-    const file = 'features/src/test/nested/package/api/create-backend-data.ts';
+    const file =
+      'features/base/src/test/nested/package/api/create-backend-data.ts';
+
+    expect(tree.exists(file)).toBeTruthy();
+  });
+
+  it('should set directory', async () => {
+    await apiGenerator(tree, {
+      ...options,
+      name: 'create-backend-data',
+      directory: 'testing',
+    });
+    const file = 'testing/base/src/lib/api/create-backend-data.ts';
+
+    logger.debug(tree.children(''));
 
     expect(tree.exists(file)).toBeTruthy();
   });

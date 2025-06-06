@@ -1,9 +1,8 @@
-import type { GeneratorSchema, Normalized } from '../../lib/types';
+import type { Normalized } from '../../lib/types';
 
 export interface PresetGeneratorSchema {
   name: string;
   directory?: string;
-  srcPath?: string;
   useAxios?: boolean;
   useAuth?: boolean;
   useDb?: boolean;
@@ -15,4 +14,5 @@ export interface NormalizedPresetGeneratorSchema extends Normalized<PresetGenera
   projectRoot: string;
   sourceRoot: string;
   tmpl: "";
+  importPath: string;
 }

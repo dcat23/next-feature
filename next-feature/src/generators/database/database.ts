@@ -1,4 +1,4 @@
-import { OverwriteStrategy } from '@nx/devkit';
+import { names } from '@nx/devkit';
 import { addDependenciesToPackageJson } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
 import { formatFiles, generateFiles, Tree } from '@nx/devkit';
@@ -13,11 +13,17 @@ import { DatabaseGeneratorSchema } from './schema';
 function normalize(
   options: DatabaseGeneratorSchema
 ): NormalizedDatabaseGeneratorSchema {
-  options.projectName ??= 'features';
   options.package ??= 'lib';
+  options.driver ??= 'postgresql';
+
+  const port = options.driver === "postgresql" ? 5432 : 3306;
+
+  const databaseName = names(options.projectName).constantName;
   return {
     tmpl: '',
     ...options,
+    databaseName,
+    port
   };
 }
 
@@ -28,7 +34,7 @@ export async function databaseGenerator(
 
   const normalizedOptions = normalize(options);
 
-  const { sourceRoot, root: projectRoot, name } = await initializeGenerator(
+  const { projectRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'database'
@@ -40,28 +46,18 @@ export async function databaseGenerator(
     return `${database}://$\{DATABASE_USER}:$\{DATABASE_PASSWORD}@$\{DATABASE_HOST}:$\{DATABASE_PORT}/$\{DATABASE_NAME},`
   };
   const dotenvEntries: Record<string, string> = {
+    "# DB": '',
     DATABASE_USER: "default",
     DATABASE_HOST: "localhost",
     DATABASE_PASSWORD: "password",
-    DATABASE_NAME: name,
-    DATABASE_PORT: "5432",
-    DATABASE_URL: databaseUrl("postgresql")
-};
+    DATABASE_NAME: normalizedOptions.databaseName,
+    DATABASE_PORT: String(normalizedOptions.port),
+    DATABASE_URL: databaseUrl(normalizedOptions.driver)
+  };
+
   writeToDotenv(tree, { projectRoot } , dotenvEntries, "example")
 
-  generateFiles(tree, path.join(__dirname, 'files'), projectRoot, {
-    ...normalizedOptions,
-    tmpl: "",
-    overwriteStrategy: OverwriteStrategy.KeepExisting,
-  });
-
-
-  // generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, {
-  //   ...normalizedOptions,
-  //   tmpl: "",
-  //   overwriteStrategy: OverwriteStrategy.KeepExisting,
-  // });
-
+  generateFiles(tree, path.join(__dirname, 'files'), projectRoot, normalizedOptions);
 
   if (!options.skipFormat) await formatFiles(tree);
 

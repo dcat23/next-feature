@@ -1,3 +1,4 @@
+import { logger } from '@nx/devkit';
 import { updateNxJson } from '@nx/devkit';
 import { readNxJson } from '@nx/devkit';
 import {
@@ -37,8 +38,8 @@ export async function initializeGenerator(tree: Tree, options: GeneratorSchema, 
   updateNxJson(tree, nxJson);
 
   const projectRoot = projectConfiguration.root;
-  const sourceRoot = path.join(projectRoot,"src");
-  const directory = path.join(sourceRoot, options.package);
+  const sourceRoot = path.join(projectRoot, "src")
+  const directory = path.join(sourceRoot, options.package ?? "")
 
   return {
     projectRoot,

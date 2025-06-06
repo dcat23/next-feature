@@ -66,7 +66,7 @@ export async function featureGenerator(
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies))
 
-  if (normalizedOptions.useAxios || normalizedOptions.useAll) {
+  if (normalizedOptions.useAxios) {
     tasks.push(await axiosGenerator(tree, {
       projectName: normalizedOptions.name,
       directory: normalizedOptions.directory,

@@ -12,37 +12,18 @@
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What name would you like to use?"
+      "x-prompt": "What name would you like to use?",
+      "default": "base"
     },
     "directory": {
       "type": "string",
       "description": "Where to create this project",
       "default": "."
     },
-    "srcPath": {
-      "type": "string",
-      "description": "The directory where features files will generated to",
-      "default": "src"
-    },
     "useAxios": {
       "type": "boolean",
       "description": "Initialize axios package",
-      "default": false
-    },
-    "useAuth": {
-      "type": "boolean",
-      "description": "Initialize auth package",
-      "default": false
-    },
-    "useDb": {
-      "type": "boolean",
-      "description": "Initialize database files",
-      "default": false
-    },
-    "useAll": {
-      "type": "boolean",
-      "description": "Will initialize all packages (auth, axios, database)",
-      "default": false
+      "default": true
     }
   },
   "required": ["name"]

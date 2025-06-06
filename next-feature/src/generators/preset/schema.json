@@ -17,16 +17,6 @@
       "type": "string",
       "description": "Where to create this project"
     },
-    "srcPath": {
-      "type": "string",
-      "description": "The directory where features files will generated to",
-      "default": "src"
-    },
-    "useAxios": {
-      "type": "boolean",
-      "description": "Initialize axios package",
-      "default": true
-    },
     "useAuth": {
       "type": "boolean",
       "description": "Initialize auth package",
@@ -40,6 +30,11 @@
     "useAll": {
       "type": "boolean",
       "description": "Will initialize all packages (auth, axios, database)",
+      "default": false
+    },
+    "skipFeature": {
+      "type": "boolean",
+      "description": "Will skip creating the feature plugin",
       "default": false
     }
   },

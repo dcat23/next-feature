@@ -8,6 +8,7 @@ export interface PresetGeneratorSchema {
   useDb?: boolean;
   useAll?: boolean;
   skipFormat?: boolean;
+  skipFeature?: boolean;
 }
 
 export interface NormalizedPresetGeneratorSchema extends Normalized<PresetGeneratorSchema> {

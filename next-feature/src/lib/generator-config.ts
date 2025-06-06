@@ -1,4 +1,3 @@
-import { logger } from '@nx/devkit';
 import { updateNxJson } from '@nx/devkit';
 import { readNxJson } from '@nx/devkit';
 import {

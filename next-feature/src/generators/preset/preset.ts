@@ -11,6 +11,7 @@ import { updateTsConfig } from '../../lib/ts-config';
 import { updateDependencies } from '../../lib/utils';
 import authGenerator from '../auth/auth';
 import databaseGenerator from '../database/database';
+import featureGenerator from '../feature/feature';
 import type { NormalizedPresetGeneratorSchema } from './schema';
 import { PresetGeneratorSchema } from './schema';
 
@@ -94,6 +95,16 @@ export async function presetGenerator(
   }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
+
+  if (!normalizedOptions.skipFeature) {
+    tasks.push(
+      await featureGenerator(tree, {
+        name: 'base',
+        useAxios: true,
+        skipFormat: true
+      })
+    )
+  }
 
   return runTasksInSerial(...tasks);
 }

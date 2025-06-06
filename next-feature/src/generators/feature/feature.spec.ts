@@ -8,7 +8,6 @@ describe('feature generator', () => {
   let tree: Tree;
   const options: FeatureGeneratorSchema = {
     name: 'test'
-
   };
 
   beforeEach(() => {

@@ -1,6 +1,6 @@
 
 export interface FeatureGeneratorSchema {
-  name: "features" | string;
+  name: "base" | string;
   directory?: string;
   srcPath?: string;
   useAxios?: boolean;
@@ -11,7 +11,8 @@ export interface FeatureGeneratorSchema {
 }
 
 export interface NormalizedFeatureGeneratorSchema extends FeatureGeneratorSchema {
+  tmpl: "";
   projectRoot: string;
   sourceRoot: string;
-  tmpl: "";
+  importPath: string;
 }

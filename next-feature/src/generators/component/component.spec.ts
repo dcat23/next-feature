@@ -6,7 +6,7 @@ import { ComponentGeneratorSchema } from './schema';
 
 describe('component generator', () => {
   let tree: Tree;
-  const options: ComponentGeneratorSchema = { name: 'test-component', directory: 'test', projectName: 'test' };
+  const options: ComponentGeneratorSchema = { name: 'test-component' };
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
@@ -14,16 +14,14 @@ describe('component generator', () => {
 
   it('should run successfully', async () => {
     await componentGenerator(tree, options);
-    const config = readProjectConfiguration(tree, 'test');
+    const config = readProjectConfiguration(tree, 'base');
     expect(config).toBeDefined();
   });
 
 
   it('should generate files', async () => {
     await componentGenerator(tree, options);
-    const file = 'test/src/components/test-component.tsx';
-
-    logger.debug(tree.children("test/src/components"))
+    const file = 'features/base/src/components/test-component.tsx';
 
     expect(tree.exists(file)).toBeTruthy();
   });

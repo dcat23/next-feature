@@ -15,7 +15,7 @@ describe('api generator', () => {
 
   it('should run successfully', async () => {
     await apiGenerator(tree, options);
-    const config = readProjectConfiguration(tree, 'features');
+    const config = readProjectConfiguration(tree, 'base');
     expect(config).toBeDefined();
   });
 
@@ -45,8 +45,6 @@ describe('api generator', () => {
       directory: 'testing',
     });
     const file = 'testing/base/src/lib/api/create-backend-data.ts';
-
-    logger.debug(tree.children(''));
 
     expect(tree.exists(file)).toBeTruthy();
   });

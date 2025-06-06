@@ -1,22 +1,13 @@
 import { runTasksInSerial } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
-import {
-  formatFiles,
-  generateFiles,
-  readJson,
-  Tree,
-  writeJson,
-} from '@nx/devkit';
+import { formatFiles, generateFiles, Tree } from '@nx/devkit';
 import { Linter } from '@nx/eslint';
 import { libraryGenerator } from '@nx/js';
 import * as path from 'path';
 import axiosGenerator from '../../generators/axios/axios';
 import { ZOD_VERSION } from '../../lib/constants';
-import { writeToDotenv } from '../../lib/dot-env';
 import { updateTsConfig } from '../../lib/ts-config';
 import { updateDependencies } from '../../lib/utils';
-import authGenerator from '../auth/auth';
-import databaseGenerator from '../database/database';
 import {
   FeatureGeneratorSchema,
   type NormalizedFeatureGeneratorSchema,
@@ -25,12 +16,9 @@ import {
 function normalize(
   options: FeatureGeneratorSchema
 ): NormalizedFeatureGeneratorSchema {
-  const directory = path.join(options.directory ?? 'features', options.name)
-
-  options.srcPath ??= 'src';
-
+  const directory = path.join(options.directory ?? 'features', options.name);
   const projectRoot = directory;
-  const sourceRoot = path.join(projectRoot, options.srcPath);
+  const sourceRoot = path.join(projectRoot, 'src');
   const importPath = `@feature/${options.name}`;
   return {
     tmpl: '',
@@ -78,29 +66,8 @@ export async function featureGenerator(
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies))
 
-  writeToDotenv(tree, normalizedOptions, {
-    '# FEATURES': '',
-    BACKEND_API_URL: "http://localhost:8080",
-  })
-
   if (normalizedOptions.useAxios || normalizedOptions.useAll) {
     tasks.push(await axiosGenerator(tree, {
-      projectName: normalizedOptions.name,
-      directory: normalizedOptions.directory,
-      skipFormat: true
-    }))
-  }
-
-  if (normalizedOptions.useAuth || normalizedOptions.useAll) {
-    tasks.push(await authGenerator(tree, {
-      projectName: normalizedOptions.name,
-      directory: normalizedOptions.directory,
-      skipFormat: true
-    }))
-  }
-
-  if (normalizedOptions.useDb || normalizedOptions.useAll) {
-    tasks.push(await databaseGenerator(tree, {
       projectName: normalizedOptions.name,
       directory: normalizedOptions.directory,
       skipFormat: true

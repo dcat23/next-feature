@@ -30,7 +30,7 @@ function normalize(
 
   const projectRoot = directory;
   const sourceRoot = path.join(projectRoot, options.srcPath);
-  const importPath = `@${options.name}`;
+  const importPath = `@feature/${options.name}`;
   return {
     tmpl: '',
     ...options,
@@ -59,7 +59,7 @@ export async function featureGenerator(
     skipFormat: true,
   }));
 
-  updateTsConfig(tree, normalizedOptions);
+  // updateTsConfig(tree, normalizedOptions, "tsconfig.lib.json");
 
   const sourceRoot = normalizedOptions.sourceRoot;
 
@@ -111,28 +111,6 @@ export async function featureGenerator(
   return runTasksInSerial(...tasks);
 }
 
-function updateTsConfig(tree: Tree, options: NormalizedFeatureGeneratorSchema) {
-  const tsConfigPath = path.join(options.projectRoot, "tsconfig.lib.json")
-
-  const tsConfig = tree.exists(tsConfigPath)
-    ? readJson(tree, tsConfigPath)
-    : {}
-
-  tsConfig["compilerOptions"] ??= {};
-  tsConfig["compilerOptions"]["baseUrl"] ??= '.';
-  tsConfig["compilerOptions"]["paths"] ??= {};
-  tsConfig["compilerOptions"]["paths"]["@/*"] ??= [];
-
-  const srcPath = path.join(options.srcPath, "*");
-
-  const paths = tsConfig["compilerOptions"]["paths"]["@/*"] as string[]
-  if (!paths.includes(srcPath)) {
-    paths.push(srcPath);
-    tsConfig["compilerOptions"]["paths"]["@/*"] = paths;
-  }
-
-  writeJson(tree, tsConfigPath, tsConfig);
-}
 
 
 export default featureGenerator;

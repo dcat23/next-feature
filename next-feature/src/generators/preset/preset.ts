@@ -94,8 +94,6 @@ export async function presetGenerator(
     );
   }
 
-  if (!normalizedOptions.skipFormat) await formatFiles(tree);
-
   if (!normalizedOptions.skipFeature) {
     tasks.push(
       await featureGenerator(tree, {
@@ -105,6 +103,9 @@ export async function presetGenerator(
       })
     )
   }
+
+  if (!normalizedOptions.skipFormat) await formatFiles(tree);
+
 
   return runTasksInSerial(...tasks);
 }

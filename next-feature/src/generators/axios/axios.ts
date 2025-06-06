@@ -1,13 +1,9 @@
-import {
-  addDependenciesToPackageJson,
-  formatFiles,
-  generateFiles,
-  type GeneratorCallback,
-  Tree,
-} from '@nx/devkit';
+import { formatFiles, generateFiles, Tree } from '@nx/devkit';
 import * as path from 'path';
 import { AXIOS_VERSION } from '../../lib/constants';
+import { writeToDotenv } from '../../lib/dot-env';
 import { initializeGenerator } from '../../lib/generator-config';
+import { updateDependencies } from '../../lib/utils';
 import type {
   AxiosGeneratorSchema,
   NormalizedAxiosGeneratorSchema,
@@ -16,9 +12,6 @@ import type {
 function normalize(
   options: AxiosGeneratorSchema
 ): NormalizedAxiosGeneratorSchema {
-  options.projectName ??= 'features';
-  options.directory ??= options.projectName;
-  options.package ??= 'lib';
   return {
     tmpl: '',
     ...options,
@@ -31,14 +24,19 @@ export async function axiosGenerator(
 ) {
   const normalizedOptions = normalize(options);
 
-  const { root: projectRoot } = await initializeGenerator(
+  const { root: projectRoot, sourceRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'axios'
   );
 
-  const sourceRoot = projectRoot + "/src";
-  const depTask = updateDependencies(tree);
+  const depTask = updateDependencies(tree, { axios: AXIOS_VERSION }, {});
+
+  writeToDotenv(tree, { projectRoot }, {
+      '# AXIOS': '',
+      BACKEND_API_URL: 'http://localhost:8080',
+  });
+
 
   generateFiles(tree, path.join(__dirname, 'files'), sourceRoot, normalizedOptions);
 
@@ -46,22 +44,5 @@ export async function axiosGenerator(
 
   return depTask;
 }
-
-function updateDependencies(tree: Tree) {
-  const task: GeneratorCallback = (
-    addDependenciesToPackageJson(
-      tree,
-      {
-        axios: AXIOS_VERSION,
-      },
-      {},
-      undefined,
-      true
-    )
-  );
-
-  return task;
-}
-
 
 export default axiosGenerator;

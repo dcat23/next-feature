@@ -13,20 +13,22 @@
       },
       "x-prompt": "What is the name of this interface?"
     },
+    "package": {
+      "type": "string",
+      "description": "The package within the feature plugin",
+      "$default": {
+        "$source": "argv",
+        "index": 1
+      },
+      "default": "lib"
+    },
     "projectName": {
       "type": "string",
-      "description": "The name for the features generator plugin",
-      "default": "features"
+      "description": "The name for the features generator plugin"
     },
     "directory": {
       "type": "string",
-      "description": "The directory of the features plugin",
-      "default": "features"
-    },
-    "package": {
-      "type": "string",
-      "description": "The directory in the project",
-      "default": "lib"
+      "description": "The directory of the features plugin"
     }
   },
   "required": ["name"]

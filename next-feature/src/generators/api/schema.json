@@ -13,24 +13,22 @@
       },
       "x-prompt": "What is the name for this api method?"
     },
-    "directory": {
-      "type": "string",
-      "description": "The directory of the features plugin",
-      "default": "features"
-    },
     "package": {
       "type": "string",
-      "description": "The directory within the source",
+      "description": "The package within the feature plugin",
       "$default": {
         "$source": "argv",
         "index": 1
       },
       "default": "lib"
     },
+    "directory": {
+      "type": "string",
+      "description": "The directory of the features plugin"
+    },
     "projectName": {
       "type": "string",
-      "description": "The package where the generated files will go",
-      "default": "features"
+      "description": "The package where the generated files will go"
     },
     "useTypes": {
       "type": "boolean",

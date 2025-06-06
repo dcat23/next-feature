@@ -12,8 +12,6 @@ import { TypesGeneratorSchema } from './schema';
 function normalize(
   options: TypesGeneratorSchema
 ): NormalizedTypesGeneratorSchema {
-  options.projectName ??= 'features';
-  options.directory ??= options.projectName;
   options.package ??= 'lib';
 
   const mutatedNames = names(options.name);

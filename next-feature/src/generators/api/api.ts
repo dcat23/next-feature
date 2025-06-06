@@ -11,8 +11,6 @@ import type { NormalizedApiGeneratorSchema } from './schema';
 import type { ApiGeneratorSchema } from './schema';
 
 function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
-  options.projectName ??= 'features';
-  options.directory ??= options.projectName;
   options.package ??= 'lib';
 
   const mutatedNames = names(options.name);

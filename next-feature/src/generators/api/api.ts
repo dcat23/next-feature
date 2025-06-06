@@ -6,7 +6,10 @@ import { formatFiles, Tree } from '@nx/devkit';
 import * as path from 'path';
 import { initializeGenerator } from '../../lib/generator-config';
 import typesGenerator from '../types/types';
+import type { HttpMethod } from './lib/extract-http-method';
 import { extractHttpMethod } from './lib/extract-http-method';
+import { TYPE_IMPORT_SEPARATOR } from './lib/utils';
+import { asTypeImport } from './lib/utils';
 import type { NormalizedApiGeneratorSchema } from './schema';
 import type { ApiGeneratorSchema } from './schema';
 
@@ -20,10 +23,17 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
 
   const methodName = propertyName;
   const endpoint = names(noPrefixClassName).fileName.replace('-', '/');
+  const hasRequestBody = (['post', 'put'] as HttpMethod[]).includes(httpMethod);
 
-  const asTypeImport = (dataType: string) => dataType;
 
-  const typeImports = [className].map(asTypeImport).join(', ');
+  const defaultImports = [className];
+  /**
+   * create type for methods that need a request body
+   */
+  if (hasRequestBody) {
+    defaultImports.push(className.concat('Request'));
+  }
+  const typeImports = defaultImports.map(asTypeImport).join(TYPE_IMPORT_SEPARATOR);
 
   return {
     tmpl: '',
@@ -33,6 +43,7 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
     httpMethod,
     endpoint,
     typeImports,
+    hasRequestBody,
   };
 }
 
@@ -51,7 +62,9 @@ export async function apiGenerator(tree: Tree, options: ApiGeneratorSchema) {
   generateFiles(tree, path.join(__dirname, 'files/src'), directory, normalizedOptions);
 
   if (normalizedOptions.useTypes) {
-    tasks.push(await typesGenerator(tree, { ...normalizedOptions, skipFormat: true }))
+    for (const typeImport of normalizedOptions.typeImports.split(TYPE_IMPORT_SEPARATOR)) {
+      tasks.push(await typesGenerator(tree, { name: typeImport, skipFormat: true }))
+    }
   }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);

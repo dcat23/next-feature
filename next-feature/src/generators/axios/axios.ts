@@ -37,7 +37,6 @@ export async function axiosGenerator(
       BACKEND_API_URL: 'http://localhost:8080',
   });
 
-
   generateFiles(tree, path.join(__dirname, 'files'), sourceRoot, normalizedOptions);
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);

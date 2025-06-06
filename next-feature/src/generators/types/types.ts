@@ -1,6 +1,5 @@
 import { names } from '@nx/devkit';
 import { formatFiles, Tree } from '@nx/devkit';
-import * as path from 'path';
 import { initializeGenerator } from '../../lib/generator-config';
 import type { WithNames } from '../../lib/types';
 import type { GeneratorSchema } from '../../lib/types';

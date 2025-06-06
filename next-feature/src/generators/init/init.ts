@@ -9,7 +9,6 @@ import {
   updateNxJson,
 } from '@nx/devkit';
 import { PROJECT_NAME, PROJECT_VERSION } from '../../lib/constants';
-import featureGenerator from '../feature/feature';
 import type { InitGeneratorSchema } from './schema';
 
 export async function initGenerator(tree: Tree, options: InitGeneratorSchema) {
@@ -25,7 +24,6 @@ export async function initGenerator(tree: Tree, options: InitGeneratorSchema) {
   }
 
   const tasks: GeneratorCallback[] = updateDependencies(tree);
-
 
   await formatFiles(tree);
 

@@ -48,4 +48,37 @@ describe('api generator', () => {
 
     expect(tree.exists(file)).toBeTruthy();
   });
+
+  it('should create request body', async () => {
+    await apiGenerator(tree, {
+      ...options,
+      name: 'create-backend-data',
+      directory: 'testing',
+    });
+    const filePath = 'testing/base/src/lib/api/create-backend-data.ts';
+
+    expect(tree.exists(filePath)).toBeTruthy();
+
+    const file = tree.read(filePath, 'utf-8');
+
+    expect(file.includes("CreateBackendDataRequest")).toBeTruthy()
+
+    logger.debug(file)
+  });
+
+  it('should not create request body', async () => {
+    await apiGenerator(tree, {
+      ...options,
+      name: 'get-backend-data',
+      directory: 'testing',
+    });
+    const filePath = 'testing/base/src/lib/api/get-backend-data.ts';
+
+    expect(tree.exists(filePath)).toBeTruthy();
+
+    const file = tree.read(filePath, 'utf-8');
+
+    expect(file.includes("GetBackendDataRequest")).toBeFalsy()
+    expect(file.includes("GetBackendData")).toBeTruthy()
+  });
 });

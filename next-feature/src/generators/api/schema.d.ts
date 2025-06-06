@@ -12,4 +12,5 @@ export interface NormalizedApiGeneratorSchema extends Normalized<WithNames<ApiGe
   methodName: string;
   httpMethod: string;
   typeImports: string;
+  hasRequestBody: boolean;
 }

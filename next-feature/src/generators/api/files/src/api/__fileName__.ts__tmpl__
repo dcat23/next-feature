@@ -3,9 +3,9 @@
 import type {
   <%= typeImports %>
 } from '../types';
-import api from '@/lib/axios';
-import { handleError } from '@/lib/axios/error';
-import type { BackendResponse } from '@/lib/axios/types';
+import api from '@feature/base/lib/axios';
+import { handleError } from '@/feature/base/lib/axios/error';
+import type { BackendResponse } from '@feature/base/lib/axios/types';
 
 interface BackendRequestBody {
 
@@ -17,8 +17,14 @@ export async function <%= methodName %>(
   const params: URLSearchParams = new URLSearchParams();
   const endpoint = `/api/<%= endpoint %>?${params.toString()}`;
 
+  <% if (hasRequestBody) { %>
+  const body: <%= className %>Request = {
+      ...options
+  }
+  <% } %>
+
   try {
-    const { data } = await api.<%= httpMethod %><<%= className %>>(endpoint, body);
+    const { data } = await api.<%= httpMethod %><<%= className %>>(endpoint<% if (hasRequestBody) { %>, body<% } %>);
 
     return { data };
   } catch (error: any) {

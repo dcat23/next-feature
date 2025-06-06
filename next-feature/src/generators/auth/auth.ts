@@ -28,7 +28,7 @@ function normalize(
 export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
   const normalizedOptions = normalize(options);
 
-  const { projectRoot, sourceRoot } = await initializeGenerator(
+  const { projectRoot, sourceRoot, projectName } = await initializeGenerator(
     tree,
     normalizedOptions,
     'auth'
@@ -50,7 +50,12 @@ export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
   const authRoute = joinPathFragments(sourceRoot, "app/api/auth/[...nextauth]/route.ts")
 
   if (!tree.exists(authRoute)) {
-    generateFiles(tree, path.join(__dirname, 'files/app'), sourceRoot + "/app", normalizedOptions);
+    generateFiles(
+      tree,
+      path.join(__dirname, 'files/app'),
+      sourceRoot + '/app',
+      { ...normalizedOptions, importPath: `@app/${projectName}` }
+    );
   }
 
   if (!options.skipFormat) await formatFiles(tree);

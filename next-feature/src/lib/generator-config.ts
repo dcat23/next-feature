@@ -43,6 +43,7 @@ export async function initializeGenerator(tree: Tree, options: GeneratorSchema, 
   return {
     projectRoot,
     sourceRoot,
-    directory
+    directory,
+    projectName
   };
 }

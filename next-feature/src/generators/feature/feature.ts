@@ -24,17 +24,20 @@ import {
 function normalize(
   options: FeatureGeneratorSchema
 ): NormalizedFeatureGeneratorSchema {
-  options.directory ??= options.name;
+  const directory = path.join(options.directory ?? 'features', options.name)
+
   options.srcPath ??= 'src';
 
-  const projectRoot = `${options.directory}`;
+  const projectRoot = directory;
   const sourceRoot = path.join(projectRoot, options.srcPath);
-
+  const importPath = `@${options.name}`;
   return {
     tmpl: '',
     ...options,
+    directory,
     projectRoot,
     sourceRoot,
+    importPath,
   };
 }
 
@@ -50,6 +53,7 @@ export async function featureGenerator(
     name: normalizedOptions.name,
     buildable: true,
     bundler: 'tsc',
+    importPath: normalizedOptions.importPath,
     unitTestRunner: 'jest',
     linter: Linter.EsLint,
     skipFormat: true,
@@ -75,7 +79,7 @@ export async function featureGenerator(
 
   writeToDotenv(tree, normalizedOptions, {
     '# FEATURES': '',
-    'BACKEND_API_URL': "http://localhost:3000",
+    BACKEND_API_URL: "http://localhost:8080",
   })
 
   if (normalizedOptions.useAxios || normalizedOptions.useAll) {

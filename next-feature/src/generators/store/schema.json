@@ -14,11 +14,6 @@
       },
       "x-prompt": "What is the name for this api method?"
     },
-    "directory": {
-      "type": "string",
-      "description": "The directory of the features plugin",
-      "default": "features"
-    },
     "package": {
       "type": "string",
       "description": "The directory within the source",
@@ -27,6 +22,11 @@
         "index": 1
       },
       "default": "lib"
+    },
+    "directory": {
+      "type": "string",
+      "description": "The directory of the features plugin",
+      "default": "features"
     },
     "projectName": {
       "type": "string",

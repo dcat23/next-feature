@@ -5,20 +5,24 @@ import {
   readProjectConfiguration,
   Tree,
 } from '@nx/devkit';
-import type { GeneratorSchema } from './types';
 import featureGenerator from '../generators/feature/feature';
-const PROJECT_NAME = require("../../package.json").name
+import type { GeneratorSchema } from './types';
+
+const PROJECT_NAME = require('../../package.json').name;
 
 export async function initializeGenerator(tree: Tree, options: GeneratorSchema, generatorName: string) {
+  const projectName = options.projectName ?? "base";
+
   let projectConfiguration: ProjectConfiguration;
   try {
-    projectConfiguration = readProjectConfiguration(tree, options.projectName);
+    projectConfiguration = readProjectConfiguration(tree, projectName);
   } catch {
     await featureGenerator(tree, {
-      name: options.projectName,
+      name: projectName,
       directory: options.directory
     });
-    projectConfiguration = readProjectConfiguration(tree, options.projectName);
+
+    projectConfiguration = readProjectConfiguration(tree, projectName);
 
   }
 
@@ -27,8 +31,7 @@ export async function initializeGenerator(tree: Tree, options: GeneratorSchema, 
   nxJson.generators ??= {};
   nxJson.generators[PROJECT_NAME] ??= {};
   nxJson.generators[PROJECT_NAME][generatorName] ??= {};
-  nxJson.generators[PROJECT_NAME][generatorName]['directory'] ??= options.directory;
-  nxJson.generators[PROJECT_NAME][generatorName]['projectName'] ??= options.projectName;
+  nxJson.generators[PROJECT_NAME][generatorName]['projectName'] ??= projectName;
 
   updateNxJson(tree, nxJson);
 

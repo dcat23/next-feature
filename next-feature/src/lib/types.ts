@@ -2,8 +2,8 @@ import type { names } from '@nx/devkit';
 import type { FeatureGeneratorSchema } from '../generators/feature/schema';
 
 export interface GeneratorSchema {
-  projectName: FeatureGeneratorSchema['name'];
-  directory: FeatureGeneratorSchema['directory'];
+  projectName?: FeatureGeneratorSchema['name'];
+  directory?: FeatureGeneratorSchema['directory'];
   package?: 'lib' | string;
   skipFormat?: boolean;
 }

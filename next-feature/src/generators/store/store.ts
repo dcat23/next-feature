@@ -1,12 +1,6 @@
-import { logger, runTasksInSerial } from '@nx/devkit';
+import { runTasksInSerial } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
-import { names } from '@nx/devkit';
-import {
-  addProjectConfiguration,
-  formatFiles,
-  generateFiles,
-  Tree,
-} from '@nx/devkit';
+import { formatFiles, generateFiles, Tree } from '@nx/devkit';
 import * as path from 'path';
 import { initializeGenerator } from '../../lib/generator-config';
 import typesGenerator from '../types/types';
@@ -15,10 +9,9 @@ import { zustandCreateMethod } from './lib/options';
 import type { NormalizedStoreGeneratorSchema } from './schema';
 import { StoreGeneratorSchema } from './schema';
 
-
-function normalize(options: StoreGeneratorSchema): NormalizedStoreGeneratorSchema {
-  options.projectName ??= 'features';
-  options.directory ??= options.projectName;
+function normalize(
+  options: StoreGeneratorSchema
+): NormalizedStoreGeneratorSchema {
   options.package ??= 'lib';
   options.persist = Boolean(options.persist);
   options.useTypes = Boolean(options.useTypes);
@@ -26,11 +19,11 @@ function normalize(options: StoreGeneratorSchema): NormalizedStoreGeneratorSchem
   const mutatedNames = mutateNames(options);
   const createMethod = zustandCreateMethod({ ...options, ...mutatedNames });
   return {
-    tmpl: "",
+    tmpl: '',
     ...options,
     ...mutatedNames,
     createMethod,
-  }
+  };
 }
 
 export async function storeGenerator(

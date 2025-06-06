@@ -8,8 +8,6 @@ import { ComponentGeneratorSchema } from './schema';
 function normalize(
   options: ComponentGeneratorSchema
 ): NormalizedComponentGeneratorSchema {
-  options.projectName ??= 'features';
-  options.directory ??= options.projectName;
   options.package ??= '';
 
   const mutatedNames = names(options.name);

@@ -41,19 +41,12 @@ export async function apiGenerator(tree: Tree, options: ApiGeneratorSchema) {
   const tasks: GeneratorCallback[] = [];
 
   // logger.debug({ normalizedOptions });
-  const { root: projectRoot } = await initializeGenerator(
+  const { directory } = await initializeGenerator(
     tree,
     normalizedOptions,
     'api'
   );
 
-  const directory = path.join(
-    projectRoot,
-    'src',
-    normalizedOptions.package,
-  );
-
-  // logger.debug({ directory });
 
   generateFiles(tree, path.join(__dirname, 'files/src'), directory, normalizedOptions);
 

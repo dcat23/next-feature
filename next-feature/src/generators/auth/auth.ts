@@ -28,7 +28,7 @@ function normalize(
 export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
   const normalizedOptions = normalize(options);
 
-  const { root: projectRoot, sourceRoot } = await initializeGenerator(
+  const { projectRoot, sourceRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'auth'

@@ -5,6 +5,7 @@ import {
   readProjectConfiguration,
   Tree,
 } from '@nx/devkit';
+import * as path from 'path';
 import featureGenerator from '../generators/feature/feature';
 import type { GeneratorSchema } from './types';
 
@@ -35,5 +36,13 @@ export async function initializeGenerator(tree: Tree, options: GeneratorSchema, 
 
   updateNxJson(tree, nxJson);
 
-  return projectConfiguration;
+  const projectRoot = projectConfiguration.root;
+  const sourceRoot = path.join(projectRoot,"src");
+  const directory = path.join(sourceRoot, options.package);
+
+  return {
+    projectRoot,
+    sourceRoot,
+    directory
+  };
 }

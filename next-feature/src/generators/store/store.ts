@@ -34,18 +34,13 @@ export async function storeGenerator(
   const tasks: GeneratorCallback[] = [];
 
   // logger.debug({ normalizedOptions });
-  const { root: projectRoot } = await initializeGenerator(
+  const { directory: sourceDirectory } = await initializeGenerator(
     tree,
     normalizedOptions,
     'store'
   );
 
-  const directory = path.join(
-    projectRoot,
-    'src',
-    normalizedOptions.package,
-    'store'
-  );
+  const directory = path.join(sourceDirectory,'store');
 
 
   const storeType = normalizedOptions.useContext ? "context" : "zustand";

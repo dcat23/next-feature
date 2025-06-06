@@ -1,4 +1,4 @@
-import { logger, names } from '@nx/devkit';
+import { names } from '@nx/devkit';
 import { formatFiles, generateFiles, Tree } from '@nx/devkit';
 import * as path from 'path';
 import { initializeGenerator } from '../../lib/generator-config';
@@ -25,18 +25,14 @@ export async function componentGenerator(
 ) {
 
   const normalizedOptions = normalize(options);
-  const { root: projectRoot } = await initializeGenerator(
+  const { directory } = await initializeGenerator(
     tree,
     normalizedOptions,
     'component'
   );
 
 
-  const directory = path.join(
-    projectRoot,
-    'src',
-    normalizedOptions.package,
-  );
+
 
   generateFiles(tree, path.join(__dirname, 'files/src'), directory, normalizedOptions);
 

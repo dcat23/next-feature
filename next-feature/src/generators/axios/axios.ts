@@ -24,7 +24,7 @@ export async function axiosGenerator(
 ) {
   const normalizedOptions = normalize(options);
 
-  const { root: projectRoot, sourceRoot } = await initializeGenerator(
+  const { projectRoot, sourceRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'axios'

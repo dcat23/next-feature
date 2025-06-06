@@ -1,5 +1,4 @@
 import { joinPathFragments } from '@nx/devkit';
-import { OverwriteStrategy } from '@nx/devkit';
 import { generateFiles } from '@nx/devkit';
 import {
   addDependenciesToPackageJson,
@@ -19,8 +18,6 @@ import type {
 function normalize(
   options: AuthGeneratorSchema
 ): NormalizedAuthGeneratorSchema {
-  options.projectName ??= 'features';
-  options.directory ??= options.projectName;
   options.package ??= 'lib';
   return {
     tmpl: '',
@@ -31,7 +28,7 @@ function normalize(
 export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
   const normalizedOptions = normalize(options);
 
-  const { root: projectRoot } = await initializeGenerator(
+  const { root: projectRoot, sourceRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'auth'
@@ -41,14 +38,12 @@ export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
 
   writeToDotenv(tree, { projectRoot }, {
     "# AUTH": "",
-    "NEXTAUTH_URL": "http://localhost:3000",
-    "NEXT_PUBLIC_ROOT_DOMAIN": "localhost:3000",
-    "AUTH_SECRET": generateSecret(),
-    "AUTH_GITHUB_ID": "",
-    "AUTH_GITHUB_SECRET": "",
+    NEXTAUTH_URL: "http://localhost:3000",
+    NEXT_PUBLIC_ROOT_DOMAIN: "localhost:3000",
+    AUTH_SECRET: generateSecret(),
+    AUTH_GITHUB_ID: "",
+    AUTH_GITHUB_SECRET: "",
   });
-
-  const sourceRoot = projectRoot + "/src";
 
   generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, normalizedOptions);
 

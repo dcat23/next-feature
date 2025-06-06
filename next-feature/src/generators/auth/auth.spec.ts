@@ -1,10 +1,4 @@
-import { logger } from '@nx/devkit';
-import {
-  addProjectConfiguration,
-  readJson,
-  readProjectConfiguration,
-  Tree,
-} from '@nx/devkit';
+import { readJson, readProjectConfiguration, Tree } from '@nx/devkit';
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 
 import { authGenerator } from './auth';
@@ -14,15 +8,11 @@ describe('auth generator', () => {
   let tree: Tree;
   const options: AuthGeneratorSchema = {
     projectName: 'test',
+    directory: 'apps',
   };
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
-    addProjectConfiguration(tree, 'test', {
-      root: '.',
-      sourceRoot: 'src',
-      projectType: 'library',
-    });
   });
 
   it('should run successfully', async () => {
@@ -33,10 +23,10 @@ describe('auth generator', () => {
 
   it('should generate files', async () => {
     await authGenerator(tree, options);
-    const libDirectory = tree.children('src/lib/auth');
-    const routeFile = 'src/app/api/auth/[...nextauth]/route.ts';
+    const libDirectory = tree.children('apps/test/src/lib/auth');
+    const routeFile = 'apps/test/src/app/api/auth/[...nextauth]/route.ts';
 
-    expect(tree.exists(routeFile)).toBeTruthy()
+    expect(tree.exists(routeFile)).toBeTruthy();
     expect(
       ['index.ts', 'auth.config.ts', 'next-auth.d.ts'].every((file) =>
         libDirectory.includes(file)
@@ -46,20 +36,19 @@ describe('auth generator', () => {
 
   it('should add dependencies to package.json', async () => {
     await authGenerator(tree, options);
-    const packagejson = readJson(tree, 'package.json');
-    const dependencies = Object.keys(packagejson['dependencies']);
+    const packageJson = readJson(tree, 'package.json');
+    const dependencies = Object.keys(packageJson['dependencies']);
 
     expect(
       ['next-auth'].every((dep) => dependencies.includes(dep))
     ).toBeTruthy();
   });
 
-
   it('should add environment variables', async () => {
     await authGenerator(tree, options);
-    const dotenv = tree.read(".env")
+    const dotenv = tree.read('apps/test/.env');
     expect(
-      ['NEXTAUTH_URL', 'AUTH_SECRET', ].every((dep) => dotenv.includes(dep))
+      ['NEXTAUTH_URL', 'AUTH_SECRET'].every((dep) => dotenv.includes(dep))
     ).toBeTruthy();
   });
 });

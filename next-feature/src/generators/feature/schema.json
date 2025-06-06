@@ -17,8 +17,7 @@
     },
     "directory": {
       "type": "string",
-      "description": "Where to create this project",
-      "default": "."
+      "description": "Where to create this project"
     },
     "useAxios": {
       "type": "boolean",

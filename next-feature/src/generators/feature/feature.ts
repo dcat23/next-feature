@@ -1,3 +1,4 @@
+import { logger } from '@nx/devkit';
 import { runTasksInSerial } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
 import { formatFiles, generateFiles, Tree } from '@nx/devkit';

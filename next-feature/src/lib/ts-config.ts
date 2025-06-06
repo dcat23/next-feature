@@ -3,29 +3,24 @@ import { readJson } from '@nx/devkit';
 import { Tree } from '@nx/devkit';
 import * as path from 'path';
 
-interface TsConfigOptions {
-  projectRoot: string;
-  srcPath: string;
-  importPath: string;
-}
 
-export function updateTsConfig(tree: Tree, options: TsConfigOptions, fileName = "tsconfig.json") {
-  const tsConfigPath = path.join(options.projectRoot, fileName)
+export function updateTsConfig(tree: Tree, importPathName: string, sourceRoot: string) {
+  const tsConfigPath = path.join(".", "tsconfig.base.json")
 
   const tsConfig = tree.exists(tsConfigPath)
     ? readJson(tree, tsConfigPath)
     : {}
 
-  const importPath = path.join(options.importPath, '*');
+  const importPath = path.join(importPathName, '*');
 
   tsConfig["compilerOptions"] ??= {};
-  tsConfig["compilerOptions"]["baseUrl"] ??= '.';
+  // tsConfig["compilerOptions"]["baseUrl"] ??= '.';
   tsConfig["compilerOptions"]["paths"] ??= {};
   tsConfig["compilerOptions"]["paths"][importPath] ??= [];
 
-  const srcPath = path.join(options.srcPath, "*");
+  const srcPath = path.join(sourceRoot ?? 'src', "*");
 
-  const paths = tsConfig["compilerOptions"]["paths"]["@/*"] as string[]
+  const paths = tsConfig["compilerOptions"]["paths"][importPath] as string[]
   if (!paths.includes(srcPath)) {
     paths.push(srcPath);
     tsConfig["compilerOptions"]["paths"][importPath] = paths;

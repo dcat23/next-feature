@@ -13,6 +13,7 @@ import * as path from 'path';
 import axiosGenerator from '../../generators/axios/axios';
 import { ZOD_VERSION } from '../../lib/constants';
 import { writeToDotenv } from '../../lib/dot-env';
+import { updateTsConfig } from '../../lib/ts-config';
 import { updateDependencies } from '../../lib/utils';
 import authGenerator from '../auth/auth';
 import databaseGenerator from '../database/database';
@@ -59,10 +60,10 @@ export async function featureGenerator(
     skipFormat: true,
   }));
 
-  // updateTsConfig(tree, normalizedOptions, "tsconfig.lib.json");
 
   const sourceRoot = normalizedOptions.sourceRoot;
 
+  updateTsConfig(tree, normalizedOptions.importPath, sourceRoot);
   generateFiles(
     tree,
     path.join(__dirname, 'files/src'),

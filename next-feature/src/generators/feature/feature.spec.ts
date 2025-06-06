@@ -30,4 +30,15 @@ describe('feature generator', () => {
     ).toBeTruthy();
   });
 
+  it('should set import path', async () => {
+    await featureGenerator(tree, options);
+
+
+    const tsConfig = tree.read("tsconfig.base.json", "utf-8")
+
+    logger.debug(tsConfig)
+
+    expect(tsConfig.includes("@feature/test")).toBeTruthy();
+  });
+
 });

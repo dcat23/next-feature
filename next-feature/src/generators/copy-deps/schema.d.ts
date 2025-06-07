@@ -1,3 +1,3 @@
 export interface CopyDepsGeneratorSchema {
-  name: string;
+  directory: string;
 }

@@ -1,18 +1,19 @@
 {
   "$schema": "https://json-schema.org/schema",
   "$id": "CopyDeps",
-  "title": "",
+  "title": "Copy Dependencies",
+  "description": "Copy dependencies from a package json to the root project",
   "type": "object",
   "properties": {
-    "name": {
+    "directory": {
       "type": "string",
       "description": "",
       "$default": {
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What name would you like to use?"
+      "x-prompt": "Path to the package.json"
     }
   },
-  "required": ["name"]
+  "required": ["directory"]
 }

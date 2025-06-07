@@ -50,6 +50,11 @@
       "factory": "./src/generators/store/store",
       "schema": "./src/generators/store/schema.json",
       "description": "store generator"
+    },
+    "copy-deps": {
+      "factory": "./src/generators/copy-deps/copy-deps",
+      "schema": "./src/generators/copy-deps/schema.json",
+      "description": "copy-deps generator"
     }
   }
 }

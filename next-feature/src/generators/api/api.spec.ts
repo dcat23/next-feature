@@ -1,4 +1,3 @@
-import { logger } from '@nx/devkit';
 import { readProjectConfiguration, Tree } from '@nx/devkit';
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 
@@ -61,9 +60,7 @@ describe('api generator', () => {
 
     const file = tree.read(filePath, 'utf-8');
 
-    expect(file.includes("CreateBackendDataRequest")).toBeTruthy()
-
-    logger.debug(file)
+    expect(file.includes('CreateBackendDataRequest')).toBeTruthy();
   });
 
   it('should not create request body', async () => {
@@ -78,7 +75,7 @@ describe('api generator', () => {
 
     const file = tree.read(filePath, 'utf-8');
 
-    expect(file.includes("GetBackendDataRequest")).toBeFalsy()
-    expect(file.includes("GetBackendData")).toBeTruthy()
+    expect(file.includes('GetBackendDataRequest')).toBeFalsy();
+    expect(file.includes('GetBackendData')).toBeTruthy();
   });
 });

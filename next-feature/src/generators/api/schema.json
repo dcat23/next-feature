@@ -1,7 +1,8 @@
 {
   "$schema": "https://json-schema.org/schema",
   "$id": "Api",
-  "title": "",
+  "title": "Api Generator",
+  "description": "Generate server action function for calls to external APIs",
   "type": "object",
   "properties": {
     "name": {

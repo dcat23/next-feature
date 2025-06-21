@@ -3,16 +3,16 @@
 import type {
   <%= typeImports %>
 } from '../types';
-import api from '@feature/base/lib/axios';
+import api from '../axios';
 import { handleError } from '@/feature/base/lib/axios/error';
 import type { BackendResponse } from '@feature/base/lib/axios/types';
 
-interface BackendRequestBody {
+interface BackendRequestOptions {
 
 }
 
 export async function <%= methodName %>(
-  body?: BackendRequestBody
+  options?: BackendRequestBody
 ): Promise<BackendResponse<<%= className %>>> {
   const params: URLSearchParams = new URLSearchParams();
   const endpoint = `/api/<%= endpoint %>?${params.toString()}`;

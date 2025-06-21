@@ -63,7 +63,7 @@ export async function apiGenerator(tree: Tree, options: ApiGeneratorSchema) {
 
   if (normalizedOptions.useTypes) {
     for (const typeImport of normalizedOptions.typeImports.split(TYPE_IMPORT_SEPARATOR)) {
-      tasks.push(await typesGenerator(tree, { name: typeImport, skipFormat: true }))
+      tasks.push(await typesGenerator(tree, { ...normalizedOptions , name: typeImport, skipFormat: true }))
     }
   }
 

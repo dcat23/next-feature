@@ -47,16 +47,16 @@ export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
 
   generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, normalizedOptions);
 
-  const authRoute = joinPathFragments(sourceRoot, "app/api/auth/[...nextauth]/route.ts")
-
-  if (!tree.exists(authRoute)) {
-    generateFiles(
-      tree,
-      path.join(__dirname, 'files/app'),
-      sourceRoot + '/app',
-      { ...normalizedOptions, importPath: `@app/${projectName}` }
-    );
-  }
+  // const authRoute = joinPathFragments(sourceRoot, "app/api/auth/[...nextauth]/route.ts")
+  //
+  // if (!tree.exists(authRoute)) {
+  //   generateFiles(
+  //     tree,
+  //     path.join(__dirname, 'files/app'),
+  //     sourceRoot + '/app',
+  //     { ...normalizedOptions, importPath: `@app/${projectName}` }
+  //   );
+  // }
 
   if (!options.skipFormat) await formatFiles(tree);
 

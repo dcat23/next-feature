@@ -1,7 +1,6 @@
-// @ts-expect-error next-auth module declared
 import type { NextAuthConfig } from 'next-auth';
 
-export const authConfig = {
+export const authConfig: NextAuthConfig = {
   pages: {
     signIn: `/login`,
     verifyRequest: `/login`,

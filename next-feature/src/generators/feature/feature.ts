@@ -9,6 +9,7 @@ import axiosGenerator from '../../generators/axios/axios';
 import { ZOD_VERSION } from '../../lib/constants';
 import { updateTsConfig } from '../../lib/ts-config';
 import { updateDependencies } from '../../lib/utils';
+import authGenerator from '../auth/auth';
 import {
   FeatureGeneratorSchema,
   type NormalizedFeatureGeneratorSchema,
@@ -73,6 +74,15 @@ export async function featureGenerator(
       directory: normalizedOptions.directory,
       skipFormat: true
     }))
+  }
+  if (normalizedOptions.useAuth) {
+    tasks.push(
+      await authGenerator(tree, {
+        projectName: normalizedOptions.name,
+        directory: normalizedOptions.directory,
+        skipFormat: true,
+      })
+    );
   }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);

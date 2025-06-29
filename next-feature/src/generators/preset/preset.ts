@@ -4,12 +4,12 @@ import { formatFiles, generateFiles, Tree } from '@nx/devkit';
 import { Linter } from '@nx/eslint';
 import { applicationGenerator } from '@nx/next';
 import * as path from 'path';
+import { ZUSTAND_VERSION } from '../../lib/constants';
 import { SONNER_VERSION } from '../../lib/constants';
 import { TANSTACK_VERSION } from '../../lib/constants';
 import { ZOD_VERSION } from '../../lib/constants';
 import { updateTsConfig } from '../../lib/ts-config';
 import { updateDependencies } from '../../lib/utils';
-import authGenerator from '../auth/auth';
 import databaseGenerator from '../database/database';
 import featureGenerator from '../feature/feature';
 import type { NormalizedPresetGeneratorSchema } from './schema';
@@ -69,20 +69,13 @@ export async function presetGenerator(
 
   const dependencies: Record<string, string> = {
     '@tanstack/react-query': TANSTACK_VERSION,
+    zustand: ZUSTAND_VERSION,
     sonner: SONNER_VERSION,
     zod: ZOD_VERSION,
   };
   const devDependencies: Record<string, string> = {};
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies));
-
-  tasks.push(
-    await authGenerator(tree, {
-      projectName: normalizedOptions.name,
-      directory: normalizedOptions.directory,
-      skipFormat: true,
-    })
-  );
 
   if (normalizedOptions.useDb || normalizedOptions.useAll) {
     tasks.push(
@@ -99,6 +92,7 @@ export async function presetGenerator(
       await featureGenerator(tree, {
         name: 'base',
         useAxios: true,
+        useAuth: true,
         skipFormat: true
       })
     )

@@ -1,11 +1,12 @@
 'use server';
 
+import { z } from "zod";
 import type {
   <%= typeImports %>
 } from '../types';
-import api from '../axios';
-import { handleError } from '../axios/error';
-import type { BackendResponse } from '../axios/types';
+import api from '<%= axiosImportPath %>';
+import { handleError } from '<%= axiosImportPath %>/error';
+import type { BackendResponse } from '<%= axiosImportPath %>/types';
 
 interface BackendRequestOptions {
 
@@ -14,20 +15,26 @@ interface BackendRequestOptions {
 export async function <%= methodName %>(
   options?: BackendRequestOptions
 ): Promise<BackendResponse<<%= className %>>> {
-  const params: URLSearchParams = new URLSearchParams();
-  const endpoint = `/api/<%= endpoint %>?${params.toString()}`;
-
-  <% if (hasRequestBody) { %>
-  const body: <%= className %>Request = {
-      ...options
-  }
-  <% } %>
-
   try {
-    const { data } = await api.<%= httpMethod %><<%= className %>>(endpoint<% if (hasRequestBody) { %>, body<% } %>);
+    const params: URLSearchParams = new URLSearchParams();
+    const endpoint = `/api/<%= endpoint %>?${params.toString()}`;
+    <% if (hasRequestBody) { %>
+    const body: <%= className %>Request = {
+      ...options
+    }
+
+    const parsed = z
+      .object({})
+      .safeParse(body);
+
+    if (!parsed.success) {
+      return handleError(parsed.error);
+    }
+    <% } %>
+    const { data } = await api.<%= httpMethod %><<%= className %>>(endpoint<% if (hasRequestBody) { %>, parsed.data<% } %>);
 
     return { data };
-  } catch (error: any) {
+  } catch (error) {
     return handleError<<%= className %>>(error);
   }
 }

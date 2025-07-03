@@ -55,6 +55,11 @@
       "factory": "./src/generators/copy-deps/copy-deps",
       "schema": "./src/generators/copy-deps/schema.json",
       "description": "copy-deps generator"
+    },
+    "utils": {
+      "factory": "./src/generators/utils/utils",
+      "schema": "./src/generators/utils/schema.json",
+      "description": "utils generator"
     }
   }
 }

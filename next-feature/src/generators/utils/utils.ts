@@ -35,7 +35,7 @@ export async function utilsGenerator(
 ) {
   const normalizedOptions = normalize(options);
 
-  logger.debug({ normalizedOptions })
+  // logger.debug({ normalizedOptions })
   const { directory } = await initializeGenerator(
     tree,
     normalizedOptions,

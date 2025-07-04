@@ -60,6 +60,11 @@
       "factory": "./src/generators/utils/utils",
       "schema": "./src/generators/utils/schema.json",
       "description": "utils generator"
+    },
+    "constant": {
+      "factory": "./src/generators/constant/constant",
+      "schema": "./src/generators/constant/schema.json",
+      "description": "constant generator"
     }
   }
 }

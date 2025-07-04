@@ -12,4 +12,6 @@ export type Normalized<Schema extends GeneratorSchema> = Schema & {
   tmpl: ""
 }
 
-export type WithNames<T extends GeneratorSchema> = ReturnType<typeof names> & T;
+export type Names = ReturnType<typeof names>;
+
+export type WithNames<T extends GeneratorSchema> = Names & T;

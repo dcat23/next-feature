@@ -11,7 +11,28 @@
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What name would you like to use?"
+      "x-prompt": "What name or the utility method?"
+    },
+    "package": {
+      "type": "string",
+      "description": "The package within the feature plugin",
+      "$default": {
+        "$source": "argv",
+        "index": 1
+      },
+      "default": "lib"
+    },
+    "projectName": {
+      "type": "string",
+      "description": "The name for the features generator plugin"
+    },
+    "directory": {
+      "type": "string",
+      "description": "The directory of the features plugin"
+    },
+    "file": {
+      "type": "string",
+      "description": "The name of the file to create the util in"
     }
   },
   "required": ["name"]

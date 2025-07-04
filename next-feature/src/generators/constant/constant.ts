@@ -2,24 +2,63 @@ import {
   addProjectConfiguration,
   formatFiles,
   generateFiles,
+  names,
   Tree,
 } from '@nx/devkit';
 import * as path from 'path';
-import { ConstantGeneratorSchema } from './schema';
+import { initializeGenerator } from '../../lib/generator-config';
+import type { GeneratorSchema } from '../../lib/types';
+import type { WithNames } from '../../lib/types';
+import type { Normalized } from '../../lib/types';
+import { writeFile } from '../../lib/write-file';
+import {
+  ConstantGeneratorSchema,
+  NormalizedConstantGeneratorSchema,
+} from './schema';
+
+
+
+function normalize(options: ConstantGeneratorSchema): NormalizedConstantGeneratorSchema {
+  const mutatedNames = names(options.name);
+  options.package ??= "lib";
+  const outputFileName = (options.file
+    ? (typeof options.file === "string" ? options.file : mutatedNames.fileName)
+    : "index").concat(".ts");
+  return {
+    tmpl: "",
+    ...options,
+   ...mutatedNames,
+    outputFileName
+  }
+}
+
+
+const constantContent = (options: Normalized<WithNames<GeneratorSchema>>) => (`
+export const ${options.constantName} = null;
+`);
 
 export async function constantGenerator(
   tree: Tree,
   options: ConstantGeneratorSchema
 ) {
-  const projectRoot = `libs/${options.name}`;
-  addProjectConfiguration(tree, options.name, {
-    root: projectRoot,
-    projectType: 'library',
-    sourceRoot: `${projectRoot}/src`,
-    targets: {},
-  });
-  generateFiles(tree, path.join(__dirname, 'files'), projectRoot, options);
-  await formatFiles(tree);
+  const normalizedOptions = normalize(options);
+
+  // logger.debug({ normalizedOptions })
+  const { directory } = await initializeGenerator(
+    tree,
+    normalizedOptions,
+    'constants'
+  );
+
+  await writeFile(
+    tree,
+    `${directory}/constants`,
+    constantContent,
+    normalizedOptions,
+    normalizedOptions.outputFileName
+  );
+
+  if (!options.skipFormat) await formatFiles(tree);
 }
 
 export default constantGenerator;

@@ -1,4 +1,4 @@
-import { logger, names } from '@nx/devkit';
+import { names } from '@nx/devkit';
 import { formatFiles, Tree } from '@nx/devkit';
 import { initializeGenerator } from '../../lib/generator-config';
 import type { GeneratorSchema } from '../../lib/types';

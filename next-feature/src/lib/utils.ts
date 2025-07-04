@@ -17,3 +17,9 @@ export function updateDependencies(
 
   return task;
 }
+
+export function asOutputFile(options: {file?: string | boolean, fileName: string}) {
+  return (options.file
+    ? (typeof options.file === "string" ? options.file : options.fileName)
+    : "index").concat(".ts");
+}

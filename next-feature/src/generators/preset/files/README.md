@@ -150,7 +150,7 @@ npx nx lint
 
 ## 🔄 Change Log
 
-Track changes in [`./CHANGELOG.md`](./CHANGELOG.md). Example:
+Track changes in [`./CHANGELOG.md`](frontend/CHANGELOG.md). Example:
 
 ```markdown
 ## [1.0.0] - 2025-04-20

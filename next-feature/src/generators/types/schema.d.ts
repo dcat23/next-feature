@@ -6,5 +6,5 @@ export interface TypesGeneratorSchema extends GeneratorSchema {
 }
 
 export interface NormalizedTypesGeneratorSchema extends Normalized<WithNames<TypesGeneratorSchema>> {
-
+  tmpl: "";
 }

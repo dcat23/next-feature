@@ -15,7 +15,6 @@ import type { ApiGeneratorSchema } from './schema';
 
 function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   options.package ??= 'lib';
-
   const mutatedNames = names(options.name);
   const { propertyName, className, name } = mutatedNames;
   const { method: httpMethod, noPrefix: noPrefixClassName } =
@@ -25,7 +24,6 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   const endpoint = names(noPrefixClassName).fileName.replace('-', '/');
   const hasRequestBody = (['post', 'put'] as HttpMethod[]).includes(httpMethod);
 
-
   const defaultImports = [className];
   /**
    * create type for methods that need a request body
@@ -33,7 +31,11 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   if (hasRequestBody) {
     defaultImports.push(className.concat('Request'));
   }
-  const typeImports = defaultImports.map(asTypeImport).join(TYPE_IMPORT_SEPARATOR);
+  const typeImports = defaultImports
+    .map(asTypeImport)
+    .join(TYPE_IMPORT_SEPARATOR);
+  const isBase = !options.projectName || options.projectName === 'base';
+  const axiosImportPath = isBase ? '../axios' : '@feature/base/lib/axios';
 
   return {
     tmpl: '',
@@ -44,6 +46,7 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
     endpoint,
     typeImports,
     hasRequestBody,
+    axiosImportPath,
   };
 }
 
@@ -63,7 +66,7 @@ export async function apiGenerator(tree: Tree, options: ApiGeneratorSchema) {
 
   if (normalizedOptions.useTypes) {
     for (const typeImport of normalizedOptions.typeImports.split(TYPE_IMPORT_SEPARATOR)) {
-      tasks.push(await typesGenerator(tree, { name: typeImport, skipFormat: true }))
+      tasks.push(await typesGenerator(tree, { ...normalizedOptions , name: typeImport, skipFormat: true }))
     }
   }
 

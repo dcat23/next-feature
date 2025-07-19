@@ -12,3 +12,11 @@ export interface BackendResponse<Response> {
   data: Response;
   error?: ErrorMessage
 }
+
+export interface LoginResponse {
+  accessToken: string;
+  expiration: number;
+  role: string;
+  id: number;
+  email: string;
+}

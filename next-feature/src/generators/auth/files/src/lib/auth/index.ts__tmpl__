@@ -1,6 +1,7 @@
 import api from '../axios';
-import type { LoginResponse } from '../types';
-import NextAuth, { type Session, type User } from 'next-auth';
+import type { LoginResponse } from '../axios/types';
+import NextAuth from 'next-auth';
+import type { Session, User, NextAuthResult } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import GitHubProvider from 'next-auth/providers/github';
@@ -9,7 +10,7 @@ import { authConfig } from './auth.config';
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
-export const { auth, handlers, signIn, signOut } = NextAuth({
+const nextAuthResult = NextAuth({
   ...authConfig,
   providers: [
     GitHubProvider({
@@ -22,14 +23,16 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           gh_username: profile.login,
           email: profile.email,
           image: profile.avatar_url,
+          role: "",
+          jwtToken: ""
         };
       },
     }),
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" }
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         try {
@@ -43,23 +46,24 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
               parsedCredentials.data
             );
 
-
             if (data.accessToken) {
-              const user: User = {
+              const user = {
+                id: String(data.id),
+                email: data.email,
                 role: data.role,
                 jwtToken: data.accessToken,
-              }
+              };
 
               return user;
             }
           }
-
-          throw new Error('Check credentials');
-        } catch(error: any) {
-          throw new Error(error.message);
+        } catch (error) {
+          console.error(error);
         }
-      }
-    })
+
+        return null;
+      },
+    }),
   ],
   session: { strategy: 'jwt' },
   cookies: {
@@ -74,19 +78,20 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
           ? `.${process.env.NEXT_PUBLIC_ROOT_DOMAIN}`
           : undefined,
         secure: VERCEL_DEPLOYMENT,
-      }
-    }
+      },
+    },
   },
   callbacks: {
-    async jwt({ token, user }: { token: JWT, user: User }) {
-      if (user) {
+    async jwt({ token, user }) {
+      if (user && 'role' in user && 'jwtToken' in user) {
         token.role = user.role;
         token.jwtToken = user.jwtToken;
       }
       return token;
     },
-    async session({ session, token }: { session: Session, token: JWT, user: User }) {
-      if (token && session.user) {
+    async session({ session, token }: { session: Session; token: JWT; user: User }) {
+
+      if (token && session.user && 'role' in session.user && 'jwtToken' in session.user) {
         session.user.role = token.role as string;
         session.user.jwtToken = token.jwtToken as string;
       }
@@ -100,5 +105,10 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl;
     },
-  }
+  },
 });
+
+export const auth: NextAuthResult["auth"] = nextAuthResult.auth;
+export const handlers: NextAuthResult["handlers"] = nextAuthResult.handlers;
+export const signIn: NextAuthResult["signIn"] = nextAuthResult.signIn;
+export const signOut: NextAuthResult["signOut"] = nextAuthResult.signOut;

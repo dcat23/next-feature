@@ -34,7 +34,6 @@ export async function typesGenerator(
   options: TypesGeneratorSchema
 ) {
   const normalizedOptions = normalize(options);
-  // logger.debug({ normalizedOptions });
   const { directory } = await initializeGenerator(
     tree,
     normalizedOptions,

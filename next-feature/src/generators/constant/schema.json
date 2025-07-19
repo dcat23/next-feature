@@ -1,8 +1,7 @@
 {
   "$schema": "https://json-schema.org/schema",
-  "$id": "Api",
-  "title": "Api Generator",
-  "description": "Generate server action function for calls to external APIs",
+  "$id": "Constant",
+  "title": "",
   "type": "object",
   "properties": {
     "name": {
@@ -12,7 +11,7 @@
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What is the name for this api method?"
+      "x-prompt": "What name would you like to use?"
     },
     "package": {
       "type": "string",
@@ -23,18 +22,17 @@
       },
       "default": "lib"
     },
+    "projectName": {
+      "type": "string",
+      "description": "The name for the features generator plugin"
+    },
     "directory": {
       "type": "string",
       "description": "The directory of the features plugin"
     },
-    "projectName": {
+    "file": {
       "type": "string",
-      "description": "The package where the generated files will go"
-    },
-    "useTypes": {
-      "type": "boolean",
-      "description": "Generate type files",
-      "default": true
+      "description": "The name of the file to create the constant in"
     }
   },
   "required": ["name"]

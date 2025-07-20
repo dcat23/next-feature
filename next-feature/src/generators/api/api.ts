@@ -5,6 +5,7 @@ import { generateFiles } from '@nx/devkit';
 import { formatFiles, Tree } from '@nx/devkit';
 import * as path from 'path';
 import { initializeGenerator } from '../../lib/generator-config';
+import constantGenerator from '../constant/constant';
 import typesGenerator from '../types/types';
 import type { HttpMethod } from './lib/extract-http-method';
 import { extractHttpMethod } from './lib/extract-http-method';
@@ -24,18 +25,22 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   const endpoint = names(noPrefixClassName).fileName.replace('-', '/');
   const hasRequestBody = (['post', 'put'] as HttpMethod[]).includes(httpMethod);
 
-  const defaultImports = [className];
+  const defaultImports = [className, noPrefixClassName];
   /**
    * create type for methods that need a request body
    */
   if (hasRequestBody) {
-    defaultImports.push(className.concat('Request'));
+    defaultImports.push(
+      className.concat('Request'),
+      className.concat('Response')
+    );
   }
   const typeImports = defaultImports
     .map(asTypeImport)
     .join(TYPE_IMPORT_SEPARATOR);
-  const isBase = !options.projectName || options.projectName === 'base';
-  const axiosImportPath = isBase ? '../axios' : '@feature/base/lib/axios';
+  // const isBase = !options.projectName || options.projectName === 'base';
+  // const axiosImportPath = isBase ? '../axios' : '@feature/base/lib/axios';
+  const axiosImportPath = '@feature/base/lib/axios';
 
   return {
     tmpl: '',
@@ -68,6 +73,14 @@ export async function apiGenerator(tree: Tree, options: ApiGeneratorSchema) {
     for (const typeImport of normalizedOptions.typeImports.split(TYPE_IMPORT_SEPARATOR)) {
       tasks.push(await typesGenerator(tree, { ...normalizedOptions , name: typeImport, skipFormat: true }))
     }
+  }
+
+  if (normalizedOptions.useConstant) {
+    tasks.push(await constantGenerator(tree, {
+      ...normalizedOptions ,
+      name: normalizedOptions.constantName,
+      skipFormat: true
+    }));
   }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);

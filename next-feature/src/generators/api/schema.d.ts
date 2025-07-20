@@ -4,6 +4,7 @@ import type { GeneratorSchema, Normalized } from '../../lib/types';
 export interface ApiGeneratorSchema extends GeneratorSchema {
   name: string;
   useTypes?: boolean;
+  useConstant?: boolean;
 }
 
 export interface NormalizedApiGeneratorSchema extends Normalized<WithNames<ApiGeneratorSchema>> {

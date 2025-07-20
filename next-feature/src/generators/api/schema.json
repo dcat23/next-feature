@@ -35,6 +35,11 @@
       "type": "boolean",
       "description": "Generate type files",
       "default": true
+    },
+    "useConstant": {
+      "type": "boolean",
+      "description": "Generate default data",
+      "default": true
     }
   },
   "required": ["name"]

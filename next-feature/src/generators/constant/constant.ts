@@ -59,6 +59,9 @@ export async function constantGenerator(
   );
 
   if (!options.skipFormat) await formatFiles(tree);
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  return () => {};
 }
 
 export default constantGenerator;

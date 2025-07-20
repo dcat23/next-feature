@@ -2,7 +2,7 @@ import type { BackendResponse, ErrorMessage } from './types';
 import axios, { type AxiosError } from 'axios';
 
 
-export function handleError<T = unknown>(error: any): BackendResponse<T> {
+export function handleError<T = unknown>(error: any, data?: T): BackendResponse<T> {
   let err: ErrorMessage;
   if (axios.isAxiosError(error)) {
     const e = error as AxiosError<ErrorMessage>;
@@ -16,5 +16,5 @@ export function handleError<T = unknown>(error: any): BackendResponse<T> {
     };
   }
 
-  return { error: err, isError: true, data: {} as T }
+  return { error: err, isError: true, data }
 }

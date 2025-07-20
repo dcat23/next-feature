@@ -1,9 +1,11 @@
 'use server';
 
-import { z } from "zod";
+
+<% if (hasRequestBody) { %>import { z } from "zod";<% } %>
 import type {
   <%= typeImports %>
 } from '../types';
+import { <%= constantName %> } from '../constants'
 import api from '<%= axiosImportPath %>';
 import { handleError } from '<%= axiosImportPath %>/error';
 import type { BackendResponse } from '<%= axiosImportPath %>/types';
@@ -28,13 +30,13 @@ export async function <%= methodName %>(
       .safeParse(body);
 
     if (!parsed.success) {
-      return handleError(parsed.error);
+      return handleError(parsed.error, <%= constantName %>);
     }
     <% } %>
-    const { data } = await api.<%= httpMethod %><<%= className %>>(endpoint<% if (hasRequestBody) { %>, parsed.data<% } %>);
+    const { data } = await api.<%= httpMethod %><<%= className %>Response>(endpoint<% if (hasRequestBody) { %>, parsed.data<% } %>);
 
     return { data };
   } catch (error) {
-    return handleError<<%= className %>>(error);
+    return handleError<<%= className %>>(error, <%= constantName %>);
   }
 }

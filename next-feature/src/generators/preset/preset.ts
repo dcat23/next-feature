@@ -56,9 +56,9 @@ export async function presetGenerator(
     })
   );
 
-  const { projectRoot, sourceRoot } = normalizedOptions;
+  const { projectRoot, sourceRoot, importPath } = normalizedOptions;
 
-  updateTsConfig(tree, normalizedOptions.importPath, sourceRoot);
+  updateTsConfig(tree, importPath, sourceRoot);
 
   generateFiles(
     tree,

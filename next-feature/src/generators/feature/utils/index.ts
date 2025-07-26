@@ -10,7 +10,5 @@ export function getDirectory(options: FeatureGeneratorSchema): string {
     return path.join('features', options.name)
   }
 
-  const parsedPath = path.parse(options.directory);
-
-  return parsedPath.dir;
+  return path.normalize(options.directory);
 }

@@ -1,9 +1,8 @@
-import { logger } from '@nx/devkit';
 import { runTasksInSerial } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
 import { formatFiles, generateFiles, Tree } from '@nx/devkit';
 import { Linter } from '@nx/eslint';
-import { libraryGenerator } from '@nx/js';
+import { libraryGenerator } from '@nx/next';
 import * as path from 'path';
 import axiosGenerator from '../../generators/axios/axios';
 import { ZOD_VERSION } from '../../lib/constants';
@@ -43,8 +42,8 @@ export async function featureGenerator(
   tasks.push(await libraryGenerator(tree, {
     directory: normalizedOptions.directory,
     name: normalizedOptions.name,
-    buildable: true,
-    bundler: 'tsc',
+    bundler: 'vite',
+    style: 'tailwind',
     importPath: normalizedOptions.importPath,
     unitTestRunner: 'jest',
     linter: Linter.EsLint,
@@ -76,6 +75,7 @@ export async function featureGenerator(
       skipFormat: true
     }))
   }
+
   if (normalizedOptions.useAuth) {
     tasks.push(
       await authGenerator(tree, {

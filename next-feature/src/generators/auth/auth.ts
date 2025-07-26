@@ -28,7 +28,7 @@ function normalize(
 export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
   const normalizedOptions = normalize(options);
 
-  const { projectRoot, sourceRoot, projectName } = await initializeGenerator(
+  const { projectRoot, sourceRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'auth'
@@ -38,25 +38,14 @@ export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
 
   writeToDotenv(tree, { projectRoot }, {
     "# AUTH": "",
-    NEXTAUTH_URL: "http://localhost:3000",
-    NEXT_PUBLIC_ROOT_DOMAIN: "localhost:3000",
+    NEXTAUTH_URL: "http://localhost:4200",
+    NEXT_PUBLIC_ROOT_DOMAIN: "localhost:4200",
     AUTH_SECRET: generateSecret(),
     AUTH_GITHUB_ID: "",
     AUTH_GITHUB_SECRET: "",
   });
 
   generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, normalizedOptions);
-
-  // const authRoute = joinPathFragments(sourceRoot, "app/api/auth/[...nextauth]/route.ts")
-  //
-  // if (!tree.exists(authRoute)) {
-  //   generateFiles(
-  //     tree,
-  //     path.join(__dirname, 'files/app'),
-  //     sourceRoot + '/app',
-  //     { ...normalizedOptions, importPath: `@app/${projectName}` }
-  //   );
-  // }
 
   if (!options.skipFormat) await formatFiles(tree);
 

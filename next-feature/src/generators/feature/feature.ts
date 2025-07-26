@@ -14,11 +14,12 @@ import {
   FeatureGeneratorSchema,
   type NormalizedFeatureGeneratorSchema,
 } from './schema';
+import { getDirectory } from './utils';
 
 function normalize(
   options: FeatureGeneratorSchema
 ): NormalizedFeatureGeneratorSchema {
-  const directory = path.join(options.directory ?? 'features', options.name);
+  const directory = getDirectory(options);
   const projectRoot = directory;
   const sourceRoot = path.join(projectRoot, 'src');
   const importPath = `@feature/${options.name}`;
@@ -51,9 +52,9 @@ export async function featureGenerator(
   }));
 
 
-  const sourceRoot = normalizedOptions.sourceRoot;
+  const { sourceRoot, importPath } = normalizedOptions;
 
-  updateTsConfig(tree, normalizedOptions.importPath, sourceRoot);
+  updateTsConfig(tree, importPath, sourceRoot);
   generateFiles(
     tree,
     path.join(__dirname, 'files/src'),

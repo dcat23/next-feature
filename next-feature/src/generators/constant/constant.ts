@@ -34,7 +34,7 @@ function normalize(options: ConstantGeneratorSchema): NormalizedConstantGenerato
 
 
 const constantContent = (options: Normalized<WithNames<GeneratorSchema>>) => (`
-export const ${options.constantName} = null;
+export const ${options.constantName}: any = null;
 `);
 
 export async function constantGenerator(

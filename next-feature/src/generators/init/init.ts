@@ -41,9 +41,6 @@ function updateDependencies(tree: Tree) {
     addDependenciesToPackageJson(
       tree,
       {
-        '@tanstack/react-query': TANSTACK_VERSION,
-        zustand: ZUSTAND_VERSION,
-        sonner: SONNER_VERSION,
         zod: ZOD_VERSION,
       },
       {

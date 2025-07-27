@@ -47,6 +47,7 @@ export async function featureGenerator(
     importPath: normalizedOptions.importPath,
     unitTestRunner: 'jest',
     linter: Linter.EsLint,
+    component: false,
     skipFormat: true,
   }));
 

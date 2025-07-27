@@ -5,13 +5,14 @@ import { Tree } from '@nx/devkit';
 export function updateDependencies(
   tree: Tree,
   dependencies: Record<string, string>,
-  devDependencies: Record<string, string>
+  devDependencies: Record<string, string>,
+  projectRoot?: string
 ): GeneratorCallback {
   const task: GeneratorCallback = addDependenciesToPackageJson(
     tree,
     dependencies,
     devDependencies,
-    undefined,
+    projectRoot,
     true
   );
 

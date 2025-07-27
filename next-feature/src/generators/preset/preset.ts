@@ -4,7 +4,6 @@ import { formatFiles, generateFiles, Tree } from '@nx/devkit';
 import { Linter } from '@nx/eslint';
 import { applicationGenerator } from '@nx/next';
 import * as path from 'path';
-import { ZUSTAND_VERSION } from '../../lib/constants';
 import { SONNER_VERSION } from '../../lib/constants';
 import { TANSTACK_VERSION } from '../../lib/constants';
 import { ZOD_VERSION } from '../../lib/constants';
@@ -69,7 +68,6 @@ export async function presetGenerator(
 
   const dependencies: Record<string, string> = {
     '@tanstack/react-query': TANSTACK_VERSION,
-    zustand: ZUSTAND_VERSION,
     sonner: SONNER_VERSION,
     zod: ZOD_VERSION,
   };

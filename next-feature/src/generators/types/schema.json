@@ -24,11 +24,13 @@
     },
     "projectName": {
       "type": "string",
-      "description": "The name for the features generator plugin"
+      "description": "The name for the features generator plugin",
+      "alias": "p"
     },
     "directory": {
       "type": "string",
-      "description": "The directory of the features plugin"
+      "description": "The directory of the features plugin",
+      "alias": "d"
     }
   },
   "required": ["name"]

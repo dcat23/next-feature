@@ -15,7 +15,8 @@
     },
     "directory": {
       "type": "string",
-      "description": "Where to create this project"
+      "description": "Where to create this project",
+      "alias": "d"
     },
     "useAuth": {
       "type": "boolean",

@@ -25,21 +25,18 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   const endpoint = names(noPrefixClassName).fileName.replace('-', '/');
   const hasRequestBody = (['post', 'put'] as HttpMethod[]).includes(httpMethod);
 
-  const defaultImports = [className, noPrefixClassName];
+  const defaultImports = [className, noPrefixClassName, className.concat('Response')];
   /**
    * create type for methods that need a request body
    */
   if (hasRequestBody) {
     defaultImports.push(
-      className.concat('Request'),
-      className.concat('Response')
+      className.concat('Request')
     );
   }
   const typeImports = defaultImports
     .map(asTypeImport)
     .join(TYPE_IMPORT_SEPARATOR);
-  // const isBase = !options.projectName || options.projectName === 'base';
-  // const axiosImportPath = isBase ? '../axios' : '@feature/base/lib/axios';
   const axiosImportPath = '@feature/base/lib/axios';
 
   return {

@@ -21,7 +21,8 @@
       "$default": {
         "$source": "argv",
         "index": 1
-      }
+      },
+      "alias": "d"
     },
     "useAxios": {
       "type": "boolean",

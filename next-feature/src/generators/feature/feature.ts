@@ -9,10 +9,7 @@ import { ZOD_VERSION } from '../../lib/constants';
 import { updateTsConfig } from '../../lib/ts-config';
 import { updateDependencies } from '../../lib/utils';
 import authGenerator from '../auth/auth';
-import {
-  FeatureGeneratorSchema,
-  type NormalizedFeatureGeneratorSchema,
-} from './schema';
+import { FeatureGeneratorSchema, type NormalizedFeatureGeneratorSchema } from './schema';
 import { getDirectory } from './utils';
 
 function normalize(
@@ -42,13 +39,14 @@ export async function featureGenerator(
   tasks.push(await libraryGenerator(tree, {
     directory: normalizedOptions.directory,
     name: normalizedOptions.name,
+    importPath: normalizedOptions.importPath,
     bundler: 'vite',
     style: 'tailwind',
-    importPath: normalizedOptions.importPath,
     unitTestRunner: 'jest',
     linter: Linter.EsLint,
     component: false,
     skipFormat: true,
+    useProjectJson: true
   }));
 
 
@@ -57,7 +55,7 @@ export async function featureGenerator(
   updateTsConfig(tree, importPath, sourceRoot);
   generateFiles(
     tree,
-    path.join(__dirname, 'files/src'),
+    path.join(__dirname, 'files', 'src'),
     sourceRoot,
     normalizedOptions
   );

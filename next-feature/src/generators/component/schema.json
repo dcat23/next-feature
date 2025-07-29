@@ -23,11 +23,13 @@
     },
     "directory": {
       "type": "string",
-      "description": "The directory of the features plugin"
+      "description": "The directory of the features plugin",
+      "alias": "d"
     },
     "projectName": {
       "type": "string",
-      "description": "The package where the generated files will go"
+      "description": "The package where the generated files will go",
+      "alias": "p"
     }
   },
   "required": ["name"]

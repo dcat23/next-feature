@@ -6,7 +6,7 @@ import type { Normalized } from './types';
 
 const commentText = (options: Normalized<WithNames<GeneratorSchema>>) => `
 /**
-* ${options.projectName}:${options.name}
+* ${options.projectName}:[${options.name}]
 * ${new Date().toDateString()}
 */`
 
@@ -21,7 +21,7 @@ export async function writeFile<T extends WithNames<GeneratorSchema>>(
   // logger.debug({filePath})
   let buffer = tree.read(filePath, 'utf-8') ?? "";
 
-  if (buffer.includes(`${options.projectName}:${options.name}`)) {
+  if (buffer.includes(`${options.projectName}:[${options.name}]`)) {
     logger.debug('skipping', options.name);
     return;
   }

@@ -27,7 +27,12 @@
     "useAxios": {
       "type": "boolean",
       "description": "Initialize axios package",
-      "default": true
+      "default": false
+    },
+    "useAuth": {
+      "type": "boolean",
+      "description": "Initialize auth package",
+      "default": false
     }
   },
   "required": ["name"]

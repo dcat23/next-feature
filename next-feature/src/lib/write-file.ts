@@ -3,6 +3,7 @@ import { Tree } from '@nx/devkit';
 import type { WithNames } from './types';
 import type { GeneratorSchema } from './types';
 import type { Normalized } from './types';
+import moment = require('moment');
 
 
 const identifier = (options: Normalized<WithNames<GeneratorSchema>>) => {
@@ -12,7 +13,7 @@ const identifier = (options: Normalized<WithNames<GeneratorSchema>>) => {
 const commentText = (options: Normalized<WithNames<GeneratorSchema>>) => `
 /**
 * ${identifier(options)}
-* ${new Date().toDateString()}
+* ${moment().format('MMMM Do YYYY, h:mm:ss a')}
 */`
 
 export async function writeFile<T extends WithNames<GeneratorSchema>>(

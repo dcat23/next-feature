@@ -50,15 +50,18 @@ export async function featureGenerator(
   }));
 
 
-  const { sourceRoot, importPath } = normalizedOptions;
+  const { sourceRoot, importPath, name } = normalizedOptions;
 
   updateTsConfig(tree, importPath, sourceRoot);
-  generateFiles(
-    tree,
-    path.join(__dirname, 'files', 'src'),
-    sourceRoot,
-    normalizedOptions
-  );
+
+  if (name === 'base') {
+    generateFiles(
+      tree,
+      path.join(__dirname, 'files', 'src'),
+      sourceRoot,
+      normalizedOptions
+    );
+  }
 
   const dependencies: Record<string, string> = {
     zod: ZOD_VERSION

@@ -26,12 +26,14 @@
     "directory": {
       "type": "string",
       "description": "The directory of the features plugin",
-      "default": "features"
+      "default": "features",
+      "alias": "d"
     },
     "projectName": {
       "type": "string",
       "description": "The package where the generated files will go",
-      "default": "features"
+      "default": "features",
+      "alias": "p"
     },
     "useContext": {
       "type": "boolean",

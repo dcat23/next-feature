@@ -7,12 +7,14 @@
     "projectName": {
       "type": "string",
       "description": "The name for the features generator plugin",
-      "default": "features"
+      "default": "features",
+      "alias": "p"
     },
     "directory": {
       "type": "string",
       "description": "The directory in the project",
-      "default": "lib"
+      "default": "lib",
+      "alias": "d"
     }
   },
   "required": []

@@ -17,7 +17,12 @@
     },
     "directory": {
       "type": "string",
-      "description": "Where to create this project"
+      "description": "Where to create this project",
+      "$default": {
+        "$source": "argv",
+        "index": 1
+      },
+      "alias": "d"
     },
     "useAxios": {
       "type": "boolean",

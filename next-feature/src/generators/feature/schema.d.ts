@@ -1,7 +1,7 @@
 
 export interface FeatureGeneratorSchema {
   name: "base" | string;
-  directory?: string;
+  directory?: "features" | string;
   useAxios?: boolean;
   useAuth?: boolean;
   skipFormat?: boolean;

@@ -1,24 +1,21 @@
-import { logger } from '@nx/devkit';
 import { runTasksInSerial } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
 import { formatFiles, generateFiles, Tree } from '@nx/devkit';
 import { Linter } from '@nx/eslint';
-import { libraryGenerator } from '@nx/js';
+import { libraryGenerator } from '@nx/next';
 import * as path from 'path';
 import axiosGenerator from '../../generators/axios/axios';
 import { ZOD_VERSION } from '../../lib/constants';
 import { updateTsConfig } from '../../lib/ts-config';
 import { updateDependencies } from '../../lib/utils';
 import authGenerator from '../auth/auth';
-import {
-  FeatureGeneratorSchema,
-  type NormalizedFeatureGeneratorSchema,
-} from './schema';
+import { FeatureGeneratorSchema, type NormalizedFeatureGeneratorSchema } from './schema';
+import { getDirectory } from './utils';
 
 function normalize(
   options: FeatureGeneratorSchema
 ): NormalizedFeatureGeneratorSchema {
-  const directory = path.join(options.directory ?? 'features', options.name);
+  const directory = getDirectory(options);
   const projectRoot = directory;
   const sourceRoot = path.join(projectRoot, 'src');
   const importPath = `@feature/${options.name}`;
@@ -42,21 +39,23 @@ export async function featureGenerator(
   tasks.push(await libraryGenerator(tree, {
     directory: normalizedOptions.directory,
     name: normalizedOptions.name,
-    buildable: true,
-    bundler: 'tsc',
     importPath: normalizedOptions.importPath,
+    bundler: 'vite',
+    style: 'tailwind',
     unitTestRunner: 'jest',
     linter: Linter.EsLint,
+    component: false,
     skipFormat: true,
+    useProjectJson: true
   }));
 
 
-  const sourceRoot = normalizedOptions.sourceRoot;
+  const { sourceRoot, importPath } = normalizedOptions;
 
-  updateTsConfig(tree, normalizedOptions.importPath, sourceRoot);
+  updateTsConfig(tree, importPath, sourceRoot);
   generateFiles(
     tree,
-    path.join(__dirname, 'files/src'),
+    path.join(__dirname, 'files', 'src'),
     sourceRoot,
     normalizedOptions
   );
@@ -75,6 +74,7 @@ export async function featureGenerator(
       skipFormat: true
     }))
   }
+
   if (normalizedOptions.useAuth) {
     tasks.push(
       await authGenerator(tree, {

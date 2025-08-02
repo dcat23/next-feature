@@ -44,3 +44,8 @@ Thumbs.db
 # Next.js
 .next
 out
+
+# dry runs
+features
+vite.config.*.timestamp*
+vitest.config.*.timestamp*

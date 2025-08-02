@@ -23,7 +23,7 @@ export function updateTsConfig(tree: Tree, importPathName: string, sourceRoot: s
   const paths = tsConfig["compilerOptions"]["paths"][importPath] as string[]
   if (!paths.includes(srcPath)) {
     paths.push(srcPath);
-    tsConfig["compilerOptions"]["paths"][importPath] = paths;
+    tsConfig["compilerOptions"]["paths"][importPath] = [srcPath];
   }
 
   writeJson(tree, tsConfigPath, tsConfig);

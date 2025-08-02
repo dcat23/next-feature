@@ -34,7 +34,7 @@ function normalize(options: ConstantGeneratorSchema): NormalizedConstantGenerato
 
 
 const constantContent = (options: Normalized<WithNames<GeneratorSchema>>) => (`
-export const ${options.constantName} = null;
+export const ${options.constantName}: any = null;
 `);
 
 export async function constantGenerator(
@@ -59,6 +59,9 @@ export async function constantGenerator(
   );
 
   if (!options.skipFormat) await formatFiles(tree);
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  return () => {};
 }
 
 export default constantGenerator;

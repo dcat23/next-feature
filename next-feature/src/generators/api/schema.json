@@ -25,16 +25,25 @@
     },
     "directory": {
       "type": "string",
-      "description": "The directory of the features plugin"
+      "description": "The directory of the features plugin",
+      "alias": "d"
     },
     "projectName": {
       "type": "string",
-      "description": "The package where the generated files will go"
+      "description": "The package where the generated files will go",
+      "alias": "p"
     },
     "useTypes": {
       "type": "boolean",
       "description": "Generate type files",
-      "default": true
+      "default": true,
+      "alias": "t"
+    },
+    "useConstant": {
+      "type": "boolean",
+      "description": "Generate default data",
+      "default": true,
+      "alias": "c"
     }
   },
   "required": ["name"]

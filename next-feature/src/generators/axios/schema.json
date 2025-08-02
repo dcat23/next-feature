@@ -6,7 +6,8 @@
   "properties": {
     "projectName": {
       "type": "string",
-      "description": "The name for the features generator plugin"
+      "description": "The name for the features generator plugin",
+      "alias": "p"
     }
   },
   "required": []

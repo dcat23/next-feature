@@ -4,9 +4,14 @@ import type { WithNames } from './types';
 import type { GeneratorSchema } from './types';
 import type { Normalized } from './types';
 
+
+const identifier = (options: Normalized<WithNames<GeneratorSchema>>) => {
+  return `[${options.fileName}]`
+}
+
 const commentText = (options: Normalized<WithNames<GeneratorSchema>>) => `
 /**
-* ${options.projectName}:${options.name}
+* ${identifier(options)}
 * ${new Date().toDateString()}
 */`
 
@@ -18,10 +23,9 @@ export async function writeFile<T extends WithNames<GeneratorSchema>>(
   fileName = 'index.ts'
 ) {
   const filePath = `${directory}/${fileName}`;
-  // logger.debug({filePath})
   let buffer = tree.read(filePath, 'utf-8') ?? "";
 
-  if (buffer.includes(`${options.projectName}:${options.name}`)) {
+  if (buffer.includes(identifier(options))) {
     logger.debug('skipping', options.name);
     return;
   }

@@ -1,6 +1,6 @@
 import { logger, names } from '@nx/devkit';
 import { NEWLINE_SEPARATOR } from '../../constants';
-import { SECTION_IDENTIFIER } from '../constants';
+import { DEFAULT_SECTION, SECTION_IDENTIFIER } from '../constants';
 import type { Property, SectionName } from '../types';
 
 /**
@@ -10,23 +10,24 @@ import type { Property, SectionName } from '../types';
 export function getSections(text: string): Record<SectionName, string[]> {
   const sections: Record<SectionName, string[]> = {};
 
-  let currentSection = '';
-  let entries: string[] = [];
+  let currentSection = DEFAULT_SECTION;
 
   text.split(NEWLINE_SEPARATOR).forEach((line) => {
-    if (line.includes(SECTION_IDENTIFIER)) {
-      sections[currentSection] = Array.from(new Set(entries));
-      currentSection = line
-        .replace(SECTION_IDENTIFIER, '')
-        .trim()
-        .toUpperCase();
-      entries = [];
+    logger.info({
+      fn: 'getSections',
+      entries: sections[currentSection],
+      line,
+    });
+    const m = line.match(SECTION_IDENTIFIER);
+    if (m) {
+      currentSection = m[1];
+      sections[currentSection] = [];
     } else {
-      entries.push(line);
+      sections[currentSection] ??= [];
+      sections[currentSection].push(line);
     }
   });
 
-  logger.info({ sections });
   return sections;
 }
 
@@ -35,19 +36,13 @@ export function getSections(text: string): Record<SectionName, string[]> {
  * August 2nd 2025, 4:06:19 pm
  */
 export function asText(sections: Record<SectionName, string[]>) {
-
   function asEntry([sectionName, properties]: [SectionName, string[]]): string {
-    const lines: string[] = [
-      asSectionName(sectionName),
-      ...properties
-    ];
+    const lines: string[] = [asSectionNameEntry(sectionName), ...properties];
 
     return lines.join(NEWLINE_SEPARATOR);
   }
 
-  return Object.entries(sections)
-    .map(asEntry)
-    .join(NEWLINE_SEPARATOR);
+  return Object.entries(sections).map(asEntry).join(NEWLINE_SEPARATOR);
 }
 
 /**
@@ -67,9 +62,8 @@ export function toProperty(line: string): Property {
  * August 2nd 2025, 4:19:57 pm
  */
 export function toEntry(entry: [string, string]): string {
-  const [k, v] = entry;
+  const [k, value] = entry;
   const name = names(k).constantName;
-  const value = `"${v}"`;
   return name.concat('=', value);
 }
 
@@ -90,7 +84,13 @@ export function propertyReducer(
  * August 2nd 2025, 6:49:26 pm
  */
 export function asSectionName(name: string): string {
-  return `### ${
-    name.trim().toUpperCase()
-  } ###`;
+  return name.trim().toUpperCase();
+}
+
+/**
+ * [as-section-name-entry]
+ * August 3rd 2025, 2:22:03 pm
+ */
+export function asSectionNameEntry(name: string) {
+  return `### ${asSectionName(name)} ###`;
 }

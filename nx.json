@@ -86,6 +86,9 @@
       },
       "types": {
         "projectName": "next-feature"
+      },
+      "axios": {
+        "projectName": "testing"
       }
     },
     "@nx/react": {

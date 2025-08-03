@@ -46,6 +46,6 @@ Thumbs.db
 out
 
 # dry runs
-features
+#features
 vite.config.*.timestamp*
 vitest.config.*.timestamp*

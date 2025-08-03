@@ -1,4 +1,4 @@
-import { joinPathFragments, logger, Tree } from '@nx/devkit';
+import { joinPathFragments, Tree } from '@nx/devkit';
 import { DEFAULT_SECTION } from './constants';
 import type { SectionName } from './types';
 import {
@@ -7,7 +7,7 @@ import {
   getSections,
   propertyReducer,
   toEntry,
-  toProperty
+  toProperty,
 } from './utils';
 
 interface DotenvOptions {
@@ -35,13 +35,6 @@ export function writeToDotenv(tree: Tree, options: DotenvOptions, entries: Recor
       .map(toProperty)
       .reduce(propertyReducer, entries)
     sections[options.section] = Object.entries(properties).map(toEntry)
-
-    logger.info({
-      fn: "writeToDotenv",
-      sections,
-      name: options.section,
-      properties
-    })
 
     tree.write(filePath, asText(sections))
   }

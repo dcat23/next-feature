@@ -1,4 +1,4 @@
-import { logger, names } from '@nx/devkit';
+import { names } from '@nx/devkit';
 import { NEWLINE_SEPARATOR } from '../../constants';
 import { DEFAULT_SECTION, SECTION_IDENTIFIER } from '../constants';
 import type { Property, SectionName } from '../types';
@@ -13,11 +13,6 @@ export function getSections(text: string): Record<SectionName, string[]> {
   let currentSection = DEFAULT_SECTION;
 
   text.trim().split(NEWLINE_SEPARATOR).forEach((line) => {
-    logger.info({
-      fn: 'getSections',
-      entries: sections[currentSection],
-      line,
-    });
     const m = line.match(SECTION_IDENTIFIER);
     if (m) {
       currentSection = m[1];

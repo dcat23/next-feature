@@ -77,6 +77,13 @@ export async function featureGenerator(
     );
   }
 
+  generateFiles(
+    tree,
+    path.join(__dirname, 'files', 'src'),
+    sourceRoot,
+    normalizedOptions
+  );
+
   if (normalizedOptions.useAxios) {
     tasks.push(await axiosGenerator(tree, {
       name: normalizedOptions.name,

@@ -52,7 +52,6 @@ export async function databaseGenerator(
     return `${database}://$\{DATABASE_USER}:$\{DATABASE_PASSWORD}@$\{DATABASE_HOST}:$\{DATABASE_PORT}/$\{DATABASE_NAME},`
   };
   const dotenvEntries: Record<string, string> = {
-    "# DB": '',
     DATABASE_USER: "default",
     DATABASE_HOST: "localhost",
     DATABASE_PASSWORD: "password",
@@ -61,7 +60,7 @@ export async function databaseGenerator(
     DATABASE_URL: databaseUrl(normalizedOptions.driver)
   };
 
-  writeToDotenv(tree, { projectRoot } , dotenvEntries, "example")
+  writeToDotenv(tree, { projectRoot, section: "db" } , dotenvEntries)
 
   generateFiles(tree, path.join(__dirname, 'files'), projectRoot, normalizedOptions);
 

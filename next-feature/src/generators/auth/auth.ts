@@ -35,8 +35,7 @@ export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
 
   const depTask = updateDependencies(tree);
 
-  writeToDotenv(tree, { projectRoot }, {
-    "# AUTH": "",
+  writeToDotenv(tree, { projectRoot, section: "auth" }, {
     NEXTAUTH_URL: "http://localhost:4200",
     NEXT_PUBLIC_ROOT_DOMAIN: "localhost:4200",
     AUTH_SECRET: generateSecret(),

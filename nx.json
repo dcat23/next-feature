@@ -89,6 +89,9 @@
       },
       "axios": {
         "projectName": "testing"
+      },
+      "auth": {
+        "projectName": "base"
       }
     },
     "@nx/react": {

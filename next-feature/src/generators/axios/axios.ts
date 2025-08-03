@@ -13,7 +13,7 @@ import { asApiKeyName } from './utils';
 function normalize(
   options: AxiosGeneratorSchema
 ): NormalizedAxiosGeneratorSchema {
-  const keyName = asApiKeyName(options.projectName ?? 'base');
+  const keyName = asApiKeyName(options.name ?? 'base');
   return {
     tmpl: '',
     ...options,

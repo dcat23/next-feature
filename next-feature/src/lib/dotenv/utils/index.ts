@@ -12,7 +12,7 @@ export function getSections(text: string): Record<SectionName, string[]> {
 
   let currentSection = DEFAULT_SECTION;
 
-  text.split(NEWLINE_SEPARATOR).forEach((line) => {
+  text.trim().split(NEWLINE_SEPARATOR).forEach((line) => {
     logger.info({
       fn: 'getSections',
       entries: sections[currentSection],

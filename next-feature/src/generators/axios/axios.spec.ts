@@ -8,7 +8,7 @@ import { AxiosGeneratorSchema } from './schema';
 describe('axios generator', () => {
   let tree: Tree;
   const options: AxiosGeneratorSchema = {
-    projectName: 'test',
+    name: 'test',
     directory: 'apps'
   };
 

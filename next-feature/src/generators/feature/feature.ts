@@ -79,7 +79,7 @@ export async function featureGenerator(
 
   if (normalizedOptions.useAxios) {
     tasks.push(await axiosGenerator(tree, {
-      projectName: normalizedOptions.name,
+      name: normalizedOptions.name,
       directory: normalizedOptions.directory,
       skipFormat: true
     }))
@@ -88,7 +88,7 @@ export async function featureGenerator(
   if (normalizedOptions.useAuth) {
     tasks.push(
       await authGenerator(tree, {
-        projectName: normalizedOptions.name,
+        name: normalizedOptions.name,
         directory: normalizedOptions.directory,
         skipFormat: true,
       })

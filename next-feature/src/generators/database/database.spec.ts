@@ -10,7 +10,7 @@ import { DatabaseGeneratorSchema } from './schema';
 describe('database generator', () => {
   let tree: Tree;
   const options: DatabaseGeneratorSchema = {
-    projectName: 'test',
+    name: 'test',
   };
 
   beforeEach(() => {

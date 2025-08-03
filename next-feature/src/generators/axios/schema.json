@@ -4,7 +4,7 @@
   "title": "",
   "type": "object",
   "properties": {
-    "projectName": {
+    "name": {
       "type": "string",
       "description": "The name of the feature project",
       "$default": {
@@ -21,5 +21,5 @@
       "alias": "a"
     }
   },
-  "required": ["projectName"]
+  "required": ["name"]
 }

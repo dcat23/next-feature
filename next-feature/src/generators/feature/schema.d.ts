@@ -1,5 +1,3 @@
-import type { WithNames } from '../../lib/types';
-
 export interface FeatureGeneratorSchema {
   name: "base" | string;
   directory?: "features" | string;

@@ -79,7 +79,7 @@ export async function presetGenerator(
   if (normalizedOptions.useDb || normalizedOptions.useAll) {
     tasks.push(
       await databaseGenerator(tree, {
-        projectName: normalizedOptions.name,
+        name: normalizedOptions.name,
         directory: normalizedOptions.directory,
         skipFormat: true,
       })

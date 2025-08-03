@@ -81,7 +81,7 @@
       "utils": {
         "projectName": "next-feature"
       },
-      "constants": {
+      "constant": {
         "projectName": "next-feature"
       },
       "types": {

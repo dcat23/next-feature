@@ -8,6 +8,11 @@
       "type": "string",
       "description": "The name for the features generator plugin",
       "alias": "p"
+    },
+    "appProjectName": {
+      "type": "string",
+      "description": "App project to add env files too",
+      "alias": "a"
     }
   },
   "required": []

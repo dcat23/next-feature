@@ -1,12 +1,13 @@
-import { runTasksInSerial } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
-import { formatFiles, generateFiles, Tree } from '@nx/devkit';
+import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
 import { Linter } from '@nx/eslint';
 import { applicationGenerator } from '@nx/next';
 import * as path from 'path';
-import { SONNER_VERSION } from '../../lib/constants';
-import { TANSTACK_VERSION } from '../../lib/constants';
-import { ZOD_VERSION } from '../../lib/constants';
+import {
+  SONNER_VERSION,
+  TANSTACK_VERSION,
+  ZOD_VERSION,
+} from '../../lib/constants/versions';
 import { updateTsConfig } from '../../lib/ts-config';
 import { updateDependencies } from '../../lib/utils';
 import databaseGenerator from '../database/database';

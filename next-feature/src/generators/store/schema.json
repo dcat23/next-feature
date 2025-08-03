@@ -38,7 +38,8 @@
     "useContext": {
       "type": "boolean",
       "description": "Will generated as React Context",
-      "default": false
+      "default": false,
+      "alias": "c"
     }
   },
   "required": ["name"]

@@ -1,5 +1,6 @@
 import { readJson, readProjectConfiguration, Tree } from '@nx/devkit';
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
+import * as path from 'node:path';
 
 import { axiosGenerator } from './axios';
 import { AxiosGeneratorSchema } from './schema';
@@ -20,7 +21,6 @@ describe('axios generator', () => {
     const config = readProjectConfiguration(tree, 'test');
     expect(config).toBeDefined();
   });
-
   it('should generate files', async () => {
     await axiosGenerator(tree, options);
     const files = tree.children('apps/test/src/lib/axios');
@@ -35,4 +35,14 @@ describe('axios generator', () => {
 
     expect(['axios'].every((dep) => dependencies.includes(dep))).toBeTruthy();
   });
+
+  it('should add properties to .env', async () => {
+    await axiosGenerator(tree, options);
+    const config = readProjectConfiguration(tree, 'test');
+    const dotenv = tree.read(path.join(config.root, ".env"), 'utf-8');
+
+    expect(dotenv.includes("BASE_API_URL")).toBeTruthy();
+  });
+
+
 });

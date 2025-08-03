@@ -1,11 +1,17 @@
-import { names } from '@nx/devkit';
-import { addDependenciesToPackageJson } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
-import { formatFiles, generateFiles, Tree } from '@nx/devkit';
+import {
+  addDependenciesToPackageJson,
+  formatFiles,
+  generateFiles,
+  names,
+  Tree,
+} from '@nx/devkit';
 import * as path from 'path';
-import { PRISMA_VERSION } from '../../lib/constants';
-import { PRISMA_AUTH_VERSION } from '../../lib/constants';
-import { writeToDotenv } from '../../lib/dot-env';
+import {
+  PRISMA_AUTH_VERSION,
+  PRISMA_VERSION,
+} from '../../lib/constants/versions';
+import { writeToDotenv } from '../../lib/dotenv/dot-env';
 import { initializeGenerator } from '../../lib/generator-config';
 import type { NormalizedDatabaseGeneratorSchema } from './schema';
 import { DatabaseGeneratorSchema } from './schema';
@@ -16,14 +22,14 @@ function normalize(
   options.package ??= 'lib';
   options.driver ??= 'postgresql';
 
-  const port = options.driver === "postgresql" ? 5432 : 3306;
+  const port = options.driver === 'postgresql' ? 5432 : 3306;
 
   const databaseName = names(options.projectName).constantName;
   return {
     tmpl: '',
     ...options,
     databaseName,
-    port
+    port,
   };
 }
 

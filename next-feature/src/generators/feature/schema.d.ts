@@ -1,3 +1,4 @@
+import type { WithNames } from '../../lib/types';
 
 export interface FeatureGeneratorSchema {
   name: "base" | string;
@@ -12,4 +13,5 @@ export interface NormalizedFeatureGeneratorSchema extends FeatureGeneratorSchema
   projectRoot: string;
   sourceRoot: string;
   importPath: string;
+  apiKeyName: string;
 }

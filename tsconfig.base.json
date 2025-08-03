@@ -15,6 +15,9 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@feature/base": ["features/base/src/index.ts"],
+      "@feature/base/*": ["features/base/src/*"],
+      "@feature/base/server": ["features/base/src/server.ts"],
       "@feature/test": ["features/test/src/index.ts"],
       "@feature/test/*": ["features/test/src/*"],
       "@feature/test/server": ["features/test/src/server.ts"],

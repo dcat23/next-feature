@@ -1,14 +1,11 @@
-import { runTasksInSerial } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
-import { formatFiles, generateFiles, Tree } from '@nx/devkit';
+import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
 import * as path from 'path';
-import { ZUSTAND_VERSION } from '../../lib/constants';
-import { ZOD_VERSION } from '../../lib/constants';
+import { ZUSTAND_VERSION } from '../../lib/constants/versions';
 import { initializeGenerator } from '../../lib/generator-config';
 import { updateDependencies } from '../../lib/utils';
 import typesGenerator from '../types/types';
-import { mutateNames } from './lib/options';
-import { zustandCreateMethod } from './lib/options';
+import { mutateNames, zustandCreateMethod } from './lib/options';
 import type { NormalizedStoreGeneratorSchema } from './schema';
 import { StoreGeneratorSchema } from './schema';
 

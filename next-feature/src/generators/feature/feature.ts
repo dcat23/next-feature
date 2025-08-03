@@ -1,3 +1,4 @@
+import { names } from '@nx/devkit';
 import { runTasksInSerial } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
 import { formatFiles, generateFiles, Tree } from '@nx/devkit';
@@ -5,10 +6,11 @@ import { Linter } from '@nx/eslint';
 import { libraryGenerator } from '@nx/next';
 import * as path from 'path';
 import axiosGenerator from '../../generators/axios/axios';
-import { ZOD_VERSION } from '../../lib/constants';
+import { ZOD_VERSION } from '../../lib/constants/versions';
 import { updateTsConfig } from '../../lib/ts-config';
 import { updateDependencies } from '../../lib/utils';
 import authGenerator from '../auth/auth';
+import { asApiKeyName } from '../axios/utils';
 import { FeatureGeneratorSchema, type NormalizedFeatureGeneratorSchema } from './schema';
 import { getDirectory } from './utils';
 
@@ -19,6 +21,8 @@ function normalize(
   const projectRoot = directory;
   const sourceRoot = path.join(projectRoot, 'src');
   const importPath = `@feature/${options.name}`;
+
+  const apiKeyName = asApiKeyName(options.name)
   return {
     tmpl: '',
     ...options,
@@ -26,6 +30,7 @@ function normalize(
     projectRoot,
     sourceRoot,
     importPath,
+    apiKeyName
   };
 }
 
@@ -54,21 +59,23 @@ export async function featureGenerator(
 
   updateTsConfig(tree, importPath, sourceRoot);
 
+  const dependencies: Record<string, string> = {
+    zod: ZOD_VERSION
+  };
+
+  const devDependencies: Record<string, string> = {};
+
+  tasks.push(updateDependencies(tree, dependencies, devDependencies))
+
+
   if (name === 'base') {
     generateFiles(
       tree,
-      path.join(__dirname, 'files', 'src'),
+      path.join(__dirname, 'files', 'base'),
       sourceRoot,
       normalizedOptions
     );
   }
-
-  const dependencies: Record<string, string> = {
-    zod: ZOD_VERSION
-  };
-  const devDependencies: Record<string, string> = {};
-
-  tasks.push(updateDependencies(tree, dependencies, devDependencies))
 
   if (normalizedOptions.useAxios) {
     tasks.push(await axiosGenerator(tree, {

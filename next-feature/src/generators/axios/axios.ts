@@ -1,20 +1,23 @@
-import { formatFiles, generateFiles, Tree } from '@nx/devkit';
+import { formatFiles, generateFiles, logger, readProjectConfiguration, Tree } from '@nx/devkit';
 import * as path from 'path';
-import { AXIOS_VERSION } from '../../lib/constants';
-import { writeToDotenv } from '../../lib/dot-env';
+import { AXIOS_VERSION } from '../../lib/constants/versions';
+import { writeToDotenv } from '../../lib/dotenv/dot-env';
 import { initializeGenerator } from '../../lib/generator-config';
 import { updateDependencies } from '../../lib/utils';
 import type {
   AxiosGeneratorSchema,
   NormalizedAxiosGeneratorSchema,
 } from './schema';
+import { asApiKeyName } from './utils';
 
 function normalize(
   options: AxiosGeneratorSchema
 ): NormalizedAxiosGeneratorSchema {
+  const keyName = asApiKeyName(options.projectName ?? 'base');
   return {
     tmpl: '',
     ...options,
+    keyName,
   };
 }
 
@@ -24,19 +27,28 @@ export async function axiosGenerator(
 ) {
   const normalizedOptions = normalize(options);
 
+
   const { projectRoot, sourceRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'axios'
   );
-
   const depTask = updateDependencies(tree, { axios: AXIOS_VERSION }, {});
 
+  const properties = {
+    [normalizedOptions.keyName]: 'http://localhost:8080',
+  }
+  writeToDotenv(tree, { projectRoot, section: "axios" }, properties);
 
-  writeToDotenv(tree, { projectRoot }, {
-      '# AXIOS': '',
-      BACKEND_API_URL: 'http://localhost:8080',
-  });
+  if (normalizedOptions.appProjectName) {
+
+    try {
+      const {root: appProjectRoot} = readProjectConfiguration(tree, normalizedOptions.appProjectName)
+      writeToDotenv(tree, { projectRoot: appProjectRoot, section: "axios" }, properties);
+    } catch {
+      logger.info("error reading app project");
+    }
+  }
 
   generateFiles(tree, path.join(__dirname, 'files'), sourceRoot, normalizedOptions);
 

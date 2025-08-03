@@ -1,11 +1,18 @@
-import { generateFiles } from '@nx/devkit';
-import { addDependenciesToPackageJson, formatFiles, type GeneratorCallback, Tree } from '@nx/devkit';
+import {
+  addDependenciesToPackageJson,
+  formatFiles,
+  generateFiles,
+  type GeneratorCallback,
+  Tree,
+} from '@nx/devkit';
 import * as path from 'path';
-import { NEXTAUTH_VERSION } from '../../lib/constants';
-import { writeToDotenv } from '../../lib/dot-env';
+import { NEXTAUTH_VERSION } from '../../lib/constants/versions';
+import { writeToDotenv } from '../../lib/dotenv/dot-env';
 import { initializeGenerator } from '../../lib/generator-config';
-import type { AuthGeneratorSchema, NormalizedAuthGeneratorSchema } from './schema';
-import { updateTsConfigIncludes } from './utils';
+import type {
+  AuthGeneratorSchema,
+  NormalizedAuthGeneratorSchema,
+} from './schema';
 
 function normalize(
   options: AuthGeneratorSchema

@@ -47,7 +47,7 @@ export async function constantGenerator(
   const { directory } = await initializeGenerator(
     tree,
     normalizedOptions,
-    'constants'
+    'constant'
   );
 
   await writeFile(

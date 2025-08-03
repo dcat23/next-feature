@@ -80,6 +80,12 @@
     "next-feature": {
       "utils": {
         "projectName": "next-feature"
+      },
+      "constants": {
+        "projectName": "next-feature"
+      },
+      "types": {
+        "projectName": "next-feature"
       }
     },
     "@nx/react": {

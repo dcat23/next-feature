@@ -1,27 +1,87 @@
-import axios from 'axios';
-import { auth } from '../auth';
+import axios, {
+  type AxiosError,
+  AxiosInstance,
+  type AxiosResponse,
+  InternalAxiosRequestConfig,
+} from 'axios';
+import { auth, signOut } from '@feature/base/lib/auth';
 import { BACKEND_API_URL } from '../config';
+import { handleError } from './error';
 
-export const api = axios.create({
-  baseURL: BACKEND_API_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+export const AUTHORIZATION_HEADER = "Authorization";
 
-api.interceptors.request.use(
-  async (config) => {
-    const session = await auth();
+class AxiosInterceptor {
+  private isRefreshing = false;
+  private refreshSubscribers: ((token: string) => void)[] = [];
+  public axiosInstance: AxiosInstance;
 
-    if (session?.user && 'jwtToken' in session.user) {
-      config.headers['Authorization'] = session.user.jwtToken as string;
+  constructor() {
+    this.axiosInstance = axios.create({
+      baseURL: BACKEND_API_URL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    this.axiosInstance.interceptors.request.use(
+      this.requestFulfilled,
+      this.requestRejected
+    );
+    this.axiosInstance.interceptors.response.use(
+      this.responseFulfilled,
+      this.responseRejected
+    );
+  }
+
+  async responseFulfilled(response: AxiosResponse): Promise<AxiosResponse> {
+    return response;
+  }
+
+  async responseRejected(axiosError: AxiosError) {
+    const error = handleError(axiosError).error;
+    const originalRequest = axiosError.config;
+
+    if (error.message.includes("token expired")) {
+      if (this.isRefreshing) {
+        return new Promise((resolve) => {
+          this.refreshSubscribers.push((token: string) => {
+            if (originalRequest.headers) {
+              originalRequest.headers[AUTHORIZATION_HEADER] = token;
+            }
+            resolve(this.axiosInstance(originalRequest));
+          });
+        });
+      }
+
+      // await signOut();
+      // this.isRefreshing= true;
+
     }
 
+    console.log('AxiosInterceptor', { error });
+
+    return Promise.reject(axiosError);
+  }
+
+  async requestFulfilled(
+    config: InternalAxiosRequestConfig
+  ): Promise<InternalAxiosRequestConfig> {
+    // const session = await auth();
+
+    // if (session?.user && 'jwtToken' in session.user) {
+    //   config.headers[AUTHORIZATION_HEADER] = session.user.jwtToken as string;
+    // }
+
     return config;
-  },
-  (error) => {
+  }
+
+  async requestRejected(
+    error: InternalAxiosRequestConfig
+  ): Promise<InternalAxiosRequestConfig> {
     return Promise.reject(error);
   }
-);
+}
+
+export const api = (new AxiosInterceptor()).axiosInstance;
 
 export default api;

@@ -21,7 +21,7 @@
         "$source": "argv",
         "index": 1
       },
-      "default": "lib"
+      "default": "store"
     },
     "directory": {
       "type": "string",

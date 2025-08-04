@@ -19,7 +19,8 @@
       "$default": {
         "$source": "argv",
         "index": 1
-      }
+      },
+      "default": "components"
     },
     "directory": {
       "type": "string",

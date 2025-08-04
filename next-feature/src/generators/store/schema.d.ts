@@ -1,7 +1,7 @@
 import type { GeneratorSchema, Normalized, WithNames } from '../../lib/types';
 
 export interface StoreGeneratorSchema extends GeneratorSchema {
-  projectName: string;
+  name: string;
   useContext?: boolean;
   useTypes?: boolean
   persist?: boolean;
@@ -9,4 +9,5 @@ export interface StoreGeneratorSchema extends GeneratorSchema {
 
 export interface NormalizedStoreGeneratorSchema extends Normalized<WithNames<StoreGeneratorSchema>> {
   createMethod: string;
+  storeType: 'context' | 'zustand'
 }

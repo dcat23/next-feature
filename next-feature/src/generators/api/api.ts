@@ -75,7 +75,7 @@ export async function apiGenerator(tree: Tree, options: ApiGeneratorSchema) {
   if (normalizedOptions.useConstant) {
     tasks.push(await constantGenerator(tree, {
       ...normalizedOptions ,
-      name: normalizedOptions.constantName,
+      name: normalizedOptions.name,
       skipFormat: true
     }));
   }

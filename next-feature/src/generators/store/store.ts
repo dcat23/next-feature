@@ -1,4 +1,4 @@
-import type { GeneratorCallback } from '@nx/devkit';
+import { type GeneratorCallback, logger } from '@nx/devkit';
 import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
 import * as path from 'path';
 import { ZUSTAND_VERSION } from '../../lib/constants/versions';
@@ -12,17 +12,20 @@ import { StoreGeneratorSchema } from './schema';
 function normalize(
   options: StoreGeneratorSchema
 ): NormalizedStoreGeneratorSchema {
-  options.package ??= 'lib';
+  options.package ??= 'store';
   options.persist = Boolean(options.persist);
   options.useTypes = Boolean(options.useTypes);
 
   const mutatedNames = mutateNames(options);
   const createMethod = zustandCreateMethod({ ...options, ...mutatedNames });
+  const storeType = options.useContext ? "context" : "zustand";
+
   return {
     tmpl: '',
     ...options,
     ...mutatedNames,
     createMethod,
+    storeType,
   };
 }
 
@@ -33,18 +36,20 @@ export async function storeGenerator(
   const normalizedOptions = normalize(options);
   const tasks: GeneratorCallback[] = [];
 
-  // logger.debug({ normalizedOptions });
-  const { directory: sourceDirectory } = await initializeGenerator(
+  const { directory } = await initializeGenerator(
     tree,
     normalizedOptions,
     'store'
   );
 
-  const directory = path.join(sourceDirectory,'store');
+  // const directory = path.join(sourceDirectory,'store');
+  generateFiles(tree, path.join(__dirname, "files/src", normalizedOptions.storeType), directory, normalizedOptions);
 
-
-  const storeType = normalizedOptions.useContext ? "context" : "zustand";
-  generateFiles(tree, path.join(__dirname, "files", "src", storeType), directory, normalizedOptions);
+  logger.info({
+    fn: 'storeGenerator',
+    directory,
+    normalizedOptions
+  })
 
 
   const dependencies: Record<string, string> = {

@@ -14,6 +14,5 @@ export interface PresetGeneratorSchema {
 export interface NormalizedPresetGeneratorSchema extends Normalized<PresetGeneratorSchema> {
   projectRoot: string;
   sourceRoot: string;
-  tmpl: "";
   importPath: string;
 }

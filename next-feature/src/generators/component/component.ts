@@ -8,9 +8,9 @@ import { ComponentGeneratorSchema } from './schema';
 function normalize(
   options: ComponentGeneratorSchema
 ): NormalizedComponentGeneratorSchema {
-  options.package ??= '';
+  options.package ??= 'components';
 
-  const mutatedNames = names(options.projectName);
+  const mutatedNames = names(options.name);
 
   return {
     tmpl: '',
@@ -31,11 +31,7 @@ export async function componentGenerator(
     'component'
   );
 
-
-
-
   generateFiles(tree, path.join(__dirname, 'files/src'), directory, normalizedOptions);
-
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
 

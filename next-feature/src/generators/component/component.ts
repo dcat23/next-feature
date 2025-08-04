@@ -10,7 +10,7 @@ function normalize(
 ): NormalizedComponentGeneratorSchema {
   options.package ??= '';
 
-  const mutatedNames = names(options.name);
+  const mutatedNames = names(options.projectName);
 
   return {
     tmpl: '',

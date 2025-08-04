@@ -7,7 +7,7 @@ import { StoreGeneratorSchema } from './schema';
 
 describe('store generator', () => {
   let tree: Tree;
-  const options: StoreGeneratorSchema = { name: 'test' };
+  const options: StoreGeneratorSchema = { projectName: 'test' };
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();

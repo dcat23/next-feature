@@ -6,7 +6,7 @@ import { typesGenerator } from './types';
 
 describe('types generator', () => {
   let tree: Tree;
-  const options: TypesGeneratorSchema = { name: 'test' };
+  const options: TypesGeneratorSchema = { projectName: 'test' };
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
@@ -19,7 +19,7 @@ describe('types generator', () => {
   });
 
   it('should generate files', async () => {
-    await typesGenerator(tree, { ...options, name: 'backend-data' });
+    await typesGenerator(tree, { ...options, projectName: 'backend-data' });
     const file = 'features/base/src/lib/types/index.ts';
     const buffer = tree.read(file);
 

@@ -6,7 +6,7 @@ import { ApiGeneratorSchema } from './schema';
 
 describe('api generator', () => {
   let tree: Tree;
-  const options: ApiGeneratorSchema = { name: 'test' };
+  const options: ApiGeneratorSchema = { projectName: 'test' };
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
@@ -19,7 +19,7 @@ describe('api generator', () => {
   });
 
   it('should generate files', async () => {
-    await apiGenerator(tree, { ...options, name: 'get-backend-data' });
+    await apiGenerator(tree, { ...options, projectName: 'get-backend-data' });
     const file = 'features/base/src/lib/api/get-backend-data.ts';
 
     expect(tree.exists(file)).toBeTruthy();
@@ -28,7 +28,7 @@ describe('api generator', () => {
   it('should set package', async () => {
     await apiGenerator(tree, {
       ...options,
-      name: 'create-backend-data',
+      projectName: 'create-backend-data',
       package: 'test/nested/package',
     });
     const file =
@@ -40,7 +40,7 @@ describe('api generator', () => {
   it('should set directory', async () => {
     await apiGenerator(tree, {
       ...options,
-      name: 'create-backend-data',
+      projectName: 'create-backend-data',
       directory: 'testing',
     });
     const file = 'testing/base/src/lib/api/create-backend-data.ts';
@@ -51,7 +51,7 @@ describe('api generator', () => {
   it('should create request body', async () => {
     await apiGenerator(tree, {
       ...options,
-      name: 'create-backend-data',
+      projectName: 'create-backend-data',
       directory: 'testing',
     });
     const filePath = 'testing/base/src/lib/api/create-backend-data.ts';
@@ -66,7 +66,7 @@ describe('api generator', () => {
   it('should not create request body', async () => {
     await apiGenerator(tree, {
       ...options,
-      name: 'get-backend-data',
+      projectName: 'get-backend-data',
       directory: 'testing',
     });
     const filePath = 'testing/base/src/lib/api/get-backend-data.ts';

@@ -1,40 +1,35 @@
-import {
-  addProjectConfiguration,
-  formatFiles,
-  generateFiles,
-  names,
-  Tree,
-} from '@nx/devkit';
-import * as path from 'path';
+import { formatFiles, names, Tree } from '@nx/devkit';
 import { initializeGenerator } from '../../lib/generator-config';
-import type { GeneratorSchema } from '../../lib/types';
-import type { WithNames } from '../../lib/types';
-import type { Normalized } from '../../lib/types';
+import type { GeneratorSchema, Normalized, WithNames } from '../../lib/types';
 import { writeFile } from '../../lib/write-file';
 import {
   ConstantGeneratorSchema,
   NormalizedConstantGeneratorSchema,
 } from './schema';
 
-
-
-function normalize(options: ConstantGeneratorSchema): NormalizedConstantGeneratorSchema {
+function normalize(
+  options: ConstantGeneratorSchema
+): NormalizedConstantGeneratorSchema {
   const mutatedNames = names(options.name);
-  options.package ??= "lib";
-  const outputFileName = (options.file
-    ? (typeof options.file === "string" ? options.file : mutatedNames.fileName)
-    : "index").concat(".ts");
+  options.package ??= 'lib';
+  const outputFileName = (
+    options.file
+      ? typeof options.file === 'string'
+        ? options.file
+        : mutatedNames.fileName
+      : 'index'
+  ).concat('.ts');
   return {
-    tmpl: "",
+    tmpl: '',
     ...options,
-   ...mutatedNames,
-    outputFileName
-  }
+    ...mutatedNames,
+    outputFileName,
+  };
 }
 
 
 const constantContent = (options: Normalized<WithNames<GeneratorSchema>>) => (`
-export const ${options.constantName}: any = null;
+export const ${options.constantName}: ${options.className} = null;
 `);
 
 export async function constantGenerator(

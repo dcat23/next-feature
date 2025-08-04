@@ -6,7 +6,7 @@ import { ComponentGeneratorSchema } from './schema';
 
 describe('component generator', () => {
   let tree: Tree;
-  const options: ComponentGeneratorSchema = { name: 'test-component' };
+  const options: ComponentGeneratorSchema = { projectName: 'test-component' };
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();

@@ -7,7 +7,7 @@ import { AuthGeneratorSchema } from './schema';
 describe('auth generator', () => {
   let tree: Tree;
   const options: AuthGeneratorSchema = {
-    name: 'test',
+    projectName: 'test',
     directory: 'apps',
   };
 

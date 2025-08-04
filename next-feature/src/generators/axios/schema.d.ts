@@ -2,7 +2,7 @@ import type { GeneratorSchema, Normalized } from '../../lib/types';
 import type { FeatureGeneratorSchema } from '../feature/schema';
 
 export interface AxiosGeneratorSchema extends GeneratorSchema {
-  name: FeatureGeneratorSchema['name'];
+  projectName: FeatureGeneratorSchema['name'];
   appProjectName?: string; //
 }
 

@@ -27,7 +27,7 @@ export async function writeFile<T extends WithNames<GeneratorSchema>>(
   let buffer = tree.read(filePath, 'utf-8') ?? "";
 
   if (buffer.includes(identifier(options))) {
-    logger.debug('skipping', options.name);
+    logger.debug('skipping', options.projectName);
     return;
   }
 

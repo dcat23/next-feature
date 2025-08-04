@@ -7,10 +7,9 @@ import * as path from 'path';
 import { initializeGenerator } from '../../lib/generator-config';
 import constantGenerator from '../constant/constant';
 import typesGenerator from '../types/types';
-import type { HttpMethod } from './lib/extract-http-method';
-import { extractHttpMethod } from './lib/extract-http-method';
-import { TYPE_IMPORT_SEPARATOR } from './lib/utils';
-import { asTypeImport } from './lib/utils';
+import type { HttpMethod } from './lib/types';
+import { TYPE_IMPORT_SEPARATOR } from './lib/constants';
+import { asTypeImport, extractHttpMethod } from './lib/utils';
 import type { NormalizedApiGeneratorSchema } from './schema';
 import type { ApiGeneratorSchema } from './schema';
 
@@ -23,7 +22,7 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
 
   const methodName = propertyName;
   const endpoint = names(noPrefixClassName).fileName.replace('-', '/');
-  const hasRequestBody = (['post', 'put'] as HttpMethod[]).includes(httpMethod);
+  const hasRequestBody = (['post', 'put', 'patch'] as HttpMethod[]).includes(httpMethod);
 
   const defaultImports = [className, noPrefixClassName, className.concat('Response')];
   /**
@@ -37,6 +36,7 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   const typeImports = defaultImports
     .map(asTypeImport)
     .join(TYPE_IMPORT_SEPARATOR);
+
   const axiosImportPath = '@feature/base/lib/axios';
 
   return {

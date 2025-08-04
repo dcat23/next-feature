@@ -24,7 +24,7 @@ function normalize(
 
   const port = options.driver === 'postgresql' ? 5432 : 3306;
 
-  const databaseName = names(options.name).constantName;
+  const databaseName = names(options.projectName).constantName;
   return {
     tmpl: '',
     ...options,

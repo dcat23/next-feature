@@ -6,7 +6,7 @@ import { UtilsGeneratorSchema } from './schema';
 
 describe('utils generator', () => {
   let tree: Tree;
-  const options: UtilsGeneratorSchema = { name: 'test' };
+  const options: UtilsGeneratorSchema = { projectName: 'test' };
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();

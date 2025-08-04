@@ -12,7 +12,7 @@ import type { GeneratorSchema } from './types';
 const PLUGIN_NAME = require('../../package.json').name;
 
 export async function initializeGenerator(tree: Tree, options: GeneratorSchema, generatorName: string) {
-  const projectName = options.name ?? "base";
+  const projectName = options.projectName ?? "base";
 
   let projectConfiguration: ProjectConfiguration;
   try {

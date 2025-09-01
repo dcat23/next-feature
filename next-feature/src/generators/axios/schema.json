@@ -27,6 +27,11 @@
       "type": "boolean",
       "description": "Skip generating axios files.",
       "alias": "f"
+    },
+    "useInterceptor": {
+      "type": "boolean",
+      "description": "Create a custom interceptor.",
+      "alias": "i"
     }
   },
   "required": ["name"]

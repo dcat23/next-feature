@@ -1,5 +1,4 @@
 
-
 export interface ErrorMessage {
   path: string;
   message: string;
@@ -11,12 +10,4 @@ export interface BackendResponse<Response> {
   isError?: boolean;
   data: Response;
   error?: ErrorMessage
-}
-
-export interface LoginResponse {
-  accessToken: string;
-  expiration: number;
-  role: string;
-  id: number;
-  email: string;
 }

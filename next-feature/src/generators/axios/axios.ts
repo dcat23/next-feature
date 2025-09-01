@@ -8,19 +8,22 @@ import type {
   AxiosGeneratorSchema,
   NormalizedAxiosGeneratorSchema,
 } from './schema';
-import { asApiKeyName } from './utils';
+import { asApiKeyName, asApiName } from './utils';
 
 function normalize(
   options: AxiosGeneratorSchema
 ): NormalizedAxiosGeneratorSchema {
   const keyName = asApiKeyName(options.name);
+  const apiName = asApiName(options.name);
   options.projectName ??= options.name;
   options.package ??= "lib"
+  options.useInterceptor = Boolean(options.useInterceptor);
 
   return {
     tmpl: '',
     ...options,
     keyName,
+    apiName
   };
 }
 
@@ -31,7 +34,7 @@ export async function axiosGenerator(
 
   const normalizedOptions = normalize(options);
 
-  const { projectRoot, sourceRoot } = await initializeGenerator(
+  const { projectRoot, directory } = await initializeGenerator(
     tree,
     normalizedOptions,
     'axios'
@@ -57,7 +60,10 @@ export async function axiosGenerator(
   }
 
   if (!normalizedOptions.skipFiles) {
-    generateFiles(tree, path.join(__dirname, 'files'), sourceRoot, normalizedOptions);
+    generateFiles(tree, path.join(__dirname, 'files', 'src'), directory, normalizedOptions);
+    if (normalizedOptions.useInterceptor) {
+      generateFiles(tree, path.join(__dirname, 'files', 'interceptor'), directory, normalizedOptions);
+    }
   }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);

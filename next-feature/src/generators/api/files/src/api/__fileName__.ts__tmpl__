@@ -6,9 +6,10 @@ import type {
   <%= typeImports %>
 } from '../types';
 import { <%= constantName %> } from '../constants'
-import api from '<%= axiosImportPath %>';
-import { handleError } from '<%= axiosImportPath %>/error';
-import type { BackendResponse } from '<%= axiosImportPath %>/types';
+import api, {
+  type BackendResponse,
+  handleError
+} from '<%= axiosImportPath %>';
 
 interface BackendRequestOptions {
 
@@ -19,7 +20,7 @@ export async function <%= methodName %>(
 ): Promise<BackendResponse<<%= className %>>> {
   try {
     const params: URLSearchParams = new URLSearchParams();
-    const endpoint = `/api/<%= endpoint %>?${params.toString()}`;
+    const endpoint = `/<%= endpoint %>?${params.toString()}`;
     <% if (hasRequestBody) { %>
     const body: <%= className %>Request = {
       ...options

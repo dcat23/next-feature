@@ -24,7 +24,7 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   const endpoint = names(noPrefixClassName).fileName.replace('-', '/');
   const hasRequestBody = (['post', 'put', 'patch'] as HttpMethod[]).includes(httpMethod);
 
-  const defaultImports = [className, noPrefixClassName, className.concat('Response')];
+  const defaultImports = [className, className.concat('Response')];
   /**
    * create type for methods that need a request body
    */
@@ -37,7 +37,7 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
     .map(asTypeImport)
     .join(TYPE_IMPORT_SEPARATOR);
 
-  const axiosImportPath = '@feature/base/lib/axios';
+  const axiosImportPath = '../axios';
 
   return {
     tmpl: '',

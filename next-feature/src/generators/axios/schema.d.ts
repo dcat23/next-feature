@@ -1,7 +1,9 @@
 import type { GeneratorSchema, Normalized } from '../../lib/types';
 
 export interface AxiosGeneratorSchema extends GeneratorSchema {
-  appProjectName?: string; //
+  name: string;
+  appProjectName?: string;
+  skipFiles?: boolean
 }
 
 export interface NormalizedAxiosGeneratorSchema extends Normalized<AxiosGeneratorSchema> {

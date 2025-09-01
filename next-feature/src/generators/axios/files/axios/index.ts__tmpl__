@@ -4,7 +4,7 @@ import axios, {
   type AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
-import { auth, signOut } from '@feature/base/lib/auth';
+import { auth, signOut } from '@feature/auth';
 import { BACKEND_API_URL } from '../config';
 import { handleError } from './error';
 
@@ -15,9 +15,9 @@ class AxiosInterceptor {
   private refreshSubscribers: ((token: string) => void)[] = [];
   public axiosInstance: AxiosInstance;
 
-  constructor() {
+  constructor(baseUrl: string) {
     this.axiosInstance = axios.create({
-      baseURL: BACKEND_API_URL,
+      baseURL: baseUrl,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -38,7 +38,7 @@ class AxiosInterceptor {
   }
 
   async responseRejected(axiosError: AxiosError) {
-    const error = handleError(axiosError).error;
+    const error = handleError(axiosError, null).error;
     const originalRequest = axiosError.config;
 
     if (error.message.includes("token expired")) {
@@ -82,6 +82,6 @@ class AxiosInterceptor {
   }
 }
 
-export const api = (new AxiosInterceptor()).axiosInstance;
+export const api = (new AxiosInterceptor(BACKEND_API_URL)).axiosInstance;
 
 export default api;

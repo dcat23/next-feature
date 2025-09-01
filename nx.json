@@ -87,12 +87,7 @@
       "types": {
         "projectName": "next-feature"
       },
-      "axios": {
-        "projectName": "testing"
-      },
-      "auth": {
-        "projectName": "base"
-      },
+      "auth": {},
       "api": {
         "projectName": "hello"
       },
@@ -101,7 +96,8 @@
       },
       "component": {
         "projectName": "hello"
-      }
+      },
+      "axios": {}
     },
     "@nx/react": {
       "library": {

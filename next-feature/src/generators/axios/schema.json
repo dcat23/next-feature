@@ -12,13 +12,21 @@
         "index": 0
       },
       "x-prompt": "What project should this packaged be added to?",
-      "default": "base",
-      "alias": "p"
     },
     "appProjectName": {
       "type": "string",
       "description": "App project to add env files too",
       "alias": "a"
+    },
+    "projectName": {
+      "type": "string",
+      "description": "The source project name",
+      "alias": "p"
+    },
+    "skipFiles": {
+      "type": "boolean",
+      "description": "Skip generating axios files.",
+      "alias": "f"
     }
   },
   "required": ["name"]

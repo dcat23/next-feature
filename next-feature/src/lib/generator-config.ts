@@ -32,7 +32,7 @@ export async function initializeGenerator(tree: Tree, options: GeneratorSchema, 
   nxJson.generators ??= {};
   nxJson.generators[PLUGIN_NAME] ??= {};
   nxJson.generators[PLUGIN_NAME][generatorName] ??= {};
-  nxJson.generators[PLUGIN_NAME][generatorName]['projectName'] ??= projectName;
+  // nxJson.generators[PLUGIN_NAME][generatorName]['projectName'] ??= null;
 
   updateNxJson(tree, nxJson);
 

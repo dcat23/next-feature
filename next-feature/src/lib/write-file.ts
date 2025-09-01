@@ -4,6 +4,7 @@ import type { WithNames } from './types';
 import type { GeneratorSchema } from './types';
 import type { Normalized } from './types';
 import moment = require('moment');
+import { PLUGIN_NAME, PLUGIN_VERSION } from './constants/versions';
 
 
 const identifier = (options: Normalized<WithNames<GeneratorSchema>>) => {
@@ -13,6 +14,7 @@ const identifier = (options: Normalized<WithNames<GeneratorSchema>>) => {
 const commentText = (options: Normalized<WithNames<GeneratorSchema>>) => `
 /**
 * ${identifier(options)}
+* ${PLUGIN_NAME}@${PLUGIN_VERSION}
 * ${moment().format('MMMM Do YYYY, h:mm:ss a')}
 */`
 

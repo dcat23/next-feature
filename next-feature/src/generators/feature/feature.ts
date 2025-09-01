@@ -6,13 +6,13 @@ import { Linter } from '@nx/eslint';
 import { libraryGenerator } from '@nx/next';
 import * as path from 'path';
 import axiosGenerator from '../../generators/axios/axios';
-import { ZOD_VERSION } from '../../lib/constants/versions';
+import { SONNER_VERSION, ZOD_VERSION } from '../../lib/constants/versions';
 import { updateTsConfig } from '../../lib/ts-config';
 import { updateDependencies } from '../../lib/utils';
 import authGenerator from '../auth/auth';
 import { asApiKeyName } from '../axios/utils';
 import { FeatureGeneratorSchema, type NormalizedFeatureGeneratorSchema } from './schema';
-import { getDirectory } from './utils';
+import { getDirectory, removeLibFiles } from './utils';
 
 function normalize(
   options: FeatureGeneratorSchema
@@ -54,19 +54,19 @@ export async function featureGenerator(
     useProjectJson: true
   }));
 
-
   const { sourceRoot, importPath, name } = normalizedOptions;
 
   updateTsConfig(tree, importPath, sourceRoot);
+  removeLibFiles(tree, sourceRoot);
 
   const dependencies: Record<string, string> = {
+    sonner: SONNER_VERSION,
     zod: ZOD_VERSION
   };
 
   const devDependencies: Record<string, string> = {};
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies))
-
 
   if (name === 'base') {
     generateFiles(
@@ -86,7 +86,8 @@ export async function featureGenerator(
 
   if (normalizedOptions.useAxios) {
     tasks.push(await axiosGenerator(tree, {
-      projectName: normalizedOptions.name,
+      name: normalizedOptions.name,
+      projectName: name,
       directory: normalizedOptions.directory,
       skipFormat: true
     }))
@@ -106,7 +107,6 @@ export async function featureGenerator(
 
   return runTasksInSerial(...tasks);
 }
-
 
 
 export default featureGenerator;

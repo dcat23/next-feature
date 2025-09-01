@@ -1,36 +1,20 @@
 import type { GeneratorCallback } from '@nx/devkit';
 import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
-import { Linter } from '@nx/eslint';
-import { applicationGenerator } from '@nx/next';
 import * as path from 'path';
-import {
-  SONNER_VERSION,
-  TANSTACK_VERSION,
-  ZOD_VERSION,
-} from '../../lib/constants/versions';
-import { updateTsConfig } from '../../lib/ts-config';
-import { updateDependencies } from '../../lib/utils';
-import databaseGenerator from '../database/database';
-import featureGenerator from '../feature/feature';
+import { addToGitignore, updateDependencies } from '../../lib/utils';
 import type { NormalizedPresetGeneratorSchema } from './schema';
 import { PresetGeneratorSchema } from './schema';
+import { dotEnvContent } from './utils';
 
 function normalize(
   options: PresetGeneratorSchema
 ): NormalizedPresetGeneratorSchema {
-  const directory = path.join(options.directory ?? 'apps', options.name);
-
-  const projectRoot = directory;
-  const sourceRoot = path.join(projectRoot, 'src');
-  const importPath = `@app/${options.name}`;
+  const projectRoot = '.';
 
   return {
     tmpl: '',
     ...options,
-    directory,
     projectRoot,
-    sourceRoot,
-    importPath,
   };
 }
 
@@ -41,24 +25,7 @@ export async function presetGenerator(
   const normalizedOptions = normalize(options);
   const tasks: GeneratorCallback[] = [];
 
-  tasks.push(
-    await applicationGenerator(tree, {
-      directory: normalizedOptions.directory,
-      name: normalizedOptions.name,
-      style: 'tailwind',
-      e2eTestRunner: 'none',
-      unitTestRunner: 'jest',
-      src: true,
-      appDir: true,
-      linter: Linter.EsLint,
-      skipFormat: true,
-      useProjectJson: true
-    })
-  );
-
-  const { projectRoot, sourceRoot, importPath } = normalizedOptions;
-
-  updateTsConfig(tree, importPath, sourceRoot);
+  const { projectRoot } = normalizedOptions;
 
   generateFiles(
     tree,
@@ -67,38 +34,17 @@ export async function presetGenerator(
     normalizedOptions
   );
 
-  const dependencies: Record<string, string> = {
-    '@tanstack/react-query': TANSTACK_VERSION,
-    sonner: SONNER_VERSION,
-    zod: ZOD_VERSION,
-  };
-  const devDependencies: Record<string, string> = {};
+  addToGitignore(
+    tree,
+    projectRoot,
+    dotEnvContent,
+  )
 
+  const dependencies: Record<string, string> = {};
+  const devDependencies: Record<string, string> = {};
   tasks.push(updateDependencies(tree, dependencies, devDependencies));
 
-  if (normalizedOptions.useDb || normalizedOptions.useAll) {
-    tasks.push(
-      await databaseGenerator(tree, {
-        projectName: normalizedOptions.name,
-        directory: normalizedOptions.directory,
-        skipFormat: true,
-      })
-    );
-  }
-
-  if (!normalizedOptions.skipFeature) {
-    tasks.push(
-      await featureGenerator(tree, {
-        name: 'base',
-        useAxios: true,
-        useAuth: true,
-        skipFormat: true
-      })
-    )
-  }
-
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
-
 
   return runTasksInSerial(...tasks);
 }

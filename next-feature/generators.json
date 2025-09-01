@@ -65,6 +65,11 @@
       "factory": "./src/generators/constant/constant",
       "schema": "./src/generators/constant/schema.json",
       "description": "constant generator"
+    },
+    "application": {
+      "factory": "./src/generators/application/application",
+      "schema": "./src/generators/application/schema.json",
+      "description": "application generator"
     }
   }
 }

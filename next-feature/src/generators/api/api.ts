@@ -12,9 +12,11 @@ import { TYPE_IMPORT_SEPARATOR } from './lib/constants';
 import { asTypeImport, extractHttpMethod } from './lib/utils';
 import type { NormalizedApiGeneratorSchema } from './schema';
 import type { ApiGeneratorSchema } from './schema';
+import utilsGenerator from '../utils/utils';
 
 function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   options.package ??= 'lib';
+  options.useMapper = Boolean(options.useMapper);
   const mutatedNames = names(options.name);
   const { propertyName, className, name } = mutatedNames;
   const { method: httpMethod, noPrefix: noPrefixClassName } =
@@ -38,6 +40,7 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
     .join(TYPE_IMPORT_SEPARATOR);
 
   const axiosImportPath = '../axios';
+  const mapperName = "mapTo".concat(mutatedNames.className)
 
   return {
     tmpl: '',
@@ -49,6 +52,7 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
     typeImports,
     hasRequestBody,
     axiosImportPath,
+    mapperName,
   };
 }
 
@@ -57,7 +61,7 @@ export async function apiGenerator(tree: Tree, options: ApiGeneratorSchema) {
   const tasks: GeneratorCallback[] = [];
 
   // logger.debug({ normalizedOptions });
-  const { directory } = await initializeGenerator(
+  const { directory, projectName } = await initializeGenerator(
     tree,
     normalizedOptions,
     'api'
@@ -74,8 +78,18 @@ export async function apiGenerator(tree: Tree, options: ApiGeneratorSchema) {
 
   if (normalizedOptions.useConstant) {
     tasks.push(await constantGenerator(tree, {
-      ...normalizedOptions ,
+      ...normalizedOptions,
       name: normalizedOptions.name,
+      skipFormat: true
+    }));
+  }
+
+  if (normalizedOptions.useMapper) {
+    tasks.push(await utilsGenerator(tree, {
+      ...normalizedOptions,
+      name: normalizedOptions.mapperName,
+      projectName,
+      file: "mapper",
       skipFormat: true
     }));
   }

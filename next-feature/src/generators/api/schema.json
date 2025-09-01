@@ -44,6 +44,12 @@
       "description": "Generate default data",
       "default": true,
       "alias": "c"
+    },
+    "useMapper": {
+      "type": "boolean",
+      "description": "Generate mapper method",
+      "default": false,
+      "alias": "m"
     }
   },
   "required": ["name"]

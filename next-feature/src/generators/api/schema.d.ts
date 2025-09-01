@@ -5,6 +5,7 @@ export interface ApiGeneratorSchema extends GeneratorSchema {
   name: string;
   useTypes?: boolean;
   useConstant?: boolean;
+  useMapper?: boolean
 }
 
 export interface NormalizedApiGeneratorSchema extends Normalized<WithNames<ApiGeneratorSchema>> {
@@ -15,4 +16,5 @@ export interface NormalizedApiGeneratorSchema extends Normalized<WithNames<ApiGe
   typeImports: string;
   hasRequestBody: boolean;
   axiosImportPath: string;
+  mapperName: string;
 }

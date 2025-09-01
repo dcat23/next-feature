@@ -2,6 +2,7 @@
 
 
 <% if (hasRequestBody) { %>import { z } from "zod";<% } %>
+<% if (useMapper) { %>import { <%= mapperName %> } from "../utils/mapper";<% } %>
 import type {
   <%= typeImports %>
 } from '../types';
@@ -35,8 +36,8 @@ export async function <%= methodName %>(
     }
     <% } %>
     const { data } = await api.<%= httpMethod %><<%= className %>Response>(endpoint<% if (hasRequestBody) { %>, parsed.data<% } %>);
-
-    return { data };
+    <% if (useMapper) { %>return { data: <%= mapperName %>(data) };
+    <% } else { %>return { data };<% } %>
   } catch (error) {
     return handleError<<%= className %>>(error, <%= constantName %>);
   }

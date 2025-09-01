@@ -7,6 +7,7 @@ import type { Normalized } from '../../lib/types';
 import { writeFile } from '../../lib/write-file';
 import type { NormalizedUtilsGeneratorSchema } from './schema';
 import { UtilsGeneratorSchema } from './schema';
+import * as path from 'path';
 
 function normalize(options: UtilsGeneratorSchema): NormalizedUtilsGeneratorSchema {
   const mutatedNames = names(options.name);
@@ -24,18 +25,18 @@ function normalize(options: UtilsGeneratorSchema): NormalizedUtilsGeneratorSchem
 }
 
 const utilsContent = (options: Normalized<WithNames<GeneratorSchema>>) => (`
-export function ${options.propertyName}(p: any) {
+export function ${options.propertyName}(data: any) {
 
-  return p;
+  return data;
 }
 `);
+
 export async function utilsGenerator(
   tree: Tree,
   options: UtilsGeneratorSchema
 ) {
   const normalizedOptions = normalize(options);
 
-  // logger.debug({ normalizedOptions })
   const { directory } = await initializeGenerator(
     tree,
     normalizedOptions,
@@ -44,13 +45,16 @@ export async function utilsGenerator(
 
   await writeFile(
     tree,
-    `${directory}/utils`,
+    path.join(directory, 'utils'),
     utilsContent,
     normalizedOptions,
     normalizedOptions.outputFileName
   );
 
   if (!options.skipFormat) await formatFiles(tree);
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  return () => {}
 }
 
 export default utilsGenerator;

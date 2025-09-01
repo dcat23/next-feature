@@ -17,6 +17,8 @@ import {
   ZOD_VERSION,
 } from '../../lib/constants/versions';
 import { updateDependencies } from '../../lib/utils';
+import axiosGenerator from '../axios/axios';
+import authGenerator from '../auth/auth';
 
 function normalize(
   options: ApplicationGeneratorSchema
@@ -74,6 +76,26 @@ export async function applicationGenerator(
     zod: ZOD_VERSION,
   };
   const devDependencies: Record<string, string> = {};
+
+
+  if (normalizedOptions.useAxios) {
+    tasks.push(await axiosGenerator(tree, {
+      name: normalizedOptions.name,
+      projectName: normalizedOptions.name,
+      directory: normalizedOptions.directory,
+      skipFormat: true
+    }))
+  }
+
+  if (normalizedOptions.useAuth) {
+    tasks.push(
+      await authGenerator(tree, {
+        projectName: normalizedOptions.name,
+        directory: normalizedOptions.directory,
+        skipFormat: true,
+      })
+    );
+  }
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies));
 

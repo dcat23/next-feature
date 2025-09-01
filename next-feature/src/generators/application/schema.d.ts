@@ -5,8 +5,6 @@ export interface ApplicationGeneratorSchema {
   directory?: string;
   useAxios?: boolean;
   useAuth?: boolean;
-  useDb?: boolean;
-  useAll?: boolean;
   skipFormat?: boolean;
 }
 

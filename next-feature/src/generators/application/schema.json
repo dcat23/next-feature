@@ -16,7 +16,21 @@
     "directory": {
       "type": "string",
       "description": "Where to create this project",
+      "$default": {
+        "$source": "argv",
+        "index": 1
+      },
       "alias": "d"
+    },
+    "useAxios": {
+      "type": "boolean",
+      "description": "Initialize axios package",
+      "default": false
+    },
+    "useAuth": {
+      "type": "boolean",
+      "description": "Initialize auth package",
+      "default": false
     }
   },
   "required": ["name"]

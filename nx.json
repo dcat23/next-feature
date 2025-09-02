@@ -99,15 +99,11 @@
   "generators": {
     "next-feature": {
       "utils": {
-        "projectName": "next-feature"
       },
       "constant": {
-        "projectName": "next-feature"
       },
       "types": {
-        "projectName": "next-feature"
       },
-      "auth": {},
       "api": {
         "projectName": "hello"
       },
@@ -117,6 +113,7 @@
       "component": {
         "projectName": "hello"
       },
+      "auth": {},
       "axios": {}
     },
     "@nx/react": {

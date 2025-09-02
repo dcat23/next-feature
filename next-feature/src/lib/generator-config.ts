@@ -6,7 +6,7 @@ import {
   Tree,
 } from '@nx/devkit';
 import * as path from 'path';
-import featureGenerator from '../generators/feature/feature';
+import featureGenerator from '../generators/project/feature/feature';
 import type { GeneratorSchema } from './types';
 
 const PLUGIN_NAME = require('../../package.json').name;

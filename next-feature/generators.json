@@ -6,33 +6,33 @@
       "description": "init generator"
     },
     "axios": {
-      "factory": "./src/generators/axios/axios",
-      "schema": "./src/generators/axios/schema.json",
+      "factory": "./src/generators/misc/axios/axios",
+      "schema": "./src/generators/misc/axios/schema.json",
       "description": "axios generator"
     },
     "feature": {
-      "factory": "./src/generators/feature/feature",
-      "schema": "./src/generators/feature/schema.json",
+      "factory": "./src/generators/project/feature/feature",
+      "schema": "./src/generators/project/feature/schema.json",
       "description": "feature generator"
     },
     "auth": {
-      "factory": "./src/generators/auth/auth",
-      "schema": "./src/generators/auth/schema.json",
+      "factory": "./src/generators/misc/auth/auth",
+      "schema": "./src/generators/misc/auth/schema.json",
       "description": "auth generator"
     },
     "database": {
-      "factory": "./src/generators/database/database",
-      "schema": "./src/generators/database/schema.json",
+      "factory": "./src/generators/misc/database/database",
+      "schema": "./src/generators/misc/database/schema.json",
       "description": "database generator"
     },
     "api": {
-      "factory": "./src/generators/api/api",
-      "schema": "./src/generators/api/schema.json",
+      "factory": "./src/generators/code/api/api",
+      "schema": "./src/generators/code/api/schema.json",
       "description": "api generator"
     },
     "types": {
-      "factory": "./src/generators/types/types",
-      "schema": "./src/generators/types/schema.json",
+      "factory": "./src/generators/code/types/types",
+      "schema": "./src/generators/code/types/schema.json",
       "description": "types generator"
     },
     "preset": {
@@ -42,33 +42,33 @@
       "x-use-standalone-layout": true
     },
     "component": {
-      "factory": "./src/generators/component/component",
-      "schema": "./src/generators/component/schema.json",
+      "factory": "./src/generators/code/component/component",
+      "schema": "./src/generators/code/component/schema.json",
       "description": "component generator"
     },
     "store": {
-      "factory": "./src/generators/store/store",
-      "schema": "./src/generators/store/schema.json",
+      "factory": "./src/generators/code/store/store",
+      "schema": "./src/generators/code/store/schema.json",
       "description": "store generator"
     },
     "copy-deps": {
-      "factory": "./src/generators/copy-deps/copy-deps",
-      "schema": "./src/generators/copy-deps/schema.json",
+      "factory": "./src/generators/tool/copy-deps/copy-deps",
+      "schema": "./src/generators/tool/copy-deps/schema.json",
       "description": "copy-deps generator"
     },
     "utils": {
-      "factory": "./src/generators/utils/utils",
-      "schema": "./src/generators/utils/schema.json",
+      "factory": "./src/generators/code/utils/utils",
+      "schema": "./src/generators/code/utils/schema.json",
       "description": "utils generator"
     },
     "constant": {
-      "factory": "./src/generators/constant/constant",
-      "schema": "./src/generators/constant/schema.json",
+      "factory": "./src/generators/code/constant/constant",
+      "schema": "./src/generators/code/constant/schema.json",
       "description": "constant generator"
     },
     "application": {
-      "factory": "./src/generators/application/application",
-      "schema": "./src/generators/application/schema.json",
+      "factory": "./src/generators/project/application/application",
+      "schema": "./src/generators/project/application/schema.json",
       "description": "application generator"
     }
   }

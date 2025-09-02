@@ -1,5 +1,5 @@
 import type { names } from '@nx/devkit';
-import type { FeatureGeneratorSchema } from '../generators/feature/schema';
+import type { FeatureGeneratorSchema } from '../generators/project/feature/schema';
 
 export interface GeneratorSchema {
   name?: string;

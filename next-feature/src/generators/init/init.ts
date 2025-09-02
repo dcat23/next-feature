@@ -8,11 +8,7 @@ import {
   Tree,
   updateNxJson,
 } from '@nx/devkit';
-import {
-  PLUGIN_NAME,
-  PLUGIN_VERSION,
-  ZOD_VERSION,
-} from '../../lib/constants/versions';
+import { PLUGIN_NAME, PLUGIN_VERSION } from '../../lib/constants/versions';
 import type { InitGeneratorSchema } from './schema';
 
 export async function initGenerator(tree: Tree, options: InitGeneratorSchema) {
@@ -40,9 +36,7 @@ function updateDependencies(tree: Tree) {
   tasks.push(
     addDependenciesToPackageJson(
       tree,
-      {
-        zod: ZOD_VERSION,
-      },
+      {},
       {
         [PLUGIN_NAME]: PLUGIN_VERSION,
       },

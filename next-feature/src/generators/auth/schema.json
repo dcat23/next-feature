@@ -7,15 +7,13 @@
     "projectName": {
       "type": "string",
       "description": "The name for the features generator plugin",
-      "default": "features",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What project should this package be added to?",
       "alias": "p"
-    },
-    "directory": {
-      "type": "string",
-      "description": "The directory in the project",
-      "default": "lib",
-      "alias": "d"
     }
   },
-  "required": []
+  "required": ["projectName"]
 }

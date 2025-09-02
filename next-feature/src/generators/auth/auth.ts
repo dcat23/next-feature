@@ -7,7 +7,6 @@ import {
 } from '@nx/devkit';
 import * as path from 'path';
 import { NEXTAUTH_VERSION } from '../../lib/constants/versions';
-import { writeToDotenv } from '../../lib/dotenv/dot-env';
 import { initializeGenerator } from '../../lib/generator-config';
 import type {
   AuthGeneratorSchema,
@@ -27,21 +26,13 @@ function normalize(
 export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
   const normalizedOptions = normalize(options);
 
-  const { projectRoot, sourceRoot } = await initializeGenerator(
+  const { sourceRoot } = await initializeGenerator(
     tree,
     normalizedOptions,
     'auth'
   );
 
   const depTask = updateDependencies(tree);
-
-  writeToDotenv(tree, { projectRoot, section: "auth" }, {
-    NEXTAUTH_URL: "http://localhost:4200",
-    NEXT_PUBLIC_ROOT_DOMAIN: "localhost:4200",
-    AUTH_SECRET: generateSecret(),
-  });
-
-  // updateTsConfigIncludes(tree, projectRoot);
 
   generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, normalizedOptions);
 
@@ -69,8 +60,5 @@ function updateDependencies(tree: Tree) {
 
 export default authGenerator;
 
-function generateSecret(): string {
-  return require('crypto').randomBytes(32).toString('hex');
-}
 
 

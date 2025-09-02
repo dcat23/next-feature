@@ -19,6 +19,8 @@ import {
 import { updateDependencies } from '../../lib/utils';
 import axiosGenerator from '../axios/axios';
 import authGenerator from '../auth/auth';
+import { writeToDotenv } from '../../lib/dotenv/dot-env';
+import { generateSecret } from './utils';
 
 function normalize(
   options: ApplicationGeneratorSchema
@@ -77,6 +79,11 @@ export async function applicationGenerator(
   };
   const devDependencies: Record<string, string> = {};
 
+  writeToDotenv(tree, { projectRoot, section: "auth" }, {
+    NEXTAUTH_URL: "http://localhost:4200",
+    NEXT_PUBLIC_ROOT_DOMAIN: "localhost:4200",
+    AUTH_SECRET: generateSecret(),
+  });
 
   if (normalizedOptions.useAxios) {
     tasks.push(await axiosGenerator(tree, {

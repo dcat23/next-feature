@@ -10,7 +10,7 @@ import { <%= constantName %> } from '../constants'
 import api, {
   type BackendResponse,
   handleError
-} from 'next-feature/src/generators/code/api/files/src/api<%= axiosImportPath %>';
+} from '<%= axiosImportPath %>';
 
 interface BackendRequestOptions {
 

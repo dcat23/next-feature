@@ -1,6 +1,6 @@
 services:
   postgres:
-    container_name: postgres_<%= projectName %>
+    container_name: postgres-<%= projectName %>
     image: postgres
     environment:
       POSTGRES_USER: ${DATABASE_USER}

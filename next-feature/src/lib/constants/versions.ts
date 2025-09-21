@@ -9,3 +9,4 @@ export const ZOD_VERSION = "3.24.4"
 export const ZUSTAND_VERSION = "^5.0.6"
 export const TANSTACK_VERSION = "5.75.7";
 export const SONNER_VERSION = "2.0.3";
+export const LUCIDE_VERSION = "^0.542.0";

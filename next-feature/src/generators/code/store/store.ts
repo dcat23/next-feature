@@ -1,5 +1,10 @@
-import { type GeneratorCallback, logger } from '@nx/devkit';
-import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
+import {
+  formatFiles,
+  generateFiles,
+  type GeneratorCallback,
+  runTasksInSerial,
+  Tree,
+} from '@nx/devkit';
 import * as path from 'path';
 import { ZUSTAND_VERSION } from '../../../lib/constants/versions';
 import { initializeGenerator } from '../../../lib/generator-config';
@@ -42,15 +47,7 @@ export async function storeGenerator(
     'store'
   );
 
-  // const directory = path.join(sourceDirectory,'store');
   generateFiles(tree, path.join(__dirname, "files/src", normalizedOptions.storeType), directory, normalizedOptions);
-
-  logger.info({
-    fn: 'storeGenerator',
-    directory,
-    normalizedOptions
-  })
-
 
   const dependencies: Record<string, string> = {
     zustand: ZUSTAND_VERSION

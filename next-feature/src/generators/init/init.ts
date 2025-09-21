@@ -8,7 +8,11 @@ import {
   Tree,
   updateNxJson,
 } from '@nx/devkit';
-import { PLUGIN_NAME, PLUGIN_VERSION } from '../../lib/constants/versions';
+import {
+  LUCIDE_VERSION,
+  PLUGIN_NAME,
+  PLUGIN_VERSION,
+} from '../../lib/constants/versions';
 import type { InitGeneratorSchema } from './schema';
 
 export async function initGenerator(tree: Tree, options: InitGeneratorSchema) {
@@ -36,7 +40,9 @@ function updateDependencies(tree: Tree) {
   tasks.push(
     addDependenciesToPackageJson(
       tree,
-      {},
+      {
+        "lucide-react": LUCIDE_VERSION,
+      },
       {
         [PLUGIN_NAME]: PLUGIN_VERSION,
       },

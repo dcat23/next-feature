@@ -18,21 +18,6 @@
       "description": "Where to create this project",
       "alias": "d"
     },
-    "useAuth": {
-      "type": "boolean",
-      "description": "Initialize auth package",
-      "default": true
-    },
-    "useDb": {
-      "type": "boolean",
-      "description": "Initialize database files",
-      "default": false
-    },
-    "useAll": {
-      "type": "boolean",
-      "description": "Will initialize all packages (auth, axios, database)",
-      "default": false
-    },
     "skipFeature": {
       "type": "boolean",
       "description": "Will skip creating the feature plugin",

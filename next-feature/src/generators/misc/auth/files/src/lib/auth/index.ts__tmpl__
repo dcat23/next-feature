@@ -1,0 +1,58 @@
+import type { NextAuthResult, Session, User } from 'next-auth';
+import NextAuth from 'next-auth';
+import type { JWT } from 'next-auth/jwt';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { authConfig } from './auth.config';
+import { login } from '../api/login';
+
+
+const nextAuthResult = NextAuth({
+  ...authConfig,
+  providers: [
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        const { isError, error, data: user } = await login({ credentials });
+
+        if (isError) {
+          console.error(error);
+        }
+        return user;
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user && 'role' in user && 'jwtToken' in user) {
+        token.role = user.role;
+        token.jwtToken = user.jwtToken;
+      }
+      return token;
+    },
+    async session({ session, token }: { session: Session; token: JWT; user: User }) {
+
+      if (token && session.user && 'role' in session.user && 'jwtToken' in session.user) {
+        session.user.role = token.role as string;
+        session.user.jwtToken = token.jwtToken as string;
+      }
+      return session;
+    },
+
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      // Allows callback URLs on the same origin
+      else if (new URL(url).origin === baseUrl) return url;
+      return baseUrl;
+    },
+  },
+});
+
+export const auth: NextAuthResult["auth"] = nextAuthResult.auth;
+export const handlers: NextAuthResult["handlers"] = nextAuthResult.handlers;
+export const signIn: NextAuthResult["signIn"] = nextAuthResult.signIn;
+export const signOut: NextAuthResult["signOut"] = nextAuthResult.signOut;

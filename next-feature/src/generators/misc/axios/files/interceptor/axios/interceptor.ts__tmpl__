@@ -1,0 +1,85 @@
+import axios, {
+  type AxiosError,
+  type AxiosResponse,
+  AxiosInstance,
+  InternalAxiosRequestConfig,
+} from 'axios';
+import { auth, signOut } from '../auth';
+
+export const AUTHORIZATION_HEADER = 'Authorization';
+export const REFRESH_TOKEN_MESSAGE = 'token expired';
+
+/**
+ * todo: complete refresh logic
+ */
+export class AxiosInterceptor {
+  private isRefreshing = false;
+  private refreshSubscribers: ((token: string) => void)[] = [];
+  public instance: AxiosInstance;
+
+  constructor(baseUrl: string) {
+    this.instance = axios.create({
+      baseURL: baseUrl,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    this.instance.interceptors.request.use(
+      this.requestFulfilled,
+      this.requestRejected
+    );
+    this.instance.interceptors.response.use(
+      this.responseFulfilled,
+      this.responseRejected
+    );
+  }
+
+  async responseFulfilled(response: AxiosResponse): Promise<AxiosResponse> {
+    return response;
+  }
+
+  async responseRejected(axiosError: AxiosError) {
+    const originalRequest = axiosError.config;
+
+    if (axiosError.message.includes(REFRESH_TOKEN_MESSAGE)) {
+      if (this.isRefreshing) {
+        return new Promise((resolve) => {
+          this.refreshSubscribers.push((token: string) => {
+            if (originalRequest.headers) {
+              originalRequest.headers[AUTHORIZATION_HEADER] = token;
+            }
+            resolve(this.instance(originalRequest));
+          });
+        });
+      }
+
+      await signOut();
+      this.isRefreshing = true;
+    }
+
+    console.log('AxiosInterceptor', { axiosError });
+
+    return Promise.reject(axiosError);
+  }
+
+  async requestFulfilled(
+    config: InternalAxiosRequestConfig
+  ): Promise<InternalAxiosRequestConfig> {
+    const session = await auth();
+
+    if (session?.user && 'jwtToken' in session.user) {
+      config.headers[AUTHORIZATION_HEADER] = session.user.jwtToken as string;
+    }
+
+    return config;
+  }
+
+  async requestRejected(
+    error: InternalAxiosRequestConfig
+  ): Promise<InternalAxiosRequestConfig> {
+    return Promise.reject(error);
+  }
+}
+
+

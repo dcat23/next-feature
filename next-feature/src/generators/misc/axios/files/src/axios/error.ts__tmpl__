@@ -1,0 +1,20 @@
+import type { BackendResponse, ErrorMessage } from './types';
+import axios, { type AxiosError } from 'axios';
+
+
+export function handleError<T = unknown>(error: any, data: T): BackendResponse<T> {
+  let err: ErrorMessage;
+  if (axios.isAxiosError(error)) {
+    const e = error as AxiosError<ErrorMessage>;
+    err = e.response?.data as ErrorMessage;
+  } else {
+    err = {
+      path: "/error",
+      message: error.message || 'Unhandled error',
+      statusCode: "INTERNAL_SERVER_ERROR",
+      timestamp: new Date(),
+    };
+  }
+
+  return { error: err, isError: true, data }
+}

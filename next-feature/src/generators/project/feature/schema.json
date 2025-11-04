@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "Feature",
+  "title": "Feature Generator",
+  "description": "Initializes the features plugin to use with lib generators",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the project features will be added to.",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What name would you like to use?",
+      "default": "base"
+    },
+    "directory": {
+      "type": "string",
+      "description": "Where to create this project",
+      "$default": {
+        "$source": "argv",
+        "index": 1
+      },
+      "alias": "d"
+    },
+    "useAxios": {
+      "type": "boolean",
+      "description": "Initialize axios package",
+      "default": false
+    },
+    "useAuth": {
+      "type": "boolean",
+      "description": "Initialize auth package",
+      "default": false
+    }
+  },
+  "required": ["name"]
+}

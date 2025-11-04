@@ -78,13 +78,30 @@
   ],
   "generators": {
     "next-feature": {
-      "utils": {
-        "projectName": "next-feature"
-      }
+      "utils": {},
+      "constant": {},
+      "types": {},
+      "api": {
+        "projectName": "hello"
+      },
+      "store": {
+        "projectName": "hello"
+      },
+      "component": {
+        "projectName": "hello"
+      },
+      "auth": {},
+      "axios": {}
     },
     "@nx/react": {
       "library": {
         "unitTestRunner": "jest"
+      }
+    },
+    "@nx/next": {
+      "application": {
+        "style": "tailwind",
+        "linter": "eslint"
       }
     }
   }

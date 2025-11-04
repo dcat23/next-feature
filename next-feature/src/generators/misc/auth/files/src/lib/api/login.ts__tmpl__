@@ -1,0 +1,49 @@
+'use server';
+
+import { z } from 'zod';
+import api, { type BackendResponse, handleError } from '../axios';
+import { User } from 'next-auth';
+
+interface BackendRequestOptions {
+  credentials: Partial<Record<'email' | 'password', unknown>>;
+}
+
+interface LoginResponse {
+  accessToken: string;
+  id: string;
+  email: string;
+}
+
+export async function login(
+  options: BackendRequestOptions
+): Promise<BackendResponse<User | null>> {
+  try {
+    const endpoint = `/login`;
+
+    const parsed = z.object({
+      email: z.string().email(),
+      password: z.string().min(6)
+    }).safeParse(options.credentials);
+
+    if (!parsed.success) {
+      return handleError(parsed.error, null);
+    }
+
+    const { data } = await api.post<LoginResponse>(endpoint, parsed.data);
+
+    if (data.accessToken) {
+      const user: User = {
+        id: data.id,
+        email: data.email,
+        role: data.role,
+        jwtToken: data.accessToken,
+      };
+
+      return { data: user };
+    }
+
+    return { data: null };
+  } catch (error) {
+    return handleError(error, null);
+  }
+}

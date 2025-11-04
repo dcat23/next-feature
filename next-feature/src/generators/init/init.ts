@@ -8,17 +8,17 @@ import {
   Tree,
   updateNxJson,
 } from '@nx/devkit';
-import { ZOD_VERSION } from '../../lib/constants';
-import { SONNER_VERSION } from '../../lib/constants';
-import { ZUSTAND_VERSION } from '../../lib/constants';
-import { TANSTACK_VERSION } from '../../lib/constants';
-import { PROJECT_NAME, PROJECT_VERSION } from '../../lib/constants';
+import {
+  LUCIDE_VERSION,
+  PLUGIN_NAME,
+  PLUGIN_VERSION,
+} from '../../lib/constants/versions';
 import type { InitGeneratorSchema } from './schema';
 
 export async function initGenerator(tree: Tree, options: InitGeneratorSchema) {
   const nxJson = readNxJson(tree) || {};
   const hasPlugin = nxJson.plugins?.some((p) =>
-    typeof p === 'string' ? p === PROJECT_NAME : p.plugin === PROJECT_NAME
+    typeof p === 'string' ? p === PLUGIN_NAME : p.plugin === PLUGIN_NAME
   );
 
   if (!hasPlugin) {
@@ -36,15 +36,15 @@ export async function initGenerator(tree: Tree, options: InitGeneratorSchema) {
 
 function updateDependencies(tree: Tree) {
   const tasks: GeneratorCallback[] = [];
-  tasks.push(removeDependenciesFromPackageJson(tree, [PROJECT_NAME], []));
+  tasks.push(removeDependenciesFromPackageJson(tree, [PLUGIN_NAME], []));
   tasks.push(
     addDependenciesToPackageJson(
       tree,
       {
-        zod: ZOD_VERSION,
+        "lucide-react": LUCIDE_VERSION,
       },
       {
-        [PROJECT_NAME]: PROJECT_VERSION,
+        [PLUGIN_NAME]: PLUGIN_VERSION,
       },
       undefined,
       true

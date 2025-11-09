@@ -11,6 +11,7 @@ import { getActionTemplatePath, normalize } from './lib/utils';
 import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
 import constantGenerator from '../constant/constant';
 import utilsGenerator from '../utility/utility';
+import dataTypeGenerator from '../data-type/data-type';
 
 export async function actionGenerator(
   tree: Tree,
@@ -34,30 +35,41 @@ export async function actionGenerator(
     normalizedOptions
   );
 
-  // Chain dependent generators for API actions
-  if (normalizedOptions.actionType === 'api') {
-    if (normalizedOptions.useConstant) {
-      tasks.push(
-        await constantGenerator(tree, {
-          ...normalizedOptions,
-          name: normalizedOptions.name,
-          file: normalizedOptions.domain.fileName,
-          skipFormat: true,
-        })
-      );
-    }
-
-    if (normalizedOptions.useMapper) {
-      tasks.push(
-        await utilsGenerator(tree, {
-          ...normalizedOptions,
-          name: normalizedOptions.mapperName,
-          file: normalizedOptions.domain.fileName,
-          skipFormat: true,
-        })
-      );
-    }
+  if (normalizedOptions.useConstant) {
+    tasks.push(
+      await constantGenerator(tree, {
+        ...normalizedOptions,
+        name: normalizedOptions.name,
+        file: normalizedOptions.domain.fileName,
+        skipFormat: true,
+      })
+    );
   }
+
+  if (normalizedOptions.useMapper) {
+    tasks.push(
+      await utilsGenerator(tree, {
+        ...normalizedOptions,
+        name: normalizedOptions.mapperName,
+        file: normalizedOptions.domain.fileName,
+        skipFormat: true,
+      })
+    );
+  }
+
+  if (normalizedOptions.useTypes) {
+    tasks.push(
+      await dataTypeGenerator(tree, {
+        ...normalizedOptions,
+        name: normalizedOptions.domain.className,
+        file: normalizedOptions.domain.fileName,
+        skipFormat: true,
+      })
+    );
+  }
+
+  // if (normalizedOptions.actionType === 'api') {
+  // }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
 

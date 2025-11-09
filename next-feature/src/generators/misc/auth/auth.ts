@@ -7,26 +7,28 @@ import {
 } from '@nx/devkit';
 import * as path from 'path';
 import { NEXTAUTH_VERSION } from '../../../lib/constants/versions';
-import { initializeGenerator } from '../../../lib/generator-config';
 import type {
   AuthGeneratorSchema,
   NormalizedAuthGeneratorSchema,
 } from './schema';
+import {
+  initializeCodeGenerator,
+  normalizeCodeGenerator,
+} from '../../../lib/utils/code-generator';
 
 function normalize(
   options: AuthGeneratorSchema
 ): NormalizedAuthGeneratorSchema {
-  options.package ??= 'lib';
+  const normalized = normalizeCodeGenerator(options);
   return {
-    tmpl: '',
-    ...options,
+    ...normalized,
   };
 }
 
 export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
   const normalizedOptions = normalize(options);
 
-  const { sourceRoot } = await initializeGenerator(
+  const { sourceRoot } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'auth'

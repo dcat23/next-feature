@@ -85,24 +85,25 @@ export async function featureGenerator(
     normalizedOptions
   );
 
-  if (normalizedOptions.useAxios) {
-    tasks.push(await axiosGenerator(tree, {
-      name: normalizedOptions.name,
-      projectName: name,
-      directory: normalizedOptions.directory,
-      skipFormat: true
-    }))
-  }
+  //
+  // if (normalizedOptions.useAxios) {
+  //   tasks.push(await axiosGenerator(tree, {
+  //     name: normalizedOptions.name,
+  //     projectName: name,
+  //     directory: normalizedOptions.directory,
+  //     skipFormat: true
+  //   }))
+  // }
 
-  if (normalizedOptions.useAuth) {
-    tasks.push(
-      await authGenerator(tree, {
-        projectName: normalizedOptions.name,
-        directory: normalizedOptions.directory,
-        skipFormat: true,
-      })
-    );
-  }
+  // if (normalizedOptions.useAuth) {
+  //   tasks.push(
+  //     await authGenerator(tree, {
+  //       projectName: normalizedOptions.name,
+  //       directory: normalizedOptions.directory,
+  //       skipFormat: true,
+  //     })
+  //   );
+  // }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
 

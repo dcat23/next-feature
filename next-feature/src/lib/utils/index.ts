@@ -1,4 +1,3 @@
-
 import { addDependenciesToPackageJson } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
 import { Tree } from '@nx/devkit';

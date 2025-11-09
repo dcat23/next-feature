@@ -1,13 +1,12 @@
-import type { GeneratorSchema, Normalized } from '../../../lib/types';
+import type { CodeGeneratorSchema, NormalizedCodeGeneratorSchema } from '../../../lib/types';
 
-export interface AxiosGeneratorSchema extends GeneratorSchema {
-  name: string;
+export interface AxiosGeneratorSchema extends CodeGeneratorSchema {
   appProjectName?: string;
   skipFiles?: boolean
   useInterceptor?: boolean
 }
 
-export interface NormalizedAxiosGeneratorSchema extends Normalized<AxiosGeneratorSchema> {
+export interface NormalizedAxiosGeneratorSchema extends NormalizedCodeGeneratorSchema<AxiosGeneratorSchema> {
   keyName: string;
   apiName: string;
 }

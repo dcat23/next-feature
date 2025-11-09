@@ -1,6 +1,6 @@
-import type { Normalized } from '../../lib/types';
+import type { ProjectGeneratorSchema, Normalized } from '../../lib/types';
 
-export interface PresetGeneratorSchema {
+export interface PresetGeneratorSchema extends ProjectGeneratorSchema {
   name: string;
   skipFormat?: boolean;
 }

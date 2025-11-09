@@ -2,26 +2,28 @@ import { formatFiles, generateFiles, logger, readProjectConfiguration, Tree } fr
 import * as path from 'path';
 import { AXIOS_VERSION } from '../../../lib/constants/versions';
 import { writeToDotenv } from '../../../lib/dotenv/dot-env';
-import { initializeGenerator } from '../../../lib/generator-config';
 import { updateDependencies } from '../../../lib/utils';
 import type {
   AxiosGeneratorSchema,
   NormalizedAxiosGeneratorSchema,
 } from './schema';
 import { asApiKeyName, asApiName } from './utils';
+import {
+  initializeCodeGenerator,
+  normalizeCodeGenerator,
+} from '../../../lib/utils/code-generator';
 
 function normalize(
   options: AxiosGeneratorSchema
 ): NormalizedAxiosGeneratorSchema {
-  const keyName = asApiKeyName(options.name);
-  const apiName = asApiName(options.name);
-  options.projectName ??= options.name;
-  options.package ??= "lib"
-  options.useInterceptor = Boolean(options.useInterceptor);
+  const normalized = normalizeCodeGenerator(options);
+  const keyName = asApiKeyName(normalized.name);
+  const apiName = asApiName(normalized.name);
+  normalized.projectName ??= normalized.name;
+  normalized.useInterceptor = Boolean(normalized.useInterceptor);
 
   return {
-    tmpl: '',
-    ...options,
+    ...normalized,
     keyName,
     apiName
   };
@@ -34,7 +36,7 @@ export async function axiosGenerator(
 
   const normalizedOptions = normalize(options);
 
-  const { projectRoot, directory } = await initializeGenerator(
+  const { projectRoot, directory } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'axios'

@@ -12,24 +12,29 @@ import {
   PRISMA_VERSION,
 } from '../../../lib/constants/versions';
 import { writeToDotenv } from '../../../lib/dotenv/dot-env';
-import { initializeGenerator } from '../../../lib/generator-config';
 import type { NormalizedDatabaseGeneratorSchema } from './schema';
 import { DatabaseGeneratorSchema } from './schema';
+import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
 
 function normalize(
   options: DatabaseGeneratorSchema
 ): NormalizedDatabaseGeneratorSchema {
   options.package ??= 'lib';
   options.driver ??= 'postgresql';
+  options.projectName ??= options.name
+
+  const mutatedNames = names(options.name);
 
   const port = options.driver === 'postgresql' ? 5432 : 3306;
 
-  const databaseName = names(options.projectName).constantName;
+  const databaseName = mutatedNames.constantName.toLowerCase();
   return {
     tmpl: '',
     ...options,
+    names: mutatedNames,
+    outputFileName: '',
     databaseName,
-    port,
+    port
   };
 }
 
@@ -37,10 +42,8 @@ export async function databaseGenerator(
   tree: Tree,
   options: DatabaseGeneratorSchema
 ) {
-
   const normalizedOptions = normalize(options);
-
-  const { projectRoot } = await initializeGenerator(
+  const { projectRoot, sourceRoot } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'database'
@@ -62,7 +65,7 @@ export async function databaseGenerator(
 
   writeToDotenv(tree, { projectRoot, section: "db" } , dotenvEntries)
 
-  generateFiles(tree, path.join(__dirname, 'files'), projectRoot, normalizedOptions);
+  generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, normalizedOptions);
 
   if (!options.skipFormat) await formatFiles(tree);
 

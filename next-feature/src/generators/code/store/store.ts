@@ -7,12 +7,12 @@ import {
 } from '@nx/devkit';
 import * as path from 'path';
 import { ZUSTAND_VERSION } from '../../../lib/constants/versions';
-import { initializeGenerator } from '../../../lib/generator-config';
 import { updateDependencies } from '../../../lib/utils';
-import typesGenerator from '../types/types';
+import typesGenerator from '../data-type/data-type';
 import { mutateNames, zustandCreateMethod } from './lib/options';
 import type { NormalizedStoreGeneratorSchema } from './schema';
 import { StoreGeneratorSchema } from './schema';
+import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
 
 function normalize(
   options: StoreGeneratorSchema
@@ -23,12 +23,12 @@ function normalize(
 
   const mutatedNames = mutateNames(options);
   const createMethod = zustandCreateMethod({ ...options, ...mutatedNames });
-  const storeType = options.useContext ? "context" : "zustand";
-
+  const storeType = options.useContext ? 'context' : 'zustand';
   return {
+    outputFileName: '',
     tmpl: '',
     ...options,
-    ...mutatedNames,
+    names: mutatedNames,
     createMethod,
     storeType,
   };
@@ -41,7 +41,7 @@ export async function storeGenerator(
   const normalizedOptions = normalize(options);
   const tasks: GeneratorCallback[] = [];
 
-  const { directory } = await initializeGenerator(
+  const { directory } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'store'

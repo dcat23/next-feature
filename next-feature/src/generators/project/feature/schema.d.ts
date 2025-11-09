@@ -1,15 +1,15 @@
-export interface FeatureGeneratorSchema {
+import {
+  NormalizedProjectGeneratorSchema,
+  ProjectGeneratorSchema,
+} from '../../../lib/types';
+
+export interface FeatureGeneratorSchema extends ProjectGeneratorSchema {
   name: "base" | string;
   directory?: "features" | string;
   useAxios?: boolean;
   useAuth?: boolean;
-  skipFormat?: boolean;
 }
 
-export interface NormalizedFeatureGeneratorSchema extends FeatureGeneratorSchema {
-  tmpl: "";
-  projectRoot: string;
-  sourceRoot: string;
-  importPath: string;
+export interface NormalizedFeatureGeneratorSchema extends NormalizedProjectGeneratorSchema<FeatureGeneratorSchema> {
   apiKeyName: string;
 }

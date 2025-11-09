@@ -25,7 +25,7 @@ describe('axios generator', () => {
     await axiosGenerator(tree, options);
     const files = tree.children('apps/test/src/lib/axios');
     expect(
-      ['index.ts', 'error.ts', 'types.ts'].every((file) => files.includes(file))
+      ['index.ts', 'error.ts', 'schema.ts'].every((file) => files.includes(file))
     ).toBeTruthy();
   });
   it('should add dependencies to package.json', async () => {

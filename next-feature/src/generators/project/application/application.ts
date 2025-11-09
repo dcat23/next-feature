@@ -97,6 +97,7 @@ export async function applicationGenerator(
   if (normalizedOptions.useAuth) {
     tasks.push(
       await authGenerator(tree, {
+        name: normalizedOptions.name,
         projectName: normalizedOptions.name,
         directory: normalizedOptions.directory,
         skipFormat: true,

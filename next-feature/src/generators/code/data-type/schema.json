@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "DataType",
+  "title": "",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What name would you like to use?"
+    },
+    "package": {
+      "type": "string",
+      "description": "The package within the feature plugin",
+      "$default": {
+        "$source": "argv",
+        "index": 1
+      },
+      "default": "lib"
+    },
+    "projectName": {
+      "type": "string",
+      "description": "The name for the features generator plugin",
+      "alias": "p"
+    },
+    "directory": {
+      "type": "string",
+      "description": "The directory of the features plugin",
+      "alias": "d"
+    },
+    "file": {
+      "type": "string",
+      "description": "The name of the file to create the util in",
+      "alias": "f"
+    }
+  },
+  "required": ["name"]
+}

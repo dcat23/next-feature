@@ -1,4 +1,4 @@
-import { CodeGeneratorSchema } from '../types';
+import { CodeGeneratorSchema, NormalizedCodeGeneratorSchema } from '../types';
 import {
   names,
   type ProjectConfiguration,
@@ -46,6 +46,21 @@ export async function initializeCodeGenerator(
     sourceRoot,
     directory,
     projectName
+  };
+}
+
+export function normalizeCodeGenerator(options: CodeGeneratorSchema): NormalizedCodeGeneratorSchema {
+  options.package ??= 'lib';
+
+  const mutatedNames = names(options.name);
+
+  const outputFileName = getOutputFileName(options).concat('.ts');
+
+  return {
+    tmpl: '',
+    ...options,
+    names: mutatedNames,
+    outputFileName,
   };
 }
 

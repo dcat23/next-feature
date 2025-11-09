@@ -1,10 +1,15 @@
 {
   "$schema": "https://json-schema.org/schema",
   "$id": "Init",
-  "title": "",
+  "title": "Workspace Plugin Initialization",
+  "description": "Initialize the next-feature plugin in your Nx workspace. Registers the plugin, sets up configuration, and installs necessary dependencies. Runs automatically on first generator use.",
   "type": "object",
   "properties": {
-
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip prettier code formatting",
+      "default": false
+    }
   },
   "required": []
 }

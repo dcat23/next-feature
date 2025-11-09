@@ -1,95 +1,326 @@
-# NextFeature
+# NextFeature v0.1.0
 
 <a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+**NextFeature** is a comprehensive **Nx plugin ecosystem** for scaffolding modern Next.js applications with zero boilerplate code. It provides an integrated set of generators, utilities, and libraries for building feature-rich applications quickly.
 
-Run `npx nx graph` to visually explore what got created. Now, let's get you up to speed!
+## What's Included
 
-## Run tasks
+### 📦 Packages
 
-To run tasks with Nx use:
+| Package | Purpose | Version |
+|---------|---------|---------|
+| **next-feature** | Generator plugin for Nx | v0.1.0 |
+| **@next-feature/client** | API client library with error handling | v0.1.0 |
+| **create-next-feature** | CLI for creating new NextFeature workspaces | v0.1.0 |
 
-```sh
-npx nx <target> <project-name>
+## Quick Start
+
+### Create a New NextFeature Project
+
+```bash
+npx create-next-feature my-project
+cd my-project
 ```
 
-For example:
+### Generate Your First Feature
 
-```sh
-npx nx build myproject
+```bash
+# Create a feature project with all necessary setup
+npx nx g next-feature:feature --name=users
+
+# Generate an API action (auto-creates client config)
+npx nx g next-feature:action --name=getUser --actionType=api --projectName=users
+
+# Generate a React component
+npx nx g next-feature:component --name=UserCard --projectName=users
+
+# Generate a Zustand store
+npx nx g next-feature:store --name=userStore --projectName=users
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+## Generator Overview
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Project Generators
 
-## Add new projects
+Create Next.js applications and feature libraries:
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+- **feature** - Full-featured library with auth, axios, and client setup
+- **application** - Next.js application with providers and configuration
+- **client** - API client library with error handling and utilities
 
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
+### Code Generators
+
+Generate code within projects:
+
+- **action** - Server actions (API, form, or database operations)
+- **component** - React components with TypeScript
+- **store** - Zustand state management
+- **types** - TypeScript type definitions
+- **constant** - Constant definitions
+- **utility** - Utility functions
+
+### Configuration Generators
+
+Setup project infrastructure:
+
+- **client-config** - Centralized API client configuration
+- **auth** - NextAuth.js authentication
+- **axios** - Axios HTTP client setup
+- **database** - Prisma database configuration
+
+## Key Features
+
+### ✨ Zero Boilerplate
+
+Generators automatically create all necessary files with sensible defaults.
+
+```bash
+# One command creates project structure with auth and API setup
+npx nx g next-feature:feature --name=myfeature
 ```
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
+### 🔄 Centralized Client Configuration
 
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
+**Client-Config Generator** automatically creates `lib/client/config.ts` on first action:
 
-# Generate a library
-npx nx g @nx/react:lib some-lib
+```typescript
+// Auto-generated and ready to customize
+import { ApiClient } from '@next-feature/client';
+
+const apiClient = new ApiClient({
+  baseURL: process.env.NEXT_PUBLIC_API_URL
+});
+
+export default apiClient;
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+Then use in actions:
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```typescript
+import api from '../client/config';
+import { ApiError, type ApiResponse } from '@next-feature/client';
 
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+export async function getUser(id: string): Promise<ApiResponse<User>> {
+  try {
+    const user = await api.get<User>(`/users/${id}`);
+    return { success: true, data: user };
+  } catch (error) {
+    const apiError = ApiError.of(error);
+    return { success: false, message: apiError.message, error: apiError.problemDetail };
+  }
+}
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+### 🎯 Built-in Error Handling
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+**@next-feature/client** provides:
 
-### Step 2
+- Custom `ApiError` class with status helpers
+- Zod validation error extraction
+- Spring Boot ProblemDetail structure support
+- Error utility functions
 
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
+```typescript
+// Convert Zod validation errors automatically
+if (!parsed.success) {
+  const apiError = ApiError.fromZodError(parsed.error);
+  return { success: false, error: apiError.problemDetail };
+}
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### 🔌 Generator Chaining
 
-## Install Nx Console
+Action generator automatically chains related generators:
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+```bash
+npx nx g next-feature:action --name=getUser --actionType=api \
+  --useTypes --useConstant --useMapper
+```
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Generates:
+- ✓ Server action
+- ✓ TypeScript types
+- ✓ Constants
+- ✓ Mapper utility
 
-## Useful links
+### 🎨 Flexible Client Setup
 
-Learn more:
+Choose your API client:
 
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+# Default (@next-feature/client)
+npx nx g next-feature:action --name=getUser --projectName=myapp
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+# Custom client package
+npx nx g next-feature:action --name=getUser --projectName=myapp \
+  --clientPackage="@myorg/api-client"
+```
+
+## Development Commands
+
+```bash
+# Build the generator plugin
+npx nx build next-feature
+
+# Run tests
+npx nx test next-feature
+
+# Test specific generator
+npx nx test next-feature --testFile='src/generators/code/action/action.spec.ts'
+
+# Lint
+npx nx lint next-feature
+
+# Format code
+npx nx format:write
+
+# View dependency graph
+npx nx graph
+```
+
+## Workspace Structure
+
+```
+.
+├── next-feature/              # Generator plugin
+│   ├── src/generators/
+│   │   ├── code/              # API, component, store, types, constants, utilities
+│   │   ├── project/           # Feature, application, client
+│   │   ├── misc/              # Auth, axios, database, client-config
+│   │   └── tool/              # Copy dependencies
+│   └── README.md              # Plugin documentation
+├── clients/
+│   └── client/                # API client library
+│       └── README.md          # Client library documentation
+├── create-next-feature/       # CLI tool
+│   └── README.md              # CLI documentation
+└── README.md                  # This file
+```
+
+## Documentation
+
+Each package includes comprehensive documentation:
+
+- **[next-feature/README.md](./next-feature/README.md)** - Generator plugin overview and usage
+- **[clients/client/README.md](./clients/client/README.md)** - API client library features
+- **[create-next-feature/README.md](./create-next-feature/README.md)** - CLI tool usage
+
+Generator-specific documentation in generator directories:
+
+- **[next-feature/src/generators/project/client/README.md](./next-feature/src/generators/project/client/README.md)** - Client generator guide
+- **[next-feature/src/generators/misc/client-config/README.md](./next-feature/src/generators/misc/client-config/README.md)** - Client config generator guide
+
+## Common Workflows
+
+### Workflow 1: Create Feature with API Integration
+
+```bash
+# 1. Create feature project
+npx nx g next-feature:feature --name=products
+
+# 2. Create API action (client config auto-created)
+npx nx g next-feature:action --name=getProduct --actionType=api --projectName=products
+
+# 3. Create types
+npx nx g next-feature:types --name=product --projectName=products
+
+# 4. Create React component
+npx nx g next-feature:component --name=ProductCard --projectName=products
+
+# 5. Create state management
+npx nx g next-feature:store --name=productStore --projectName=products
+```
+
+### Workflow 2: Setup Authentication
+
+```bash
+# Generate feature with auth
+npx nx g next-feature:feature --name=auth
+
+# Add NextAuth configuration
+npx nx g next-feature:auth --projectName=auth
+
+# Create login server action
+npx nx g next-feature:action --name=login --actionType=form --projectName=auth
+```
+
+### Workflow 3: Customize Client Configuration
+
+```bash
+# Generate feature
+npx nx g next-feature:feature --name=api
+
+# Create custom client config
+npx nx g next-feature:client-config --projectName=api --includeInterceptors=true
+
+# Edit lib/client/config.ts to add:
+# - Authentication interceptors
+# - Custom error handling
+# - Request/response logging
+# - Retry logic
+```
+
+## Architecture
+
+### Generator Categories
+
+**code/** - Individual code elements
+- `api` - API calls and server actions
+- `component` - React components
+- `store` - State management
+- `types` - Type definitions
+- `constant` - Constants
+- `utility` - Utility functions
+
+**project/** - Complete projects
+- `feature` - Feature libraries with setup
+- `application` - Next.js applications
+- `client` - API client libraries
+
+**misc/** - Infrastructure setup
+- `client-config` - Centralized API configuration
+- `auth` - Authentication setup
+- `axios` - HTTP client configuration
+- `database` - Database setup
+
+**tool/** - Workspace utilities
+- `copy-deps` - Dependency management
+
+## Version History
+
+### v0.1.0 (Current)
+
+✨ **Major Features:**
+
+- **Client-Config Generator** - Auto-invoked by action generator
+- **Zod Validation Errors** - Proper error extraction for form validation
+- **Custom Client Support** - Use any client package with actions
+- **Self-Contained Templates** - Stable, independent implementations
+- **Comprehensive Documentation** - Detailed README files for all generators
+
+🔧 **Improvements:**
+
+- Centralized API client setup
+- Eliminated boilerplate code duplication
+- Enhanced error handling with `ApiError.fromZodError()`
+- Template re-exports from local implementations
+- Clear customization patterns
+
+## Contributing
+
+See [CLAUDE.md](./CLAUDE.md) for development guidelines.
+
+## License
+
+MIT
+
+## Support
+
+- 📖 [Documentation](./next-feature/README.md)
+- 🐛 [Report Issues](https://github.com/dcat23/next-feature/issues)
+- 💬 [Discussions](https://github.com/dcat23/next-feature/discussions)
+
+---
+
+Built with [Nx](https://nx.dev) | [Next.js](https://nextjs.org) | [TypeScript](https://www.typescriptlang.org)

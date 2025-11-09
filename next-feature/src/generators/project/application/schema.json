@@ -1,21 +1,22 @@
 {
   "$schema": "https://json-schema.org/schema",
   "$id": "Application",
-  "title": "",
+  "title": "Next.js Application Generator",
+  "description": "Create a complete Next.js application with server-side rendering, API routes, TypeScript setup, and optional authentication and HTTP client configuration.",
   "type": "object",
   "properties": {
     "name": {
       "type": "string",
-      "description": "",
+      "description": "Name of the application (e.g., web, api, dashboard). Creates apps/[name]/ with full Next.js application structure.",
       "$default": {
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What name would you like to use?"
+      "x-prompt": "What name would you like to use for this application?"
     },
     "directory": {
       "type": "string",
-      "description": "Where to create this project",
+      "description": "Override the directory where the application will be created (default: apps/ creates apps/[name]/)",
       "$default": {
         "$source": "argv",
         "index": 1
@@ -24,18 +25,23 @@
     },
     "useAxios": {
       "type": "boolean",
-      "description": "Initialize axios package",
+      "description": "Setup Axios HTTP client with interceptors in lib/axios/ for API requests",
       "default": false
     },
     "useAuth": {
       "type": "boolean",
-      "description": "Initialize auth package",
+      "description": "Setup NextAuth.js authentication with route handlers and providers in lib/auth/",
       "default": false
     },
     "orgName": {
       "type": "string",
-      "description": "Organization name for import path scope (e.g., @myorg/projectname)",
+      "description": "Organization name for scoped import paths (e.g., @myorg creates @myorg/[name] path alias)",
       "alias": "org"
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip prettier code formatting",
+      "default": false
     }
   },
   "required": ["name"]

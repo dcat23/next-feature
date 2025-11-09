@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "Action",
+  "title": "Action Generator",
+  "description": "Generate server actions for API calls, database operations, or form handling",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the action",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What name would you like to use?"
+    },
+    "actionType": {
+      "type": "string",
+      "description": "The type of action to generate",
+      "$default": {
+        "$source": "argv",
+        "index": 1
+      },
+      "default": "api",
+      "enum": ["api", "db", "form"],
+      "x-prompt": {
+        "message": "What type of action would you like to generate?",
+        "type": "list",
+        "items": [
+          {
+            "value": "api",
+            "label": "API - Server action for external API calls"
+          },
+          {
+            "value": "db",
+            "label": "DB - Server action for database operations"
+          },
+          {
+            "value": "form",
+            "label": "Form - Server action for form submission"
+          }
+        ]
+      }
+    },
+    "package": {
+      "type": "string",
+      "description": "The directory within the source",
+      "default": "lib"
+    },
+    "directory": {
+      "type": "string",
+      "description": "The directory of the features plugin",
+      "alias": "d"
+    },
+    "projectName": {
+      "type": "string",
+      "description": "The package where the generated files will go",
+      "alias": "p"
+    },
+    "useTypes": {
+      "type": "boolean",
+      "description": "Generate type files (for API actions)",
+      "default": true,
+      "alias": "t"
+    },
+    "useConstant": {
+      "type": "boolean",
+      "description": "Generate constant files (for API actions)",
+      "default": true,
+      "alias": "c"
+    },
+    "useMapper": {
+      "type": "boolean",
+      "description": "Generate mapper utility (for API actions)",
+      "default": false,
+      "alias": "m"
+    },
+    "useInterceptor": {
+      "type": "boolean",
+      "description": "Add interceptor configuration",
+      "default": false,
+      "alias": "i"
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip code formatting",
+      "default": false
+    }
+  },
+  "required": ["name"]
+}
+

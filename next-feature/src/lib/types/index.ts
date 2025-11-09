@@ -8,18 +8,9 @@ export interface GeneratorSchema {
   skipFormat?: boolean;
 }
 
-export type Normalized<Schema extends GeneratorSchema> = Schema & {
-  tmpl: ""
-}
-
 export interface ProjectGeneratorSchema extends Omit<GeneratorSchema, "projectName"> {
   name: string;
-}
-
-export interface NormalizedProjectGeneratorSchema extends Normalized<ProjectGeneratorSchema> {
-  projectRoot: string;
-  sourceRoot: string;
-  importPath: string;
+  importPath?: string;
 }
 
 export interface CodeGeneratorSchema extends GeneratorSchema {
@@ -28,10 +19,19 @@ export interface CodeGeneratorSchema extends GeneratorSchema {
   file?: string | boolean // will create in an associated file
 }
 
-export interface NormalizedCodeGeneratorSchema extends Normalized<CodeGeneratorSchema> {
+export type Normalized<Schema extends GeneratorSchema> = Schema & {
+  tmpl: ""
+}
+
+export type NormalizedProjectGeneratorSchema<Schema extends ProjectGeneratorSchema> = Normalized<Schema> & {
+  projectRoot: string;
+  sourceRoot: string;
+  importPath: string;
+}
+
+export type NormalizedCodeGeneratorSchema<Schema extends CodeGeneratorSchema> = Normalized<Schema> & {
   names: Names
   outputFileName: Names["fileName"] // appended with extension
-
 }
 
 export type Names = ReturnType<typeof names>;

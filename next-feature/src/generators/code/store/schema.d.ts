@@ -1,4 +1,4 @@
-import type { GeneratorSchema, Normalized, WithNames } from '../../../lib/types';
+import type { GeneratorSchema, Normalized, WithNames } from '../../../lib/types/schema';
 
 export interface StoreGeneratorSchema extends GeneratorSchema {
   name: string;

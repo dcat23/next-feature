@@ -97,7 +97,8 @@
         "projectName": "hello"
       },
       "auth": {},
-      "axios": {}
+      "axios": {},
+      "form": {}
     },
     "@nx/react": {
       "library": {

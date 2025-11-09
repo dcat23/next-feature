@@ -5,4 +5,4 @@ import type {
 
 export interface ConstantGeneratorSchema extends CodeGeneratorSchema {}
 
-export interface NormalizedConstantGeneratorSchema extends NormalizedCodeGeneratorSchema {}
+export interface NormalizedConstantGeneratorSchema extends NormalizedCodeGeneratorSchema<ConstantGeneratorSchema> {}

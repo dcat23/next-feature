@@ -1,6 +1,7 @@
 import { logger, names } from '@nx/devkit';
 import { PREFIXES, RESPONSE_TYPES } from '../constants';
 import type { HttpMethod } from '../types';
+import { singularize } from '../../../../../lib/utils/string';
 
 /**
  * [as-type-import]
@@ -13,7 +14,7 @@ export function asTypeImport(dataType: string) {
 interface ExtractHttpMethod {
   method: HttpMethod,
   /**
-   * The className representation
+   * The singularized className representation
    */
   noPrefix: string;
 }
@@ -22,7 +23,7 @@ interface ExtractHttpMethod {
  * [extract-http-method]
  * August 4th 2025, 10:38:58 am
  * @param name
- * @returns ExtractHttpMethod the http method and the className representation
+ * @returns ExtractHttpMethod the http method and the singularized className representation
  * of `name`
  */
 export function extractHttpMethod(name: string): ExtractHttpMethod {
@@ -33,16 +34,18 @@ export function extractHttpMethod(name: string): ExtractHttpMethod {
 
   if (!(matches && matches.groups)) {
     logger.debug("no match: " + name);
+    const singularized = singularize(names(name).className);
     return {
       method: 'post',
-      noPrefix: names(name).className
+      noPrefix: singularized
     }
   }
 
   const { prefix, noPrefix: _noPrefix } = matches.groups
 
   const method = (RESPONSE_TYPES[prefix] || "post") as HttpMethod;
-  const noPrefix = names(_noPrefix).className
+  const className = names(_noPrefix).className;
+  const noPrefix = singularize(className);
 
   return {
     method,

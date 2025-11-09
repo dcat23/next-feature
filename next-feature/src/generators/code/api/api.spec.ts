@@ -95,4 +95,44 @@ describe('api generator', () => {
 
     expect(file.includes('../types/backend-data')).toBeTruthy();
   });
+
+  it('should singularize plural domain names', async () => {
+    await apiGenerator(tree, {
+      ...options,
+      name: 'get-users',
+      directory: 'testing',
+    });
+
+    const apiFilePath = 'testing/test/src/lib/api/get-users.ts';
+    const typesFilePath = 'testing/test/src/lib/types/user.ts';
+
+    expect(tree.exists(typesFilePath)).toBeTruthy();
+    expect(tree.exists(apiFilePath)).toBeTruthy();
+
+    const file = tree.read(apiFilePath, 'utf-8');
+
+    // Should import from singular 'user' type
+    expect(file.includes('../types/user')).toBeTruthy();
+    expect(file.includes('GetUser')).toBeTruthy();
+  });
+
+  it('should handle irregular plurals correctly', async () => {
+    await apiGenerator(tree, {
+      ...options,
+      name: 'update-statuses',
+      directory: 'testing',
+    });
+
+    const apiFilePath = 'testing/test/src/lib/api/update-statuses.ts';
+    const typesFilePath = 'testing/test/src/lib/types/status.ts';
+
+    expect(tree.exists(typesFilePath)).toBeTruthy();
+    expect(tree.exists(apiFilePath)).toBeTruthy();
+
+    const file = tree.read(apiFilePath, 'utf-8');
+
+    // Should singularize 'Statuses' to 'Status'
+    expect(file.includes('../types/status')).toBeTruthy();
+    expect(file.includes('UpdateStatus')).toBeTruthy();
+  });
 });

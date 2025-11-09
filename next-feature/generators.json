@@ -85,6 +85,11 @@
       "factory": "./src/generators/code/data-type/data-type",
       "schema": "./src/generators/code/data-type/schema.json",
       "description": "data type generator"
+    },
+    "action": {
+      "factory": "./src/generators/code/action/action",
+      "schema": "./src/generators/code/action/schema.json",
+      "description": "action generator"
     }
   }
 }

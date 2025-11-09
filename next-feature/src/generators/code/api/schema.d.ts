@@ -1,5 +1,5 @@
-import type { WithNames } from '../../../lib/types';
-import type { GeneratorSchema, Normalized } from '../../../lib/types';
+import type { WithNames } from '../../../lib/types/schema';
+import type { GeneratorSchema, Normalized } from '../../../lib/types/schema';
 
 export interface ApiGeneratorSchema extends GeneratorSchema {
   name: string;

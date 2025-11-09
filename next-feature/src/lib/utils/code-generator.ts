@@ -10,6 +10,7 @@ import {
 import featureGenerator from '../../generators/project/feature/feature';
 import * as path from 'path';
 import { PLUGIN_NAME } from '../constants/versions';
+import { asOutputFile } from './files';
 
 export async function initializeCodeGenerator(
   tree: Tree,
@@ -49,16 +50,17 @@ export async function initializeCodeGenerator(
   };
 }
 
-export function normalizeCodeGenerator(options: CodeGeneratorSchema): NormalizedCodeGeneratorSchema {
+export function normalizeCodeGenerator<T extends CodeGeneratorSchema>(options: T): NormalizedCodeGeneratorSchema<T> {
   options.package ??= 'lib';
 
   const mutatedNames = names(options.name);
 
-  const outputFileName = getOutputFileName(options).concat('.ts');
+  const outputFileName = asOutputFile({ file: options.file, fileName: mutatedNames.fileName });
 
   return {
     tmpl: '',
     ...options,
+    name: mutatedNames.name,
     names: mutatedNames,
     outputFileName,
   };

@@ -1,45 +1,16 @@
-import { formatFiles, names, Tree } from '@nx/devkit';
-import { initializeGenerator } from '../../../lib/generator-config';
-import type { GeneratorSchema, Normalized, WithNames } from '../../../lib/types';
+import { formatFiles, Tree } from '@nx/devkit';
 import { writeFile } from '../../../lib/write-file';
-import {
-  ConstantGeneratorSchema,
-  NormalizedConstantGeneratorSchema,
-} from './schema';
-
-function normalize(
-  options: ConstantGeneratorSchema
-): NormalizedConstantGeneratorSchema {
-  const mutatedNames = names(options.name);
-  options.package ??= 'lib';
-  const outputFileName = (
-    options.file
-      ? typeof options.file === 'string'
-        ? options.file
-        : mutatedNames.fileName
-      : 'index'
-  ).concat('.ts');
-  return {
-    tmpl: '',
-    ...options,
-    ...mutatedNames,
-    outputFileName,
-  };
-}
-
-
-const constantContent = (options: Normalized<WithNames<GeneratorSchema>>) => (`
-export const ${options.constantName}: ${options.className} = null;
-`);
+import { ConstantGeneratorSchema } from './schema';
+import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
+import * as path from 'path';
+import { constantContent, normalize } from './lib/utils';
 
 export async function constantGenerator(
   tree: Tree,
   options: ConstantGeneratorSchema
 ) {
   const normalizedOptions = normalize(options);
-
-  // logger.debug({ normalizedOptions })
-  const { directory } = await initializeGenerator(
+  const { directory } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'constant'
@@ -47,7 +18,7 @@ export async function constantGenerator(
 
   await writeFile(
     tree,
-    `${directory}/constants`,
+    path.join(directory, 'constants'),
     constantContent,
     normalizedOptions,
     normalizedOptions.outputFileName

@@ -89,7 +89,7 @@ The plugin follows an Nx plugin structure with generators organized by category:
 **DotEnv Module** (`src/lib/dotenv/`)
 - Handles environment variable configuration and parsing
 
-**Type System** (`src/lib/types.ts`)
+**Type System** (`src/lib/schema.ts`)
 - Base generator schema interfaces used across all generators
 
 ## Generator Pattern

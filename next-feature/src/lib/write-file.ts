@@ -1,24 +1,21 @@
-import { logger } from '@nx/devkit';
-import { Tree } from '@nx/devkit';
-import type { WithNames } from './types';
-import type { GeneratorSchema } from './types';
-import type { Normalized } from './types';
-import moment = require('moment');
+import { logger, Tree } from '@nx/devkit';
+import type { Normalized, NormalizedCodeGeneratorSchema } from './types';
 import { PLUGIN_NAME, PLUGIN_VERSION } from './constants/versions';
+import moment = require('moment');
 
 
-const identifier = (options: Normalized<WithNames<GeneratorSchema>>) => {
-  return `[${options.fileName}]`
+const identifier = (options: NormalizedCodeGeneratorSchema) => {
+  return `[${options.names.fileName}]`
 }
 
-const commentText = (options: Normalized<WithNames<GeneratorSchema>>) => `
+const commentText = (options: NormalizedCodeGeneratorSchema) => `
 /**
 * ${identifier(options)}
 * ${PLUGIN_NAME}@${PLUGIN_VERSION}
 * ${moment().format('MMMM Do YYYY, h:mm:ss a')}
 */`
 
-export async function writeFile<T extends WithNames<GeneratorSchema>>(
+export async function writeFile<T extends NormalizedCodeGeneratorSchema>(
   tree: Tree,
   directory: string,
   contentGenerator: (normalizedOptions: Normalized<T>) => string,

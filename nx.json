@@ -78,9 +78,15 @@
   ],
   "generators": {
     "next-feature": {
-      "utils": {},
-      "constant": {},
-      "types": {},
+      "utility": {
+        "projectName": "next-feature"
+      },
+      "constant": {
+        "projectName": "next-feature"
+      },
+      "types": {
+        "projectName": "next-feature"
+      },
       "api": {
         "projectName": "hello"
       },

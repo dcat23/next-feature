@@ -70,6 +70,16 @@
       "factory": "./src/generators/project/application/application",
       "schema": "./src/generators/project/application/schema.json",
       "description": "application generator"
+    },
+    "client": {
+      "factory": "./src/generators/project/client/client",
+      "schema": "./src/generators/project/client/schema.json",
+      "description": "client generator"
+    },
+    "utility": {
+      "factory": "./src/generators/code/utility/utility",
+      "schema": "./src/generators/code/utility/schema.json",
+      "description": "utility generator"
     }
   }
 }

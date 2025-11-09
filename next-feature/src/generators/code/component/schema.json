@@ -1,40 +1,37 @@
 {
   "$schema": "https://json-schema.org/schema",
   "$id": "Component",
-  "title": "",
+  "title": "React Component Generator",
+  "description": "Generate React components with TypeScript support. Supports basic components, pages, layouts, forms, modals, cards, and context providers.",
   "type": "object",
   "properties": {
     "name": {
       "type": "string",
-      "description": "",
+      "description": "Name of the component (e.g., Button, UserCard, ProductList). Uses PascalCase naming conventions for React components.",
       "$default": {
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What name would you like to use?"
+      "x-prompt": "What name would you like to use for this component?"
     },
     "package": {
       "type": "string",
-      "description": "The directory within the source",
-      "$default": {
-        "$source": "argv",
-        "index": 1
-      },
+      "description": "Subdirectory within src/ where components are created (default: 'components' creates src/components/)",
       "default": "components"
     },
     "directory": {
       "type": "string",
-      "description": "The directory of the features plugin",
+      "description": "Override the entire directory path for component creation",
       "alias": "d"
     },
     "projectName": {
       "type": "string",
-      "description": "The package where the generated files will go",
+      "description": "Target project name where component will be generated. Auto-creates feature if not found.",
       "alias": "p"
     },
     "componentType": {
       "type": "string",
-      "description": "The type of component to generate",
+      "description": "Type of component: 'component' for basic React components, 'page' for Next.js pages, 'layout' for Next.js layouts, 'form' for form components, 'modal' for dialogs, 'card' for card containers, 'provider' for context providers",
       "alias": "t",
       "default": "component",
       "enum": ["component", "page", "layout", "modal", "card", "form", "provider"],
@@ -42,15 +39,20 @@
         "message": "Which component type would you like to generate?",
         "type": "list",
         "items": [
-          { "value": "component", "label": "Component - Basic client component" },
-          { "value": "modal", "label": "Modal - Dialog/modal component" },
-          { "value": "card", "label": "Card - Card container component" },
-          { "value": "form", "label": "Form - Form with state management" },
-          { "value": "provider", "label": "Provider - Context provider component" },
-          { "value": "page", "label": "Page - Next.js page component" },
-          { "value": "layout", "label": "Layout - Next.js layout component" }
+          { "value": "component", "label": "Component - Basic client component with props and state" },
+          { "value": "page", "label": "Page - Next.js page component with routing" },
+          { "value": "layout", "label": "Layout - Next.js layout component for shared structure" },
+          { "value": "modal", "label": "Modal - Dialog/modal component for overlays" },
+          { "value": "card", "label": "Card - Card container component for content grouping" },
+          { "value": "form", "label": "Form - Form component with state management and validation" },
+          { "value": "provider", "label": "Provider - Context provider for state management" }
         ]
       }
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip prettier code formatting (used internally for chained generators)",
+      "default": false
     }
   },
   "required": ["name"]

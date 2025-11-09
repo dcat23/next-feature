@@ -1,21 +1,22 @@
 {
   "$schema": "https://json-schema.org/schema",
   "$id": "Client",
-  "title": "",
+  "title": "API Client Library Generator",
+  "description": "Create a reusable API client library with error handling, type safety, and utilities. Generates clients/ library with complete implementation including ApiClient, ApiError, hooks, and error boundary component.",
   "type": "object",
   "properties": {
     "name": {
       "type": "string",
-      "description": "",
+      "description": "Name of the client library (e.g., client, apiClient, httpClient). Creates clients/[name]/ with full library structure and exports.",
       "$default": {
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What name would you like to use?"
+      "x-prompt": "What name would you like to use for this client library?"
     },
     "directory": {
       "type": "string",
-      "description": "Where to create this project",
+      "description": "Override the directory where the client library will be created (default: clients/ creates clients/[name]/)",
       "$default": {
         "$source": "argv",
         "index": 1
@@ -24,8 +25,13 @@
     },
     "orgName": {
       "type": "string",
-      "description": "Organization name for import path scope (e.g., @myorg/projectname)",
+      "description": "Organization name for scoped package path (e.g., @myorg creates @myorg/[name] for package.json and imports)",
       "alias": "org"
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip prettier code formatting (used internally for chained generators)",
+      "default": false
     }
   },
   "required": ["name"]

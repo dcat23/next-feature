@@ -1,23 +1,23 @@
 {
   "$schema": "https://json-schema.org/schema",
   "$id": "Feature",
-  "title": "Feature Generator",
-  "description": "Initializes the features plugin to use with lib generators",
+  "title": "Feature Library Generator",
+  "description": "Create a complete feature library with Next.js, TypeScript setup, optional authentication and HTTP client configuration. Creates apps/[name]/ with full project structure and all necessary configurations.",
   "type": "object",
   "properties": {
     "name": {
       "type": "string",
-      "description": "Name of the project features will be added to.",
+      "description": "Name of the feature project (e.g., users, products, dashboard). Creates directory apps/[name]/ with all project files and configuration.",
       "$default": {
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What name would you like to use?",
+      "x-prompt": "What name would you like to use for this feature?",
       "default": "base"
     },
     "directory": {
       "type": "string",
-      "description": "Where to create this project",
+      "description": "Override the directory where the feature project will be created (e.g., libs/ instead of apps/)",
       "$default": {
         "$source": "argv",
         "index": 1
@@ -26,18 +26,23 @@
     },
     "useAxios": {
       "type": "boolean",
-      "description": "Initialize axios package",
+      "description": "Setup Axios HTTP client with interceptors in lib/axios/ for API requests",
       "default": false
     },
     "useAuth": {
       "type": "boolean",
-      "description": "Initialize auth package",
+      "description": "Setup NextAuth.js authentication with route handlers and providers in lib/auth/",
       "default": false
     },
     "orgName": {
       "type": "string",
-      "description": "Organization name for import path scope (e.g., @myorg/projectname)",
+      "description": "Organization name for scoped import paths (e.g., @myorg creates @myorg/[name] path alias)",
       "alias": "org"
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip prettier code formatting (used internally for chained generators)",
+      "default": false
     }
   },
   "required": ["name"]

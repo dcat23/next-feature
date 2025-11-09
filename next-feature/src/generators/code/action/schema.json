@@ -2,21 +2,21 @@
   "$schema": "https://json-schema.org/schema",
   "$id": "Action",
   "title": "Action Generator",
-  "description": "Generate server actions for API calls, database operations, or form handling",
+  "description": "Generate Next.js server actions with automatic error handling, validation, and API integration. Automatically creates lib/client/config.ts on first use.",
   "type": "object",
   "properties": {
     "name": {
       "type": "string",
-      "description": "The name of the action",
+      "description": "Name of the action (e.g., getUser, createPost, deleteComment). Uses standard naming conventions.",
       "$default": {
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What name would you like to use?"
+      "x-prompt": "What name would you like to use for this action?"
     },
     "actionType": {
       "type": "string",
-      "description": "The type of action to generate",
+      "description": "Type of server action: 'api' for external API calls, 'db' for database operations, 'form' for form submission handling",
       "$default": {
         "$source": "argv",
         "index": 1
@@ -29,66 +29,66 @@
         "items": [
           {
             "value": "api",
-            "label": "API - Server action for external API calls"
+            "label": "API - Call external API endpoints with error handling"
           },
           {
             "value": "db",
-            "label": "DB - Server action for database operations"
+            "label": "DB - Perform database operations with Prisma"
           },
           {
             "value": "form",
-            "label": "Form - Server action for form submission"
+            "label": "Form - Handle form submissions and validation"
           }
         ]
       }
     },
     "package": {
       "type": "string",
-      "description": "The directory within the source",
+      "description": "Subdirectory within src/ where actions are created (default: 'lib' creates src/lib/actions/)",
       "default": "lib"
     },
     "directory": {
       "type": "string",
-      "description": "The directory of the features plugin",
+      "description": "Override the entire directory path for action creation",
       "alias": "d"
     },
     "projectName": {
       "type": "string",
-      "description": "The package where the generated files will go",
+      "description": "Target project name where action will be generated. Auto-creates feature if not found.",
       "alias": "p"
     },
     "useTypes": {
       "type": "boolean",
-      "description": "Generate type files (for API actions)",
+      "description": "Generate TypeScript type definitions in src/lib/types/ (default: true for API actions)",
       "default": true,
       "alias": "t"
     },
     "useConstant": {
       "type": "boolean",
-      "description": "Generate constant files (for API actions)",
+      "description": "Generate constants in src/lib/constants/ (endpoints, default values, etc.)",
       "default": true,
       "alias": "c"
     },
     "useMapper": {
       "type": "boolean",
-      "description": "Generate mapper utility (for API actions)",
+      "description": "Generate data mapper utility function for response transformation",
       "default": false,
       "alias": "m"
     },
     "useInterceptor": {
       "type": "boolean",
-      "description": "Add interceptor configuration",
+      "description": "Configure request/response interceptors in lib/client/config.ts",
       "default": false,
       "alias": "i"
     },
     "skipFormat": {
       "type": "boolean",
-      "description": "Skip code formatting",
+      "description": "Skip prettier code formatting (used internally for chained generators)",
       "default": false
     },
     "clientPackage": {
       "type": "string",
-      "description": "Client package to import from (e.g., @myfeature/client). Defaults to @next-feature/client",
+      "description": "API client package to import from. Use @next-feature/client (default) or custom package like @myorg/api-client",
       "alias": "client"
     }
   },

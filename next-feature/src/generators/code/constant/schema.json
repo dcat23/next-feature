@@ -1,41 +1,43 @@
 {
   "$schema": "https://json-schema.org/schema",
   "$id": "Constant",
-  "title": "",
+  "title": "Constants and Enums Generator",
+  "description": "Generate TypeScript constants, enums, and configuration values in src/lib/constants/ with TypeScript support and export configuration.",
   "type": "object",
   "properties": {
     "name": {
       "type": "string",
-      "description": "",
+      "description": "Name of the constants file (e.g., userRoles, endpoints, statusCodes). Uses UPPER_SNAKE_CASE naming conventions.",
       "$default": {
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What name would you like to use?"
+      "x-prompt": "What name would you like to use for this constants file?"
     },
     "package": {
       "type": "string",
-      "description": "The package within the feature plugin",
-      "$default": {
-        "$source": "argv",
-        "index": 1
-      },
+      "description": "Subdirectory within src/ where constants are created (default: 'lib' creates src/lib/constants/)",
       "default": "lib"
     },
     "projectName": {
       "type": "string",
-      "description": "The name for the features generator plugin",
+      "description": "Target project name where constants will be generated. Auto-creates feature if not found.",
       "alias": "p"
     },
     "directory": {
       "type": "string",
-      "description": "The directory of the features plugin",
+      "description": "Override the entire directory path for constants creation",
       "alias": "d"
     },
     "file": {
       "type": "string",
-      "description": "The name of the file to create the constant in",
+      "description": "Optional: Create or append constants to existing file instead of creating separate file",
       "alias": "f"
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip prettier code formatting (used internally for chained generators)",
+      "default": false
     }
   },
   "required": ["name"]

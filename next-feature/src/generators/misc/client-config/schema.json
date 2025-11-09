@@ -1,34 +1,35 @@
 {
   "$schema": "https://json-schema.org/schema",
   "$id": "ClientConfig",
-  "title": "Client Config Generator",
-  "description": "Generate a centralized client configuration file with ApiClient setup and utility exports",
+  "title": "API Client Configuration Generator",
+  "description": "Generate a centralized API client configuration at lib/client/config.ts with ApiClient initialization, interceptor examples, and utility re-exports. Auto-invoked by action generator on first use.",
   "type": "object",
   "properties": {
     "projectName": {
       "type": "string",
-      "description": "The project where the config will be generated",
+      "description": "Target project name where config will be generated at src/lib/client/config.ts. Auto-creates feature if not found.",
       "alias": "p"
     },
     "clientPackage": {
       "type": "string",
-      "description": "Client package to import from (e.g., @myfeature/client). Defaults to @next-feature/client",
+      "description": "API client package to import from. Use @next-feature/client (default) or custom package like @myorg/api-client",
+      "default": "@next-feature/client",
       "alias": "client"
     },
     "baseUrl": {
       "type": "string",
-      "description": "Base URL for API requests (e.g., process.env.NEXT_PUBLIC_API_URL)",
+      "description": "Base URL for API requests. Use environment variable reference (default: process.env.NEXT_PUBLIC_API_URL) or hardcoded URL",
       "default": "process.env.NEXT_PUBLIC_API_URL"
     },
     "includeInterceptors": {
       "type": "boolean",
-      "description": "Include example request/response interceptor setup",
+      "description": "Include example request/response interceptor setup for adding authentication headers, logging, and custom error handling",
       "default": true,
       "alias": "i"
     },
     "skipFormat": {
       "type": "boolean",
-      "description": "Skip code formatting",
+      "description": "Skip prettier code formatting (used internally for chained generators)",
       "default": false
     }
   }

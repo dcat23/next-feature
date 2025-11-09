@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "ClientConfig",
+  "title": "Client Config Generator",
+  "description": "Generate a centralized client configuration file with ApiClient setup and utility exports",
+  "type": "object",
+  "properties": {
+    "projectName": {
+      "type": "string",
+      "description": "The project where the config will be generated",
+      "alias": "p"
+    },
+    "clientPackage": {
+      "type": "string",
+      "description": "Client package to import from (e.g., @myfeature/client). Defaults to @next-feature/client",
+      "alias": "client"
+    },
+    "baseUrl": {
+      "type": "string",
+      "description": "Base URL for API requests (e.g., process.env.NEXT_PUBLIC_API_URL)",
+      "default": "process.env.NEXT_PUBLIC_API_URL"
+    },
+    "includeInterceptors": {
+      "type": "boolean",
+      "description": "Include example request/response interceptor setup",
+      "default": true,
+      "alias": "i"
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip code formatting",
+      "default": false
+    }
+  }
+}

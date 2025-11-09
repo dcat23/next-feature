@@ -1,15 +1,9 @@
-import type { Normalized } from '../../../lib/types';
+import type { NormalizedProjectGeneratorSchema, ProjectGeneratorSchema } from '../../../lib/types';
 
-export interface ApplicationGeneratorSchema {
-  name: string;
-  directory?: string;
+export interface ApplicationGeneratorSchema extends ProjectGeneratorSchema {
   useAxios?: boolean;
   useAuth?: boolean;
-  skipFormat?: boolean;
 }
 
-export interface NormalizedApplicationGeneratorSchema extends Normalized<ApplicationGeneratorSchema> {
-  projectRoot: string;
-  sourceRoot: string;
-  importPath: string;
+export interface NormalizedApplicationGeneratorSchema extends NormalizedProjectGeneratorSchema<ApplicationGeneratorSchema> {
 }

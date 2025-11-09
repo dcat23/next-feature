@@ -75,6 +75,11 @@
       "factory": "./src/generators/code/action/action",
       "schema": "./src/generators/code/action/schema.json",
       "description": "action generator"
+    },
+    "client-config": {
+      "factory": "./src/generators/misc/client-config/client-config",
+      "schema": "./src/generators/misc/client-config/schema.json",
+      "description": "client config generator"
     }
   }
 }

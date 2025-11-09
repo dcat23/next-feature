@@ -1,6 +1,6 @@
 'use server';
 
-import { type ApiResponse, ApiError } from "@next-feature/client"
+import { type ApiResponse, ApiError } from "<%= clientImportPath %>"
 <% if (hasRequestBody) { %>import { z } from "zod";<% } %>
 <% if (useMapper) { %>import { <%= mapperName %> } from "../utils/<%= domain.fileName %>";<% } %>
 import api from '<%= configImportPath %>';
@@ -24,13 +24,13 @@ export async function <%= methodName %>(
     const parsed = schema.safeParse(body);
 
     if (!parsed.success) {
-      const { message, problemDetail: error } = ApiError.createValidationError(parsed.error);
+      const apiError = ApiError.fromZodError(parsed.error);
 
       return {
         success: false,
-        message,
+        message: apiError.message,
         data: <%= names.constantName %>,
-        error
+        error: apiError.problemDetail
       }
     }
     <% } %>

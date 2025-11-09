@@ -72,6 +72,8 @@ export function normalize(
     options.actionType === "db" ? "prisma" : "axios"
   ].join("/");
 
+  const clientImportPath = options.clientPackage || "@next-feature/client";
+
   return {
     ...normalized,
     httpMethod,
@@ -81,6 +83,7 @@ export function normalize(
     mapperName,
     domain,
     configImportPath,
+    clientImportPath,
     fileName
   };
 }

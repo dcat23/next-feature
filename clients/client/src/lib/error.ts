@@ -1,6 +1,6 @@
 import { AxiosError, HttpStatusCode } from 'axios';
 import { ZodError } from 'zod';
-import { CredentialsSignin } from "next-auth";
+import { CredentialsSignin } from 'next-auth';
 
 /**
  * Spring Boot ProblemDetail structure
@@ -11,7 +11,7 @@ export interface ProblemDetail {
   status: HttpStatusCode;
   detail?: string;
   instance?: string;
-  errors?: Record<string, unknown>
+  errors?: Record<string, unknown>;
   [key: string]: unknown;
 }
 
@@ -25,7 +25,13 @@ export class ApiError extends Error {
     public originalError: Error,
     message?: string
   ) {
-    super(message || problemDetail?.detail || problemDetail?.title || originalError?.message || 'An error occurred');
+    super(
+      message ||
+        problemDetail?.detail ||
+        problemDetail?.title ||
+        originalError?.message ||
+        'An error occurred'
+    );
     this.name = 'ApiError';
     Object.setPrototypeOf(this, ApiError.prototype);
   }
@@ -55,14 +61,11 @@ export class ApiError extends Error {
   }
 
   static of(error: Error) {
-    if(error instanceof ApiError) {
+    if (error instanceof ApiError) {
       return error;
     }
 
-    return ApiError.builder()
-      .originalError(error)
-      .build()
-
+    return ApiError.builder().originalError(error).build();
   }
 
   /**
@@ -86,7 +89,9 @@ export class ApiError extends Error {
   }
 }
 
-export class ApiErrorBuilder<AdditionalProblemDetails = Record<string, unknown>> {
+export class ApiErrorBuilder<
+  AdditionalProblemDetails = Record<string, unknown>
+> {
   private readonly _problemDetail: ProblemDetail;
   private _status: HttpStatusCode;
   private _originalError: Error;
@@ -97,7 +102,7 @@ export class ApiErrorBuilder<AdditionalProblemDetails = Record<string, unknown>>
     this._problemDetail = {
       status: this._status,
       title: '',
-      type: 'about:blank'
+      type: 'about:blank',
     };
   }
 
@@ -109,8 +114,8 @@ export class ApiErrorBuilder<AdditionalProblemDetails = Record<string, unknown>>
     value: K extends keyof ProblemDetail
       ? ProblemDetail[K]
       : K extends keyof AdditionalProblemDetails
-        ? AdditionalProblemDetails[K]
-        : unknown
+      ? AdditionalProblemDetails[K]
+      : unknown
   ): ApiErrorBuilder<AdditionalProblemDetails> {
     (this._problemDetail as any)[key] = value;
     return this;
@@ -118,14 +123,14 @@ export class ApiErrorBuilder<AdditionalProblemDetails = Record<string, unknown>>
 
   originalError(error: Error): ApiErrorBuilder<AdditionalProblemDetails> {
     this._originalError = error;
-    this._problemDetail.title = error.name
+    this._problemDetail.title = error.name;
 
     if (error instanceof AxiosError) {
-      this.status(error.status)
+      this.status(error.status);
     }
     if (error instanceof ZodError) {
-      this.status(HttpStatusCode.BadRequest)
-      this.message("Validation error")
+      this.status(HttpStatusCode.BadRequest);
+      this.message('Validation error');
     }
     return this;
   }
@@ -154,8 +159,8 @@ export class ApiErrorBuilder<AdditionalProblemDetails = Record<string, unknown>>
 
 export class CredentialsApiError extends CredentialsSignin {
   constructor(public readonly problemDetail: ProblemDetail) {
-    super()
-    this.code = problemDetail.title
-    this.message = problemDetail.detail
+    super();
+    this.code = problemDetail.title;
+    this.message = problemDetail.detail;
   }
 }

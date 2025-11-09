@@ -33,6 +33,12 @@ export interface ActionGeneratorSchema extends CodeGeneratorSchema {
    * For API actions: Generate mapper function
    */
   useMapper?: boolean;
+
+  /**
+   * Client package to import from (e.g., @myfeature/client)
+   * Defaults to @next-feature/client if not provided
+   */
+  clientPackage?: string;
 }
 
 /**
@@ -47,5 +53,6 @@ export interface NormalizedActionGeneratorSchema extends NormalizedCodeGenerator
   mapperName?: string;
   domain: Names;
   configImportPath: string
+  clientImportPath: string;
   fileName: string;
 }

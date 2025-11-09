@@ -98,7 +98,15 @@
       },
       "auth": {},
       "axios": {},
-      "form": {}
+      "feature": {
+        "orgName": "next-feature"
+      },
+      "application": {
+        "orgName": "next-feature"
+      },
+      "client": {
+        "orgName": "next-feature"
+      }
     },
     "@nx/react": {
       "library": {

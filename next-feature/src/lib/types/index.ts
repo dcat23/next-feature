@@ -11,7 +11,7 @@ export interface GeneratorSchema {
 export interface ProjectGeneratorSchema
   extends Omit<GeneratorSchema, 'projectName'> {
   name: string;
-  importPath?: string;
+  orgName?: string;
 }
 
 export interface CodeGeneratorSchema extends GeneratorSchema {

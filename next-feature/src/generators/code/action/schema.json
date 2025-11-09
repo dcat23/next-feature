@@ -85,6 +85,11 @@
       "type": "boolean",
       "description": "Skip code formatting",
       "default": false
+    },
+    "clientPackage": {
+      "type": "string",
+      "description": "Client package to import from (e.g., @myfeature/client). Defaults to @next-feature/client",
+      "alias": "client"
     }
   },
   "required": ["name"]

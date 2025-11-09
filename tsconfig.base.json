@@ -15,6 +15,9 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@next-feature/client": ["clients/client/src/index.ts"],
+      "@next-feature/client/*": ["clients/client/src/*"],
+      "@next-feature/client/server": ["clients/client/src/server.ts"],
       "next-feature": ["next-feature/src/index.ts"]
     }
   },

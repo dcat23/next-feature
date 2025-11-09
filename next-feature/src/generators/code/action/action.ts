@@ -12,6 +12,7 @@ import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
 import constantGenerator from '../constant/constant';
 import utilsGenerator from '../utility/utility';
 import dataTypeGenerator from '../data-type/data-type';
+import clientConfigGenerator from '../../misc/client-config/client-config';
 
 export async function actionGenerator(
   tree: Tree,
@@ -20,11 +21,23 @@ export async function actionGenerator(
   const normalizedOptions = normalize(options);
   const tasks: GeneratorCallback[] = [];
 
-  const { directory } = await initializeCodeGenerator(
+  const { directory, projectName } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     normalizedOptions.actionType
   );
+
+  // Auto-generate client config if it doesn't exist
+  const configPath = path.join(directory, 'lib/client/config.ts');
+  if (!tree.exists(configPath)) {
+    tasks.push(
+      await clientConfigGenerator(tree, {
+        projectName,
+        clientPackage: options.clientPackage,
+        skipFormat: true,
+      })
+    );
+  }
 
   // Generate main action file based on type
   const templatePath = getActionTemplatePath(normalizedOptions.actionType);

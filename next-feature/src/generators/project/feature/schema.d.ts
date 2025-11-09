@@ -6,6 +6,7 @@ import {
 export interface FeatureGeneratorSchema extends ProjectGeneratorSchema {
   name: "base" | string;
   directory?: "features" | string;
+  orgName?: "feature" | string;
   useAxios?: boolean;
   useAuth?: boolean;
 }

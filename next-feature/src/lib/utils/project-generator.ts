@@ -6,7 +6,8 @@ import * as path from 'path';
 import { NormalizedClientGeneratorSchema } from '../../generators/project/client/schema';
 import { Linter } from '@nx/eslint';
 import { libraryGenerator } from '@nx/next';
-import { Tree } from '@nx/devkit';
+import { joinPathFragments, Tree } from '@nx/devkit';
+import { pluralize, singularize } from './string';
 
 /**
  * [normalize-project-generator]
@@ -41,7 +42,7 @@ export function getDirectory(
   projectType: string
 ) {
   if (!options.directory) {
-    return path.join(projectType.concat('s'), options.name);
+    return joinPathFragments(pluralize(projectType), options.name);
   }
 
   return path.normalize(options.directory);
@@ -56,6 +57,7 @@ export function getImportPath(
   options: ProjectGeneratorSchema,
   projectType: string
 ) {
-  return `@${projectType}/${options.name}`;
+  const scope = options.orgName ?? singularize(projectType);
+  return `@${scope}/${options.name}`;
 }
 

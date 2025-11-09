@@ -33,6 +33,11 @@
       "type": "boolean",
       "description": "Initialize auth package",
       "default": false
+    },
+    "orgName": {
+      "type": "string",
+      "description": "Organization name for import path scope (e.g., @myorg/projectname)",
+      "alias": "org"
     }
   },
   "required": ["name"]

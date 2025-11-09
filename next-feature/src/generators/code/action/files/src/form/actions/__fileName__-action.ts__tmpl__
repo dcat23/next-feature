@@ -1,7 +1,7 @@
 'use server';
 
 import { z } from "zod";
-import { type ApiResponse, ApiError } from "next-feature/client"
+import { type ApiResponse, ApiError } from "<%= clientImportPath %>"
 import api from '<%= configImportPath %>';
 
 const schema = z.object({})
@@ -20,13 +20,13 @@ export async function <%= methodName %>Action(
     const parsed = schema.safeParse(body);
 
     if (!parsed.success) {
-      const { message, problemDetail: error } = ApiError.validation(parsed.error);
+      const apiError = ApiError.fromZodError(parsed.error);
 
       return {
         success: false,
-        message,
+        message: apiError.message,
         data: body,
-        error
+        error: apiError.problemDetail
       }
     }
 

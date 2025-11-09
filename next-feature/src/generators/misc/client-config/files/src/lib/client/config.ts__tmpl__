@@ -1,0 +1,46 @@
+import { ApiClient, type ApiResponse, ApiError } from '<%= clientImportPath %>';
+
+/**
+ * Centralized API client configuration
+ *
+ * This file provides a single point to configure:
+ * - Base API URL
+ * - Request/response interceptors
+ * - Default headers
+ * - Authentication handling
+ */
+
+const baseURL = <%= baseUrl %>;
+
+const apiClient = new ApiClient({
+  baseURL,
+  <% if (includeInterceptors) { %>// Add other ApiClient config options here
+  // timeout: 30000,
+  // retry: { maxRetries: 3, delay: 1000 }<% } %>
+});
+
+<% if (includeInterceptors) { %>/**
+ * Example: Add custom request interceptor
+ */
+// apiClient.interceptors.request.use((config) => {
+//   // Add custom headers, auth tokens, etc.
+//   return config;
+// });
+
+/**
+ * Example: Add custom response interceptor
+ */
+// apiClient.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     // Handle errors globally
+//     return Promise.reject(error);
+//   }
+// );<% } %>
+
+// Re-export commonly used utilities
+export { ApiError, type ApiResponse };
+export { getErrorMessage, formatProblemDetail, extractValidationErrors } from '<%= clientImportPath %>';
+
+// Export configured API client for use in server actions
+export default apiClient;

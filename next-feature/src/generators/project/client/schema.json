@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/schema",
-  "$id": "Application",
+  "$id": "Client",
   "title": "",
   "type": "object",
   "properties": {
@@ -21,16 +21,6 @@
         "index": 1
       },
       "alias": "d"
-    },
-    "useAxios": {
-      "type": "boolean",
-      "description": "Initialize axios package",
-      "default": false
-    },
-    "useAuth": {
-      "type": "boolean",
-      "description": "Initialize auth package",
-      "default": false
     },
     "orgName": {
       "type": "string",

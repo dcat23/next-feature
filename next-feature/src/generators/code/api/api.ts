@@ -19,11 +19,11 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
   options.useMapper = Boolean(options.useMapper);
   const mutatedNames = names(options.name);
   const { propertyName, className, name } = mutatedNames;
-  const { method: httpMethod, noPrefix: noPrefixClassName } =
+  const { method: httpMethod, noPrefix: domainClassName } =
     extractHttpMethod(name);
 
   const methodName = propertyName;
-  const endpoint = names(noPrefixClassName).fileName.replace('-', '/');
+  const endpoint = names(domainClassName).fileName.replace('-', '/');
   const hasRequestBody = (['post', 'put', 'patch'] as HttpMethod[]).includes(httpMethod);
 
   const defaultImports = [className, className.concat('Response')];
@@ -53,6 +53,7 @@ function normalize(options: ApiGeneratorSchema): NormalizedApiGeneratorSchema {
     hasRequestBody,
     axiosImportPath,
     mapperName,
+    domainClassName
   };
 }
 

@@ -17,4 +17,5 @@ export interface NormalizedApiGeneratorSchema extends Normalized<WithNames<ApiGe
   hasRequestBody: boolean;
   axiosImportPath: string;
   mapperName: string;
+  domainClassName: string;
 }

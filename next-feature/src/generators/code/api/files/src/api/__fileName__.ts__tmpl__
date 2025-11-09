@@ -5,12 +5,12 @@
 <% if (useMapper) { %>import { <%= mapperName %> } from "../utils/mapper";<% } %>
 import type {
   <%= typeImports %>
-} from '../types';
+} from "../types/<%= domainClassName %>";
 import { <%= constantName %> } from '../constants'
 import api, {
   type BackendResponse,
   handleError
-} from '<%= axiosImportPath %>';
+} from "<%= axiosImportPath %>";
 
 interface BackendRequestOptions {
 

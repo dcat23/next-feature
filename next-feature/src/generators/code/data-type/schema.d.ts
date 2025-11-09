@@ -5,4 +5,4 @@ import {
 
 export interface DataTypeGeneratorSchema extends CodeGeneratorSchema {}
 
-export interface NormalizedDataTypeGeneratorSchema extends NormalizedCodeGeneratorSchema {}
+export interface NormalizedDataTypeGeneratorSchema extends NormalizedCodeGeneratorSchema<DataTypeGeneratorSchema> {}

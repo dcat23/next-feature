@@ -1,0 +1,14 @@
+
+interface Props {
+  params: Promise<{}>;
+}
+
+
+async function Page(props: Props) {
+  const params = await props.params;
+  return (
+    <></>
+  );
+}
+
+export default Page;

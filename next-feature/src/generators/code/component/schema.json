@@ -31,6 +31,26 @@
       "type": "string",
       "description": "The package where the generated files will go",
       "alias": "p"
+    },
+    "componentType": {
+      "type": "string",
+      "description": "The type of component to generate",
+      "alias": "t",
+      "default": "component",
+      "enum": ["component", "page", "layout", "modal", "card", "form", "provider"],
+      "x-prompt": {
+        "message": "Which component type would you like to generate?",
+        "type": "list",
+        "items": [
+          { "value": "component", "label": "Component - Basic client component" },
+          { "value": "modal", "label": "Modal - Dialog/modal component" },
+          { "value": "card", "label": "Card - Card container component" },
+          { "value": "form", "label": "Form - Form with state management" },
+          { "value": "provider", "label": "Provider - Context provider component" },
+          { "value": "page", "label": "Page - Next.js page component" },
+          { "value": "layout", "label": "Layout - Next.js layout component" }
+        ]
+      }
     }
   },
   "required": ["name"]

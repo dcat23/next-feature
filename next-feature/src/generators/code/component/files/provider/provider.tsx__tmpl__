@@ -1,0 +1,33 @@
+"use client";
+
+import { createContext, useContext, ReactNode } from 'react';
+
+interface ContextValue {
+  // Add your context state here
+  data?: unknown;
+}
+
+const <%= className %>Context = createContext<ContextValue | undefined>(undefined);
+
+interface ProviderProps {
+  children: ReactNode;
+  value?: ContextValue;
+}
+
+export function <%= className %>Provider ({ children, value = {} }: ProviderProps) {
+  return (
+    <<%= className %>Context.Provider value={value}>
+      {children}
+    </<%= className %>Context.Provider>
+  );
+}
+
+export function use<%= className %>() {
+  const context = useContext(<%= className %>Context);
+  if (context === undefined) {
+    throw new Error(`use<%= className %>() must be used within <<%= className %>Provider>`);
+  }
+  return context;
+}
+
+export default <%= className %>Provider;

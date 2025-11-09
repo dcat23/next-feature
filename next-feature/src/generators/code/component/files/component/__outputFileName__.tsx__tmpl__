@@ -15,3 +15,5 @@ export function <%= className %> (props: Props) {
     </>
   );
 }
+
+export default <%= className %>;

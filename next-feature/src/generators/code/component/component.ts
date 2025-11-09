@@ -1,21 +1,21 @@
-import { names } from '@nx/devkit';
-import { formatFiles, generateFiles, Tree } from '@nx/devkit';
+import { formatFiles, generateFiles, names, Tree } from '@nx/devkit';
 import * as path from 'path';
-import { initializeGenerator } from '../../../lib/generator-config';
 import type { NormalizedComponentGeneratorSchema } from './schema';
 import { ComponentGeneratorSchema } from './schema';
+import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
 
 function normalize(
   options: ComponentGeneratorSchema
 ): NormalizedComponentGeneratorSchema {
   options.package ??= 'components';
-
+  options.componentType ??= 'component';
   const mutatedNames = names(options.name);
-
+  const outputFileName = mutatedNames.fileName;
   return {
     tmpl: '',
     ...options,
-    ...mutatedNames,
+    names: mutatedNames,
+    outputFileName
   };
 }
 
@@ -25,13 +25,13 @@ export async function componentGenerator(
 ) {
 
   const normalizedOptions = normalize(options);
-  const { directory } = await initializeGenerator(
+  const { directory } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'component'
   );
 
-  generateFiles(tree, path.join(__dirname, 'files/src'), directory, normalizedOptions);
+  generateFiles(tree, path.join(__dirname, 'files', normalizedOptions.componentType), directory, normalizedOptions);
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
 

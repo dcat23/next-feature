@@ -3,7 +3,7 @@ import { CodeGeneratorSchema, NormalizedCodeGeneratorSchema } from '../../../lib
 export interface UtilityGeneratorSchema extends CodeGeneratorSchema {
 }
 
-export interface NormalizedUtilityGeneratorSchema extends NormalizedCodeGeneratorSchema {
+export interface NormalizedUtilityGeneratorSchema extends NormalizedCodeGeneratorSchema<UtilityGeneratorSchema> {
 
 }
 

@@ -25,9 +25,9 @@ function normalize(
   const createMethod = zustandCreateMethod({ ...options, ...mutatedNames });
   const storeType = options.useContext ? 'context' : 'zustand';
   return {
-    outputFileName: '',
     tmpl: '',
     ...options,
+    outputFileName: mutatedNames.fileName,
     names: mutatedNames,
     createMethod,
     storeType,

@@ -16,18 +16,18 @@ interface ProviderProps {
 
 export function <%= names.className %>Provider ({ children, value = {} }: ProviderProps) {
   return (
-    <<%= className %>Context.Provider value={value}>
+    <<%= names.className %>Context.Provider value={value}>
       {children}
-    </<%= className %>Context.Provider>
+    </<%= names.className %>Context.Provider>
   );
 }
 
 export function use<%= names.className %>() {
-  const context = useContext(<%= className %>Context);
+  const context = useContext(<%= names.className %>Context);
   if (context === undefined) {
-    throw new Error(`use<%= className %>() must be used within <<%= names.className %>Provider>`);
+    throw new Error(`use<%= names.className %>() must be used within <<%= names.className %>Provider>`);
   }
   return context;
 }
 
-export default <%= className %>Provider;
+export default <%= names.className %>Provider;

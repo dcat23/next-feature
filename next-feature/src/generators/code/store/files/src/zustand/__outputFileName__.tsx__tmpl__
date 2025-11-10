@@ -1,0 +1,15 @@
+"use client"
+
+import { create } from "zustand";
+<% if (persist) { %>import { persist } from 'zustand/middleware';<% } %>
+<% if (useTypes) { %>import type { <%= names.className %> } from "../types";<% } %>
+
+
+interface I<%= names.className %>Store {
+    <%= names.propertyName %>: <%= names.className %> | null;
+    isLoading: boolean;
+    set<%= names.className %>: (<%= names.propertyName %>: <%= names.className %>) => void;
+    toggleLoading: () => void;
+}
+
+export const use<%= names.className %>Store = <%- createMethod %>

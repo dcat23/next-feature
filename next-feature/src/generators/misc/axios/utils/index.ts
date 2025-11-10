@@ -1,4 +1,6 @@
 import { names } from '@nx/devkit';
+import type { AxiosGeneratorSchema, NormalizedAxiosGeneratorSchema } from '../schema';
+import { normalizeCodeGenerator } from '../../../../lib/utils/code-generator';
 
 /**
  * [as-api-key-name]
@@ -17,4 +19,25 @@ export function asApiKeyName(name: string) {
 export function asApiName(name: string) {
   const { fileName } = names(name);
   return names(fileName.concat('-api')).propertyName;
+}
+
+/**
+ * [normalize]
+ * next-feature@0.1.0
+ * November 9th 2025, 10:36:28 pm
+ */
+export function normalize(
+  options: AxiosGeneratorSchema
+): NormalizedAxiosGeneratorSchema {
+  const normalized = normalizeCodeGenerator(options);
+  const keyName = asApiKeyName(normalized.name);
+  const apiName = asApiName(normalized.name);
+  normalized.projectName ??= normalized.name;
+  normalized.useInterceptor = Boolean(normalized.useInterceptor);
+
+  return {
+    ...normalized,
+    keyName,
+    apiName
+  };
 }

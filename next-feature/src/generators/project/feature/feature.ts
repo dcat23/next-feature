@@ -42,6 +42,19 @@ export async function featureGenerator(
   const normalizedOptions = normalize(options);
   const tasks: GeneratorCallback[] = [];
 
+  tasks.push(await libraryGenerator(tree, {
+    directory: normalizedOptions.directory,
+    name: normalizedOptions.name,
+    importPath: normalizedOptions.importPath,
+    bundler: 'vite',
+    style: 'tailwind',
+    unitTestRunner: 'jest',
+    linter: Linter.EsLint,
+    component: false,
+    skipFormat: true,
+    useProjectJson: true,
+  }))
+
   tasks.push(await initializeProjectGenerator(tree, normalizedOptions, "feature"))
 
   const { sourceRoot, importPath, name } = normalizedOptions;

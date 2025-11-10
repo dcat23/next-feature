@@ -1,6 +1,5 @@
 import { AxiosError, HttpStatusCode } from 'axios';
 import { ZodError } from 'zod';
-import { CredentialsSignin } from "next-auth";
 
 /**
  * Spring Boot ProblemDetail structure
@@ -149,13 +148,5 @@ export class ApiErrorBuilder<AdditionalProblemDetails = Record<string, unknown>>
       this._originalError,
       this._message
     );
-  }
-}
-
-export class CredentialsApiError extends CredentialsSignin {
-  constructor(public readonly problemDetail: ProblemDetail) {
-    super()
-    this.code = problemDetail.title
-    this.message = problemDetail.detail
   }
 }

@@ -1,4 +1,4 @@
-import { addDependenciesToPackageJson, readNxJson } from '@nx/devkit';
+import { addDependenciesToPackageJson, readNxJson, updateNxJson } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
 import { Tree } from '@nx/devkit';
 import * as path from 'node:path';
@@ -54,26 +54,14 @@ export async function initializeProjectGenerator(
   options: NormalizedProjectGeneratorSchema,
   generatorName: string
 ) {
-
-  await libraryGenerator(tree, {
-    directory: options.directory,
-    name: options.name,
-    importPath: options.importPath,
-    bundler: 'vite',
-    style: 'tailwind',
-    unitTestRunner: 'jest',
-    linter: Linter.EsLint,
-    component: false,
-    skipFormat: true,
-    useProjectJson: true,
-  });
-
   const nxJson = readNxJson(tree);
 
   nxJson.generators ??= {};
   nxJson.generators[PLUGIN_NAME] ??= {};
   nxJson.generators[PLUGIN_NAME][generatorName] ??= {};
   nxJson.generators[PLUGIN_NAME][generatorName]["orgName"] ??= options.orgName;
+
+  updateNxJson(tree, nxJson);
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   return () => {}

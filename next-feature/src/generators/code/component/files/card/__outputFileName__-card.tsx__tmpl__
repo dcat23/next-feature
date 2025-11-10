@@ -11,7 +11,7 @@ interface Props {
   onClick?: () => void;
 }
 
-export function <%= className %> ({
+export function <%= names.className %>Card ({
   title,
   subtitle,
   children,
@@ -52,4 +52,4 @@ export function <%= className %> ({
   );
 }
 
-export default <%= className %>;
+export default <%= names.className %>Card;

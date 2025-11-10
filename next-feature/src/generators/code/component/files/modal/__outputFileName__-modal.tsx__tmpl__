@@ -9,7 +9,7 @@ interface Props {
   children?: ReactNode;
 }
 
-export function <%= className %> ({
+export function <%= names.className %> ({
   isOpen = false,
   onClose,
   title,
@@ -58,4 +58,4 @@ export function <%= className %> ({
   );
 }
 
-export default <%= className %>;
+export default <%= names.className %>;

@@ -4,7 +4,7 @@ interface Props {
 }
 
 
-async function Page(props: Props) {
+async function <%= names.className %>Page(props: Props) {
   const params = await props.params;
   return (
     <></>

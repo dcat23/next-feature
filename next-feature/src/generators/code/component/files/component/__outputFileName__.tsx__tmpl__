@@ -7,13 +7,13 @@ interface Props {
   children?: ReactNode;
 }
 
-export function <%= className %> (props: Props) {
+export function <%= names.className %> (props: Props) {
   return (
     <>
-      <%= className %>
+      <%= names.className %>
       {props.children}
     </>
   );
 }
 
-export default <%= className %>;
+export default <%= names.className %>;

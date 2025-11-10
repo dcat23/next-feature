@@ -5,5 +5,4 @@ export interface ComponentGeneratorSchema extends CodeGeneratorSchema {
 }
 
 export interface NormalizedComponentGeneratorSchema extends NormalizedCodeGeneratorSchema<ComponentGeneratorSchema> {
-
 }

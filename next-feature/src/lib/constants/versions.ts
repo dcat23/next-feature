@@ -3,7 +3,7 @@ export const PLUGIN_VERSION = require("../../../package.json").version;
 export const NEXT_FEATURE_CLIENT_VERSION = "latest"
 
 export const AXIOS_VERSION = "1.9.0"
-export const NEXTAUTH_VERSION = " 5.0.0-beta.27"
+export const NEXTAUTH_VERSION = "5.0.0-beta.27"
 export const PRISMA_VERSION = "6.7.0"
 export const PRISMA_AUTH_VERSION = "2.9.0"
 export const ZOD_VERSION = "3.24.4"

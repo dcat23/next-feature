@@ -1,35 +1,35 @@
 "use client";
 
 import { ReactNode, useActionState } from 'react';
-import type { ApiResponse, useActionState } from 'next-feature/client';
+import type { ApiResponse } from '@next-feature/client';
 
 
 interface Props {
   action: (prevState: ApiResponse<unknown>, formData: FormData) => Promise<ApiResponse<unknown>>;
-  initialState?: FormState;
+  initialState?: ApiResponse<unknown>;
   children?: ReactNode;
   submitText?: string;
   className?: string;
 }
 
-export function <%= className %> ({
+export function <%= names.className %>Form ({
   action,
-  initialState = {},
+  initialState = { data: {} },
   children,
   submitText = 'Submit',
   className = '',
 }: Props) {
-  const [state, formAction, isPending] = useActionState(action, initialState);
+  const [formState, formAction, isPending] = useActionState(action, initialState);
 
   return (
     <form action={formAction} className={`space-y-4 ${className}`}>
-      {state?.error && (
+      {formState?.error && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-          {JSON.stringify(state.error)}
+          {JSON.stringify(formState.error)}
         </div>
       )}
 
-      {state?.success && (
+      {formState?.success && (
         <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">
           Form submitted successfully
         </div>
@@ -54,4 +54,4 @@ export function <%= className %> ({
   );
 }
 
-export default <%= className %>;
+export default <%= names.className %>;

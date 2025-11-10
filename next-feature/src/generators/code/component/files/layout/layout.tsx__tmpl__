@@ -4,7 +4,7 @@ interface Props {
   children: ReactNode
 }
 
-function Layout(props: Props) {
+async function <%= names.className %>Layout(props: Props) {
   return (
     <>
       {props.children}

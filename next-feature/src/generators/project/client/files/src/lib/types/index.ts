@@ -1,4 +1,4 @@
-import { ApiError } from '../error';
+import { ProblemDetail } from '../error';
 
 /**
  * [api-response]
@@ -8,6 +8,6 @@ import { ApiError } from '../error';
 export interface ApiResponse<Response> {
   success?: boolean;
   message?: string;
-  error?: ApiError;
+  error?: ProblemDetail;
   data: Response
 }

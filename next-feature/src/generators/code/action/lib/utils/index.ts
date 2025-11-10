@@ -69,7 +69,7 @@ export function normalize(
   const fileName = normalized.names.fileName;
 
   const configImportPath = ["..","config",
-    options.actionType === "db" ? "prisma" : "axios"
+    options.actionType === "db" ? "prisma" : "client"
   ].join("/");
 
   const clientImportPath = options.clientPackage || "@next-feature/client";

@@ -1,5 +1,5 @@
 import { ApiClient, type ApiResponse, ApiError } from '<%= clientImportPath %>';
-
+import { BACKEND_API_URL } from "."
 /**
  * Centralized API client configuration
  *
@@ -10,16 +10,17 @@ import { ApiClient, type ApiResponse, ApiError } from '<%= clientImportPath %>';
  * - Authentication handling
  */
 
-const baseURL = <%= baseUrl %>;
 
 const apiClient = new ApiClient({
-  baseURL,
-  <% if (includeInterceptors) { %>// Add other ApiClient config options here
+  baseURL: BACKEND_API_URL,
+  enableRefreshToken: false
   // timeout: 30000,
-  // retry: { maxRetries: 3, delay: 1000 }<% } %>
+  // maxRetries: 3,
+  // retryDelay: 1000
 });
 
-<% if (includeInterceptors) { %>/**
+// includeInterceptors
+/**
  * Example: Add custom request interceptor
  */
 // apiClient.interceptors.request.use((config) => {
@@ -36,7 +37,7 @@ const apiClient = new ApiClient({
 //     // Handle errors globally
 //     return Promise.reject(error);
 //   }
-// );<% } %>
+// );
 
 // Re-export commonly used utilities
 export { ApiError, type ApiResponse };

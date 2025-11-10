@@ -1,6 +1,6 @@
 {
   "name": "@next-feature/client",
-  "version": "0.1.0-beta",
+  "version": "0.1.0-beta1",
   "main": "./index.js",
   "types": "./index.d.ts",
   "exports": {
@@ -8,8 +8,5 @@
       "import": "./index.mjs",
       "require": "./index.js"
     }
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }

@@ -26,7 +26,7 @@ export async function clientConfigGenerator(
   // Check if config already exists
   const configPath = path.join(
     normalizedOptions.sourceRoot,
-    'lib/client/config.ts'
+    'lib/config/client.ts'
   );
 
   if (tree.exists(configPath)) {
@@ -44,7 +44,7 @@ export async function clientConfigGenerator(
   // Generate the config file from template
   generateFiles(
     tree,
-    path.join(__dirname, 'files'),
+    path.join(__dirname, 'files', 'src'),
     normalizedOptions.sourceRoot,
     {
       ...normalizedOptions,

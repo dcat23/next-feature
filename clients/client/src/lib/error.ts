@@ -77,8 +77,8 @@ export class ApiError extends Error {
     zodError.errors.forEach((error) => {
       error.path.forEach((path) => {
         errors[path] = error.message;
-      })
-    })
+      });
+    });
 
     return ApiError.builder()
       .originalError(zodError)

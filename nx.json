@@ -106,7 +106,8 @@
       },
       "client": {
         "orgName": "next-feature"
-      }
+      },
+      "form": {}
     },
     "@nx/react": {
       "library": {

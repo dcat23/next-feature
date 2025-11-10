@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@next-feature/client':
+        specifier: latest
+        version: 0.1.0-beta
       '@nx/devkit':
         specifier: 20.8.1
         version: 20.8.1(nx@20.8.1(@swc-node/register@1.9.2(@swc/core@1.5.29(@swc/helpers@0.5.17))(@swc/types@0.1.21)(typescript@5.7.3))(@swc/core@1.5.29(@swc/helpers@0.5.17)))
@@ -1863,6 +1866,9 @@ packages:
 
   '@napi-rs/wasm-runtime@0.2.4':
     resolution: {integrity: sha512-9zESzOO5aDByvhIAsOy9TbpZ0Ur2AJbUI7UT73kcUTS2mxAMHOBaa1st/jAymNoCtvrit99kkzT1FZuXVcgfIQ==}
+
+  '@next-feature/client@0.1.0-beta':
+    resolution: {integrity: sha512-Bh8udjOENWOIK9eeeP2lFS6Gz64vQCS+9qs4aa2YrYgIqpjW2h7xHMyVFa05Vp6kAIrhw6pHBQmIXtGnQG6kQA==}
 
   '@next/env@15.2.5':
     resolution: {integrity: sha512-uWkCf9C8wKTyQjqrNk+BA7eL3LOQdhL+xlmJUf2O85RM4lbzwBwot3Sqv2QGe/RGnc3zysIf1oJdtq9S00pkmQ==}
@@ -10436,6 +10442,8 @@ snapshots:
       '@emnapi/core': 1.4.3
       '@emnapi/runtime': 1.4.3
       '@tybys/wasm-util': 0.9.0
+
+  '@next-feature/client@0.1.0-beta': {}
 
   '@next/env@15.2.5': {}
 

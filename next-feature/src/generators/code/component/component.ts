@@ -3,14 +3,16 @@ import * as path from 'path';
 import type { NormalizedComponentGeneratorSchema } from './schema';
 import { ComponentGeneratorSchema } from './schema';
 import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
+import { handleComponentPackage } from './lib/utils';
 
 function normalize(
   options: ComponentGeneratorSchema
 ): NormalizedComponentGeneratorSchema {
-  options.package ??= 'components';
   options.componentType ??= 'component';
   const mutatedNames = names(options.name);
   const outputFileName = mutatedNames.fileName;
+  handleComponentPackage(options)
+
   return {
     tmpl: '',
     ...options,

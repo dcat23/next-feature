@@ -2,11 +2,12 @@ import {
   formatFiles,
   generateFiles,
   Tree,
-  type GeneratorCallback,
+  type GeneratorCallback, addDependenciesToPackageJson,
 } from '@nx/devkit';
 import * as path from 'path';
 import type { ClientConfigGeneratorSchema } from './schema';
 import { normalize } from './lib/utils';
+import { NEXT_FEATURE_CLIENT_VERSION } from '../../../lib/constants/versions';
 
 /**
  * Client config generator
@@ -33,6 +34,13 @@ export async function clientConfigGenerator(
     return async () => {};
   }
 
+  addDependenciesToPackageJson(
+    tree,
+    {
+      "@next-feature/client": NEXT_FEATURE_CLIENT_VERSION
+    },
+    {}
+  )
   // Generate the config file from template
   generateFiles(
     tree,

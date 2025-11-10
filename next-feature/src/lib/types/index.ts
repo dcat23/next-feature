@@ -26,13 +26,16 @@ export type Normalized<Schema extends GeneratorSchema> = Schema & {
 
 export type NormalizedProjectGeneratorSchema<
   Schema extends ProjectGeneratorSchema
+  = ProjectGeneratorSchema
 > = Normalized<Schema> & {
   projectRoot: string;
   sourceRoot: string;
   importPath: string;
 };
 
-export type NormalizedCodeGeneratorSchema<Schema extends CodeGeneratorSchema> =
+export type NormalizedCodeGeneratorSchema<
+  Schema extends CodeGeneratorSchema = CodeGeneratorSchema
+> =
   Normalized<Schema> & {
     names: Names;
     outputFileName: Names['fileName']; // appended with extension

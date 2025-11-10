@@ -7,8 +7,6 @@ import {
 } from '@nx/devkit';
 import { ClientGeneratorSchema } from './schema';
 import { normalize } from './utils';
-import { libraryGenerator } from '@nx/next';
-import { Linter } from '@nx/eslint';
 import { updateTsConfig } from '../../../lib/ts-config';
 import { removeLibFiles } from '../feature/utils';
 import {
@@ -16,7 +14,10 @@ import {
   NEXT_FEATURE_CLIENT_VERSION,
   ZOD_VERSION,
 } from '../../../lib/constants/versions';
-import { updateDependencies } from '../../../lib/utils';
+import {
+  initializeProjectGenerator,
+  updateDependencies,
+} from '../../../lib/utils';
 import * as path from 'path';
 
 export async function clientGenerator(
@@ -26,18 +27,7 @@ export async function clientGenerator(
   const normalizedOptions = normalize(options);
   const tasks: GeneratorCallback[] = [];
 
-  tasks.push(await libraryGenerator(tree, {
-    directory: normalizedOptions.directory,
-    name: normalizedOptions.name,
-    importPath: normalizedOptions.importPath,
-    bundler: 'vite',
-    style: 'tailwind',
-    unitTestRunner: 'jest',
-    linter: Linter.EsLint,
-    component: false,
-    skipFormat: true,
-    useProjectJson: true,
-  }));
+  tasks.push(await initializeProjectGenerator(tree, normalizedOptions, "client"))
 
   const { sourceRoot, importPath } = normalizedOptions;
 

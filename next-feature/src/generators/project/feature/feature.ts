@@ -6,7 +6,7 @@ import * as path from 'path';
 import axiosGenerator from '../../misc/axios/axios';
 import { SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
 import { updateTsConfig } from '../../../lib/ts-config';
-import { updateDependencies } from '../../../lib/utils';
+import { initializeProjectGenerator, updateDependencies } from '../../../lib/utils';
 import authGenerator from '../../misc/auth/auth';
 import { asApiKeyName } from '../../misc/axios/utils';
 import {
@@ -42,18 +42,7 @@ export async function featureGenerator(
   const normalizedOptions = normalize(options);
   const tasks: GeneratorCallback[] = [];
 
-  tasks.push(await libraryGenerator(tree, {
-    directory: normalizedOptions.directory,
-    name: normalizedOptions.name,
-    importPath: normalizedOptions.importPath,
-    bundler: 'vite',
-    style: 'tailwind',
-    unitTestRunner: 'jest',
-    linter: Linter.EsLint,
-    component: false,
-    skipFormat: true,
-    useProjectJson: true
-  }));
+  tasks.push(await initializeProjectGenerator(tree, normalizedOptions, "feature"))
 
   const { sourceRoot, importPath, name } = normalizedOptions;
 

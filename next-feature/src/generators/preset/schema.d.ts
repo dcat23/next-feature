@@ -7,4 +7,5 @@ export interface PresetGeneratorSchema extends ProjectGeneratorSchema {
 
 export interface NormalizedPresetGeneratorSchema extends Normalized<PresetGeneratorSchema> {
   projectRoot: string;
+  title: string;
 }

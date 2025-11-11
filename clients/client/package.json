@@ -1,6 +1,6 @@
 {
   "name": "@next-feature/client",
-  "version": "0.1.0-beta12",
+  "version": "0.1.0-MIGRATION.21.3",
   "main": "./index.js",
   "types": "./index.d.ts",
   "exports": {

@@ -19,7 +19,7 @@ export async function normalize(
   const sourceRoot = projectConfig.sourceRoot || `${projectConfig.root}/src`;
   const projectPath = projectConfig.root;
 
-  const clientImportPath = options.clientPackage || './lib/client';
+  const clientImportPath = options.clientPackage || '@next-feature/client';
 
   return {
     ...options,

@@ -1,13 +1,13 @@
 {
   "name": "next-feature",
-  "version": "0.1.0",
+  "version": "0.1.0-MIGRATION.21.3",
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "dependencies": {
-    "@nx/devkit": "20.8.1",
-    "@nx/next": "20.8.1",
-    "@nx/eslint": "20.8.1",
+    "@nx/devkit": "21.3.0",
+    "@nx/next": "21.3.0",
+    "@nx/eslint": "21.3.0",
     "tslib": "^2.3.0",
     "moment": "^2.30.1"
   },

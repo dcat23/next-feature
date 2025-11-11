@@ -4,6 +4,7 @@
   "title": "Copy Dependencies",
   "description": "Copy dependencies from a package json to the root project",
   "type": "object",
+
   "properties": {
     "directory": {
       "type": "string",
@@ -13,6 +14,12 @@
         "index": 0
       },
       "x-prompt": "Path to the package.json"
+    },
+    "replaceExisting": {
+      "type": "boolean",
+      "description": "Replace existing dependencies?",
+      "default": true,
+      "alias": "r"
     }
   },
   "required": ["directory"]

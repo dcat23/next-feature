@@ -3,6 +3,7 @@ import * as path from 'path';
 import type { NormalizedComponentGeneratorSchema } from './schema';
 import { ComponentGeneratorSchema } from './schema';
 import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
+import { exportFile } from '../../../lib/export-file';
 import { handleComponentPackage } from './lib/utils';
 
 function normalize(
@@ -27,13 +28,22 @@ export async function componentGenerator(
 ) {
 
   const normalizedOptions = normalize(options);
-  const { directory } = await initializeCodeGenerator(
+  const { directory, sourceRoot } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'component'
   );
 
   generateFiles(tree, path.join(__dirname, 'files', normalizedOptions.componentType), directory, normalizedOptions);
+
+  if (normalizedOptions.export) {
+    const exportPath = path.join(
+      normalizedOptions.package ?? 'components',
+      normalizedOptions.outputFileName.replace(/\.tsx$/, '')
+    ).split(path.sep).join('/');
+
+    await exportFile(tree, sourceRoot, exportPath);
+  }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
 

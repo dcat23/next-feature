@@ -8,29 +8,30 @@ import {
 import * as path from 'path';
 import { ZUSTAND_VERSION } from '../../../lib/constants/versions';
 import { updateDependencies } from '../../../lib/utils';
+import { exportFile } from '../../../lib/export-file';
 import typesGenerator from '../data-type/data-type';
 import { mutateNames, zustandCreateMethod } from './lib/options';
 import type { NormalizedStoreGeneratorSchema } from './schema';
 import { StoreGeneratorSchema } from './schema';
-import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
+import { handleExportPath, initializeCodeGenerator, normalizeCodeGenerator } from '../../../lib/utils/code-generator';
 
 function normalize(
   options: StoreGeneratorSchema
 ): NormalizedStoreGeneratorSchema {
-  options.package ??= 'store';
-  options.persist = Boolean(options.persist);
-  options.useTypes = Boolean(options.useTypes);
-
-  const mutatedNames = mutateNames(options);
-  const createMethod = zustandCreateMethod({ ...options, ...mutatedNames });
-  const storeType = options.useContext ? 'context' : 'zustand';
+  const normalized = normalizeCodeGenerator(options);
+  normalized.package ??= 'store';
+  normalized.persist = Boolean(normalized.persist);
+  normalized.useTypes = Boolean(normalized.useTypes);
+  const mutatedNames = mutateNames(normalized);
+  const createMethod = zustandCreateMethod({ ...normalized, ...mutatedNames });
+  const storeType = normalized.useContext ? 'context' : 'zustand';
+  const exportPath = handleExportPath(normalized, storeType)
   return {
-    tmpl: '',
-    ...options,
-    outputFileName: mutatedNames.fileName,
+   ...normalized,
     names: mutatedNames,
     createMethod,
     storeType,
+    exportPath
   };
 }
 
@@ -41,13 +42,22 @@ export async function storeGenerator(
   const normalizedOptions = normalize(options);
   const tasks: GeneratorCallback[] = [];
 
-  const { directory } = await initializeCodeGenerator(
+  const { directory, sourceRoot } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'store'
   );
 
   generateFiles(tree, path.join(__dirname, "files/src", normalizedOptions.storeType), directory, normalizedOptions);
+
+  if (normalizedOptions.export) {
+    const exportPath = path.join(
+      normalizedOptions.package ?? 'store',
+      normalizedOptions.outputFileName.replace(/\.tsx$/, '')
+    ).split(path.sep).join('/');
+
+    await exportFile(tree, sourceRoot, exportPath);
+  }
 
   const dependencies: Record<string, string> = {
     zustand: ZUSTAND_VERSION

@@ -1,9 +1,17 @@
 import { logger, names } from '@nx/devkit';
 import type { HttpMethod } from '../constants';
 import { PREFIXES, RESPONSE_TYPES } from '../constants';
-import type { ActionGeneratorSchema, NormalizedActionGeneratorSchema } from '../types';
-import { normalizeCodeGenerator } from '../../../../../lib/utils/code-generator';
+import type {
+  ActionGeneratorSchema,
+  NormalizedActionGeneratorSchema,
+} from '../types';
+import {
+  handleExportPath,
+  normalizeCodeGenerator,
+} from '../../../../../lib/utils/code-generator';
 import { pluralize, singularize } from '../../../../../lib/utils/string';
+import { NormalizedCodeGeneratorSchema } from '../../../../../lib/types';
+import path = require('node:path');
 
 /**
  * Extract HTTP method from action name
@@ -45,6 +53,25 @@ export function extractHttpMethod(name: string): ExtractHttpMethod {
   };
 }
 
+function handleConfigImportPath(options: ActionGeneratorSchema) {
+  return ["..","config",
+    options.actionType === "db" ? "prisma" : "client"
+  ].join("/");
+}
+
+
+function handleOutputFileName(normalized: NormalizedCodeGeneratorSchema<ActionGeneratorSchema>) {
+  const fileName = normalized.names.fileName;
+  switch (normalized.actionType) {
+    case "api":
+      return fileName + "-api"
+    case "form":
+      return fileName + "-action"
+    default:
+      return fileName;
+  }
+}
+
 /**
  * Normalize action generator options
  */
@@ -57,22 +84,21 @@ export function normalize(
   normalized.useTypes = Boolean(normalized.useTypes);
   normalized.useConstant = Boolean(normalized.useConstant);
   normalized.useMapper = Boolean(normalized.useMapper);
+  normalized.outputFileName = handleOutputFileName(normalized);
+  normalized.exportPath = handleExportPath(normalized, "actions");
 
   const { method: httpMethod, noPrefix } = extractHttpMethod(
     normalized.names.name
   );
+
   const domain = names(noPrefix);
   const methodName = normalized.names.propertyName;
   const endpoint = extractEndpoint(domain.fileName);
   const hasRequestBody = ['post', 'put', 'patch'].includes(httpMethod);
   const mapperName = 'mapTo'.concat(normalized.names.className);
-  const fileName = normalized.names.fileName;
 
-  const configImportPath = ["..","config",
-    options.actionType === "db" ? "prisma" : "client"
-  ].join("/");
-
-  const clientImportPath = options.clientPackage || "@next-feature/client";
+  const configImportPath = handleConfigImportPath(normalized)
+  const clientImportPath = normalized.clientPackage || "@next-feature/client";
 
   return {
     ...normalized,
@@ -84,7 +110,6 @@ export function normalize(
     domain,
     configImportPath,
     clientImportPath,
-    fileName
   };
 }
 

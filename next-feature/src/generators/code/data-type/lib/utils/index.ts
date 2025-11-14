@@ -1,12 +1,12 @@
 import {
-  NormalizedUtilityGeneratorSchema,
-  UtilityGeneratorSchema,
-} from '../../../utility/schema';
-import { normalizeCodeGenerator } from '../../../../../lib/utils/code-generator';
+  handleExportPath,
+  normalizeCodeGenerator,
+} from '../../../../../lib/utils/code-generator';
 import {
   DataTypeGeneratorSchema,
   NormalizedDataTypeGeneratorSchema,
 } from '../../schema';
+
 
 /**
  * [normalize]
@@ -17,6 +17,8 @@ export function normalize(
   options: DataTypeGeneratorSchema
 ): NormalizedDataTypeGeneratorSchema {
   const normalized = normalizeCodeGenerator(options);
+  normalized.exportPath = handleExportPath(normalized, "types");
+
   return {
     ...normalized,
   };

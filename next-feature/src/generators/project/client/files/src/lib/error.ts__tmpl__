@@ -21,7 +21,7 @@ export class ApiError extends Error {
   constructor(
     public status: HttpStatusCode,
     public problemDetail: ProblemDetail | null,
-    public originalError: Error,
+    public originalError?: Error,
     message?: string
   ) {
     super(message || problemDetail?.detail || problemDetail?.title || originalError?.message || 'An error occurred');
@@ -53,7 +53,7 @@ export class ApiError extends Error {
     return new ApiErrorBuilder<T>();
   }
 
-  static of(error: Error) {
+  static of(error: Error): ApiError {
     if(error instanceof ApiError) {
       return error;
     }
@@ -80,13 +80,13 @@ export class ApiError extends Error {
       .originalError(zodError)
       .status(HttpStatusCode.BadRequest)
       .message('Validation error')
-      .problemDetail('errors', errors)
+      .detail('errors', errors)
       .build();
   }
 }
 
 export class ApiErrorBuilder<AdditionalProblemDetails = Record<string, unknown>> {
-  private readonly _problemDetail: ProblemDetail;
+  private _problemDetail: ProblemDetail;
   private _status: HttpStatusCode;
   private _originalError: Error;
   private _message: string;
@@ -100,10 +100,10 @@ export class ApiErrorBuilder<AdditionalProblemDetails = Record<string, unknown>>
     };
   }
 
-  /**
-   * Set standard ProblemDetail fields
-   */
-  problemDetail<K extends keyof (ProblemDetail & AdditionalProblemDetails)>(
+   /**
+     * Set standard ProblemDetail fields
+     */
+  detail<K extends keyof (ProblemDetail & AdditionalProblemDetails)>(
     key: K,
     value: K extends keyof ProblemDetail
       ? ProblemDetail[K]
@@ -114,6 +114,16 @@ export class ApiErrorBuilder<AdditionalProblemDetails = Record<string, unknown>>
     (this._problemDetail as any)[key] = value;
     return this;
   }
+
+  /**
+    * Set standard ProblemDetail fields
+    */
+   problemDetail(problemDetail: ProblemDetail): ApiErrorBuilder<AdditionalProblemDetails> {
+     if (problemDetail) {
+       this._problemDetail = problemDetail;
+     }
+     return this;
+   }
 
   originalError(error: Error): ApiErrorBuilder<AdditionalProblemDetails> {
     this._originalError = error;

@@ -1,6 +1,5 @@
 import { AxiosError, HttpStatusCode } from 'axios';
 import { ZodError } from 'zod';
-import { CredentialsSignin } from 'next-auth';
 
 /**
  * Spring Boot ProblemDetail structure
@@ -22,7 +21,7 @@ export class ApiError extends Error {
   constructor(
     public status: HttpStatusCode,
     public problemDetail: ProblemDetail | null,
-    public originalError: Error,
+    public originalError?: Error,
     message?: string
   ) {
     super(
@@ -60,7 +59,7 @@ export class ApiError extends Error {
     return new ApiErrorBuilder<T>();
   }
 
-  static of(error: Error) {
+  static of(error: Error): ApiError {
     if (error instanceof ApiError) {
       return error;
     }
@@ -84,7 +83,7 @@ export class ApiError extends Error {
       .originalError(zodError)
       .status(HttpStatusCode.BadRequest)
       .message('Validation error')
-      .problemDetail('errors', errors)
+      .detail('errors', errors)
       .build();
   }
 }
@@ -92,7 +91,7 @@ export class ApiError extends Error {
 export class ApiErrorBuilder<
   AdditionalProblemDetails = Record<string, unknown>
 > {
-  private readonly _problemDetail: ProblemDetail;
+  private _problemDetail: ProblemDetail;
   private _status: HttpStatusCode;
   private _originalError: Error;
   private _message: string;
@@ -109,7 +108,7 @@ export class ApiErrorBuilder<
   /**
    * Set standard ProblemDetail fields
    */
-  problemDetail<K extends keyof (ProblemDetail & AdditionalProblemDetails)>(
+  detail<K extends keyof (ProblemDetail & AdditionalProblemDetails)>(
     key: K,
     value: K extends keyof ProblemDetail
       ? ProblemDetail[K]
@@ -118,6 +117,18 @@ export class ApiErrorBuilder<
       : unknown
   ): ApiErrorBuilder<AdditionalProblemDetails> {
     (this._problemDetail as any)[key] = value;
+    return this;
+  }
+
+  /**
+   * Set standard ProblemDetail fields
+   */
+  problemDetail(
+    problemDetail: ProblemDetail
+  ): ApiErrorBuilder<AdditionalProblemDetails> {
+    if (problemDetail) {
+      this._problemDetail = problemDetail;
+    }
     return this;
   }
 
@@ -154,13 +165,5 @@ export class ApiErrorBuilder<
       this._originalError,
       this._message
     );
-  }
-}
-
-export class CredentialsApiError extends CredentialsSignin {
-  constructor(public readonly problemDetail: ProblemDetail) {
-    super();
-    this.code = problemDetail.title;
-    this.message = problemDetail.detail;
   }
 }

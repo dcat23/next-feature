@@ -1,8 +1,6 @@
-import { normalizeCodeGenerator } from '../../../../../lib/utils/code-generator';
-import {
-  ConstantGeneratorSchema,
-  NormalizedConstantGeneratorSchema,
-} from '../../schema';
+import { handleExportPath, normalizeCodeGenerator } from '../../../../../lib/utils/code-generator';
+import { ConstantGeneratorSchema, NormalizedConstantGeneratorSchema } from '../../schema';
+
 
 /**
  * [normalize]
@@ -11,6 +9,7 @@ import {
  */
 export function normalize(options: ConstantGeneratorSchema) {
   const normalized = normalizeCodeGenerator(options);
+  normalized.exportPath = handleExportPath(normalized, "constants");
   return {
     ...normalized,
   };

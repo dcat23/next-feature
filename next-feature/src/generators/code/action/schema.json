@@ -90,6 +90,12 @@
       "type": "string",
       "description": "API client package to import from. Use @next-feature/client (default) or custom package like @myorg/api-client",
       "alias": "client"
+    },
+    "export": {
+      "type": "boolean",
+      "description": "Export the generated action from project root src/index.ts (default: true)",
+      "default": true,
+      "alias": "e"
     }
   },
   "required": ["name"]

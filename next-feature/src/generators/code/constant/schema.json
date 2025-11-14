@@ -38,6 +38,12 @@
       "type": "boolean",
       "description": "Skip prettier code formatting (used internally for chained generators)",
       "default": false
+    },
+    "export": {
+      "type": "boolean",
+      "description": "Export the generated constant from project root src/index.ts (default: true)",
+      "default": true,
+      "alias": "e"
     }
   },
   "required": ["name"]

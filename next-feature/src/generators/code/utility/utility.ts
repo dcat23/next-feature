@@ -1,16 +1,24 @@
-import { formatFiles, Tree } from '@nx/devkit';
+import {
+  formatFiles,
+  GeneratorCallback,
+  runTasksInSerial,
+  Tree,
+} from '@nx/devkit';
 import * as path from 'path';
 import { UtilityGeneratorSchema } from './schema';
 import { normalize, utilsContent } from './lib/utils';
 import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
+import { exportFile } from '../../../lib/export-file';
 import { writeFile } from '../../../lib/write-file';
 
 export async function utilityGenerator(
   tree: Tree,
   options: UtilityGeneratorSchema
 ) {
+  const tasks: GeneratorCallback[] = [];
+
   const normalizedOptions = normalize(options);
-  const { directory } = await initializeCodeGenerator(
+  const { directory, sourceRoot } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'utility'
@@ -22,12 +30,15 @@ export async function utilityGenerator(
     utilsContent,
     normalizedOptions,
     normalizedOptions.outputFileName
-  );
+  )
+
+  if (normalizedOptions.export) {
+    await exportFile(tree, sourceRoot, normalizedOptions.exportPath);
+  }
 
   if (!options.skipFormat) await formatFiles(tree);
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  return () => {}
+  return runTasksInSerial(...tasks)
 }
 
 export default utilityGenerator;

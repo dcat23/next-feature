@@ -54,5 +54,4 @@ export interface NormalizedActionGeneratorSchema extends NormalizedCodeGenerator
   domain: Names;
   configImportPath: string
   clientImportPath: string;
-  fileName: string;
 }

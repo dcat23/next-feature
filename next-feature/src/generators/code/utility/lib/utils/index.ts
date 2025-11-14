@@ -2,14 +2,19 @@ import {
   NormalizedUtilityGeneratorSchema,
   UtilityGeneratorSchema,
 } from '../../schema';
-import { normalizeCodeGenerator } from '../../../../../lib/utils/code-generator';
+import {
+  handleExportPath,
+  normalizeCodeGenerator,
+} from '../../../../../lib/utils/code-generator';
 
 export function normalize(
   options: UtilityGeneratorSchema
 ): NormalizedUtilityGeneratorSchema {
   const normalized = normalizeCodeGenerator(options);
+  normalized.exportPath = handleExportPath(normalized, 'utils');
+
   return {
-    ...normalized
+    ...normalized,
   };
 }
 

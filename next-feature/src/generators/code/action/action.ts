@@ -9,6 +9,7 @@ import * as path from 'path';
 import type { ActionGeneratorSchema } from './schema';
 import { getActionTemplatePath, normalize } from './lib/utils';
 import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
+import { exportFile } from '../../../lib/export-file';
 import constantGenerator from '../constant/constant';
 import utilsGenerator from '../utility/utility';
 import dataTypeGenerator from '../data-type/data-type';
@@ -21,10 +22,10 @@ export async function actionGenerator(
   const normalizedOptions = normalize(options);
   const tasks: GeneratorCallback[] = [];
 
-  const { directory, projectName } = await initializeCodeGenerator(
+  const { directory, projectName, sourceRoot } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
-    normalizedOptions.actionType
+    "action"
   );
 
   // Auto-generate client config if it doesn't exist
@@ -81,8 +82,12 @@ export async function actionGenerator(
     );
   }
 
-  // if (normalizedOptions.actionType === 'api') {
-  // }
+  if (normalizedOptions.export) {
+    await exportFile(tree,
+      sourceRoot,
+      normalizedOptions.exportPath
+    )
+  }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
 

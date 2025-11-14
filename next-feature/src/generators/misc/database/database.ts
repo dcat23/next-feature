@@ -14,25 +14,20 @@ import {
 import { writeToDotenv } from '../../../lib/dotenv/dot-env';
 import type { NormalizedDatabaseGeneratorSchema } from './schema';
 import { DatabaseGeneratorSchema } from './schema';
-import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
+import { initializeCodeGenerator, normalizeCodeGenerator } from '../../../lib/utils/code-generator';
 
 function normalize(
   options: DatabaseGeneratorSchema
 ): NormalizedDatabaseGeneratorSchema {
-  options.package ??= 'lib';
-  options.driver ??= 'postgresql';
-  options.projectName ??= options.name
+  const normalized = normalizeCodeGenerator(options);
+  normalized.driver ??= 'postgresql';
+  normalized.projectName ??= normalized.name
 
-  const mutatedNames = names(options.name);
+  const port = normalized.driver === 'postgresql' ? 5432 : 3306;
 
-  const port = options.driver === 'postgresql' ? 5432 : 3306;
-
-  const databaseName = mutatedNames.constantName.toLowerCase();
+  const databaseName = normalized.names.constantName.toLowerCase();
   return {
-    tmpl: '',
-    ...options,
-    names: mutatedNames,
-    outputFileName: '',
+    ...normalized,
     databaseName,
     port
   };

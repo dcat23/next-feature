@@ -1,6 +1,6 @@
 {
   "name": "next-feature",
-  "version": "0.1.0-MIGRATION.22.0.3",
+  "version": "0.1.0-BETA.11",
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",

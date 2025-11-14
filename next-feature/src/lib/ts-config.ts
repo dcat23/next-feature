@@ -15,7 +15,6 @@ export function updateTsConfig(tree: Tree, importPathName: string, sourceRoot: s
   const serverImportPath = path.join(importPathName, 'server');
 
   tsConfig["compilerOptions"] ??= {};
-  // tsConfig["compilerOptions"]["baseUrl"] ??= '.';
   tsConfig["compilerOptions"]["paths"] ??= {};
   tsConfig["compilerOptions"]["paths"][importPath] ??= [];
 

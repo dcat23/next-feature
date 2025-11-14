@@ -11,18 +11,16 @@ import type {
   AuthGeneratorSchema,
   NormalizedAuthGeneratorSchema,
 } from './schema';
-import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
+import { initializeCodeGenerator, normalizeCodeGenerator } from '../../../lib/utils/code-generator';
 
 function normalize(
   options: AuthGeneratorSchema
 ): NormalizedAuthGeneratorSchema {
+  const normalized = normalizeCodeGenerator(options);
+  normalized.projectName ??= normalized.name;
   return {
-    ...options,
-    name: '',
-    names: undefined,
+    ...normalized,
     outputFileName: '',
-    tmpl: '',
-    projectName: options.projectName,
   };
 }
 

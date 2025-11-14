@@ -2,23 +2,24 @@ import { formatFiles, generateFiles, names, Tree } from '@nx/devkit';
 import * as path from 'path';
 import type { NormalizedComponentGeneratorSchema } from './schema';
 import { ComponentGeneratorSchema } from './schema';
-import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
+import { handleExportPath, initializeCodeGenerator, normalizeCodeGenerator } from '../../../lib/utils/code-generator';
 import { exportFile } from '../../../lib/export-file';
 import { handleComponentPackage } from './lib/utils';
 
 function normalize(
   options: ComponentGeneratorSchema
 ): NormalizedComponentGeneratorSchema {
-  options.componentType ??= 'component';
-  const mutatedNames = names(options.name);
-  const outputFileName = mutatedNames.fileName;
-  handleComponentPackage(options)
+  const normalized = normalizeCodeGenerator(options)
+  normalized.componentType ??= 'component';
+  const mutatedNames = names(normalized.name);
+  normalized.outputFileName = mutatedNames.fileName;
+  normalized.exportPath = handleExportPath(normalized)
+  handleComponentPackage(normalized)
 
   return {
     tmpl: '',
-    ...options,
+    ...normalized,
     names: mutatedNames,
-    outputFileName
   };
 }
 
@@ -37,12 +38,7 @@ export async function componentGenerator(
   generateFiles(tree, path.join(__dirname, 'files', normalizedOptions.componentType), directory, normalizedOptions);
 
   if (normalizedOptions.export) {
-    const exportPath = path.join(
-      normalizedOptions.package ?? 'components',
-      normalizedOptions.outputFileName.replace(/\.tsx$/, '')
-    ).split(path.sep).join('/');
-
-    await exportFile(tree, sourceRoot, exportPath);
+    await exportFile(tree, sourceRoot, normalizedOptions.exportPath);
   }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);

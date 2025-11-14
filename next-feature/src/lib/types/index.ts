@@ -18,6 +18,7 @@ export interface CodeGeneratorSchema extends GeneratorSchema {
   name: string;
   projectName: ProjectGeneratorSchema['name'];
   file?: string | boolean; // will create in an associated file
+  export?: boolean; // export from project index
 }
 
 export type Normalized<Schema extends GeneratorSchema> = Schema & {
@@ -39,6 +40,7 @@ export type NormalizedCodeGeneratorSchema<
   Normalized<Schema> & {
     names: Names;
     outputFileName: Names['fileName']; // appended with extension
+    exportPath: string;
   };
 
 export type Names = ReturnType<typeof names>;

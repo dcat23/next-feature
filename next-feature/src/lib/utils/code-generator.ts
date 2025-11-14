@@ -17,7 +17,7 @@ export async function initializeCodeGenerator(
   options: CodeGeneratorSchema,
   generatorName: string
 ) {
-  const projectName = options.projectName ?? "base";
+  const projectName = options.projectName ?? 'base';
   let projectConfiguration: ProjectConfiguration;
   try {
     projectConfiguration = readProjectConfiguration(tree, projectName);
@@ -46,16 +46,30 @@ export async function initializeCodeGenerator(
     projectRoot,
     sourceRoot,
     directory,
-    projectName
+    projectName,
   };
 }
 
-export function normalizeCodeGenerator<T extends CodeGeneratorSchema>(options: T): NormalizedCodeGeneratorSchema<T> {
+export function handleExportPath(
+  options: { package?: string, outputFileName?: string },
+  subDirectory = ''
+) {
+  const outputFileName = path.parse(options.outputFileName).name
+  return path
+    .join(options.package, subDirectory, outputFileName)
+    .split(path.sep)
+    .join('/');
+}
+
+export function normalizeCodeGenerator<T extends CodeGeneratorSchema = CodeGeneratorSchema>(options: T): NormalizedCodeGeneratorSchema<T> {
   options.package ??= 'lib';
+  options.export = Boolean(options.export);
 
   const mutatedNames = names(options.name);
 
   const outputFileName = asOutputFile({ file: options.file, fileName: mutatedNames.fileName });
+
+  const exportPath = handleExportPath({ package: options.package, outputFileName: "index" });
 
   return {
     tmpl: '',
@@ -63,6 +77,7 @@ export function normalizeCodeGenerator<T extends CodeGeneratorSchema>(options: T
     name: mutatedNames.name,
     names: mutatedNames,
     outputFileName,
+    exportPath
   };
 }
 

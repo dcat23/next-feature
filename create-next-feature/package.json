@@ -1,6 +1,6 @@
 {
   "name": "create-next-feature",
-  "version": "0.1.0-MIGRATION.21.3",
+  "version": "0.1.0-MIGRATION.22.0.3",
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",

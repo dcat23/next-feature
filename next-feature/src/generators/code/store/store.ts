@@ -26,6 +26,8 @@ function normalize(
   const createMethod = zustandCreateMethod({ ...normalized, ...mutatedNames });
   const storeType = normalized.useContext ? 'context' : 'zustand';
   const exportPath = handleExportPath(normalized, storeType)
+  normalized.outputFileName = mutatedNames.fileName;
+
   return {
    ...normalized,
     names: mutatedNames,

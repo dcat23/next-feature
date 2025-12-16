@@ -98,7 +98,7 @@ export function normalize(
   const mapperName = 'mapTo'.concat(normalized.names.className);
 
   const configImportPath = handleConfigImportPath(normalized)
-  const clientImportPath = normalized.clientPackage || "@next-feature/client";
+  const clientImportPath = normalized.clientPackage || "../config/client";
 
   return {
     ...normalized,

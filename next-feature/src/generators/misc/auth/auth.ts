@@ -16,6 +16,7 @@ import { initializeCodeGenerator, normalizeCodeGenerator } from '../../../lib/ut
 function normalize(
   options: AuthGeneratorSchema
 ): NormalizedAuthGeneratorSchema {
+  options.name = options.projectName;
   const normalized = normalizeCodeGenerator(options);
   normalized.projectName ??= normalized.name;
   return {

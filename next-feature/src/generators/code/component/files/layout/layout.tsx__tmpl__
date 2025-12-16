@@ -12,5 +12,5 @@ async function <%= names.className %>Layout(props: Props) {
   );
 }
 
-export default Layout;
+export default <%= names.className %>Layout;
 

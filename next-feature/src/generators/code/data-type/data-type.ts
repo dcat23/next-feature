@@ -29,7 +29,7 @@ export async function dataTypeGenerator(
     dataTypeContent,
     normalizedOptions,
     normalizedOptions.outputFileName
-  )
+  );
 
   if (normalizedOptions.export) {
     await exportFile(tree, sourceRoot, normalizedOptions.exportPath);
@@ -37,7 +37,7 @@ export async function dataTypeGenerator(
 
   if (!options.skipFormat) await formatFiles(tree);
 
-  return runTasksInSerial(...tasks)
+  return runTasksInSerial(...tasks);
 }
 
 export default dataTypeGenerator;

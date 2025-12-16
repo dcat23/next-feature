@@ -37,7 +37,5 @@ export async function writeFile<T extends NormalizedCodeGeneratorSchema<CodeGene
   buffer += commentText(options);
   buffer += contentGenerator(options);
 
-  return () => {
-    tree.write(filePath, buffer);
-  }
+  return tree.write(filePath, buffer);
 }

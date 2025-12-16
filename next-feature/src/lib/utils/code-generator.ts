@@ -39,7 +39,7 @@ export async function initializeCodeGenerator(
   updateNxJson(tree, nxJson);
 
   const projectRoot = projectConfiguration.root;
-  const sourceRoot = path.join(projectRoot, 'src');
+  const sourceRoot = projectConfiguration.sourceRoot;
   const directory = path.join(sourceRoot, options.package ?? '');
 
   return {

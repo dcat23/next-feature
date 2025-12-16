@@ -23,19 +23,20 @@ export function <%= names.className %>Form ({
 
   return (
     <form action={formAction} className={`space-y-4 ${className}`}>
-      {formState?.error && (
+      {formState?.error && formState.error.errors && (
         <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-          {JSON.stringify(formState.error)}
+          {JSON.stringify(formState.error.errors)}
         </div>
       )}
+
+
+      {children}
 
       {formState?.success && (
         <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">
           Form submitted successfully
         </div>
       )}
-
-      {children}
 
       {formState.message && !formState.success && (
         <div className="rounded bg-red-50 p-3 text-sm text-red-700">
@@ -48,10 +49,10 @@ export function <%= names.className %>Form ({
         disabled={isPending}
         className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isPending ? 'Loading...' : submitText}
+        {isPending ? 'Submitting...' : submitText}
       </button>
     </form>
   );
 }
 
-export default <%= names.className %>;
+export default <%= names.className %>Form;

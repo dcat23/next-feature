@@ -3,11 +3,12 @@ import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
 import { Linter } from '@nx/eslint';
 import { libraryGenerator } from '@nx/next';
 import * as path from 'path';
-import axiosGenerator from '../../misc/axios/axios';
 import { SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
 import { updateTsConfig } from '../../../lib/ts-config';
-import { initializeProjectGenerator, updateDependencies } from '../../../lib/utils';
-import authGenerator from '../../misc/auth/auth';
+import {
+  initializeProjectGenerator,
+  updateDependencies,
+} from '../../../lib/utils';
 import { asApiKeyName } from '../../misc/axios/utils';
 import {
   FeatureGeneratorSchema,
@@ -86,26 +87,6 @@ export async function featureGenerator(
     sourceRoot,
     normalizedOptions
   );
-
-  //
-  // if (normalizedOptions.useAxios) {
-  //   tasks.push(await axiosGenerator(tree, {
-  //     name: normalizedOptions.name,
-  //     projectName: name,
-  //     directory: normalizedOptions.directory,
-  //     skipFormat: true
-  //   }))
-  // }
-
-  // if (normalizedOptions.useAuth) {
-  //   tasks.push(
-  //     await authGenerator(tree, {
-  //       projectName: normalizedOptions.name,
-  //       directory: normalizedOptions.directory,
-  //       skipFormat: true,
-  //     })
-  //   );
-  // }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
 

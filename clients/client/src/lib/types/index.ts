@@ -8,6 +8,6 @@ import { ProblemDetail } from '../error';
 export interface ApiResponse<Response> {
   success?: boolean;
   message?: string;
-  error?: ProblemDetail;
+  error?: ProblemDetail | null;
   data: Response;
 }

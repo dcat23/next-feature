@@ -59,12 +59,14 @@ export class ApiError extends Error {
     return new ApiErrorBuilder<T>();
   }
 
-  static of(error: Error): ApiError {
+  static of(error: Error | unknown): ApiError {
     if (error instanceof ApiError) {
       return error;
     }
 
-    return ApiError.builder().originalError(error).build();
+    return ApiError.builder()
+      .originalError(error as Error)
+      .build();
   }
 
   /**
@@ -103,6 +105,8 @@ export class ApiErrorBuilder<
       title: '',
       type: 'about:blank',
     };
+    this._originalError = new Error();
+    this._message = '';
   }
 
   /**
@@ -137,7 +141,7 @@ export class ApiErrorBuilder<
     this._problemDetail.title = error.name;
 
     if (error instanceof AxiosError) {
-      this.status(error.status);
+      this.status(error.status as HttpStatusCode);
     }
     if (error instanceof ZodError) {
       this.status(HttpStatusCode.BadRequest);

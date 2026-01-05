@@ -12,7 +12,6 @@ export function updateTsConfig(tree: Tree, importPathName: string, sourceRoot: s
     : {}
 
   const importPath = path.join(importPathName, '*');
-  const serverImportPath = path.join(importPathName, 'server');
 
   tsConfig["compilerOptions"] ??= {};
   tsConfig["compilerOptions"]["paths"] ??= {};
@@ -25,9 +24,10 @@ export function updateTsConfig(tree: Tree, importPathName: string, sourceRoot: s
     paths.push(srcPath);
     tsConfig["compilerOptions"]["paths"][importPath] = [srcPath];
   }
-  if (tsConfig["compilerOptions"]["paths"][serverImportPath]) {
-    delete tsConfig["compilerOptions"]["paths"][serverImportPath]
-  }
+
+  // if (tsConfig["compilerOptions"]["paths"][serverImportPath]) {
+  //   delete tsConfig["compilerOptions"]["paths"][serverImportPath]
+  // }
 
   writeJson(tree, tsConfigPath, tsConfig);
 }

@@ -36,6 +36,7 @@ export default defineConfig(() => ({
       // Could also be a dictionary or array of multiple entry points.
       entry: {
         index: 'src/index.ts',
+        server: 'src/server.ts',
       },
       name: 'client',
       fileName: (format, entryName) => `${entryName}.js`,

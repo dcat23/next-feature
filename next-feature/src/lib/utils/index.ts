@@ -1,15 +1,13 @@
-import { addDependenciesToPackageJson, readNxJson, updateNxJson } from '@nx/devkit';
 import type { GeneratorCallback } from '@nx/devkit';
-import { Tree } from '@nx/devkit';
-import * as path from 'node:path';
 import {
-  NormalizedProjectGeneratorSchema,
-  ProjectGeneratorSchema,
-} from '../types';
+  addDependenciesToPackageJson,
+  readNxJson,
+  Tree,
+  updateNxJson,
+} from '@nx/devkit';
+import * as path from 'node:path';
+import { NormalizedProjectGeneratorSchema } from '../types';
 import { PLUGIN_NAME } from '../constants/versions';
-import { updateTsConfig } from '../ts-config';
-import { libraryGenerator } from '@nx/next';
-import { Linter } from '@nx/eslint';
 
 export function updateDependencies(
   tree: Tree,
@@ -59,7 +57,7 @@ export async function initializeProjectGenerator(
   nxJson.generators ??= {};
   nxJson.generators[PLUGIN_NAME] ??= {};
   nxJson.generators[PLUGIN_NAME][generatorName] ??= {};
-  nxJson.generators[PLUGIN_NAME][generatorName]["orgName"] ??= options.orgName;
+  nxJson.generators[PLUGIN_NAME][generatorName]["orgName"] ??= options.orgName || generatorName;
 
   updateNxJson(tree, nxJson);
 

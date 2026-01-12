@@ -6,23 +6,21 @@ import {
   Tree,
 } from '@nx/devkit';
 import { ClientGeneratorSchema } from './schema';
-import { normalize } from './utils';
-import { updateTsConfig } from '../../../lib/ts-config';
+import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { AXIOS_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
 import {
   initializeProjectGenerator,
   updateDependencies,
 } from '../../../lib/utils';
 import * as path from 'path';
-import { Linter } from '@nx/eslint';
 import { libraryGenerator } from '@nx/next';
-import { removeLibFiles } from '../feature/utils';
+import { normalizeClientGenerator } from './utils/normalize';
 
 export async function clientGenerator(
   tree: Tree,
   options: ClientGeneratorSchema
 ) {
-  const normalizedOptions = normalize(options);
+  const normalizedOptions = normalizeClientGenerator(options);
   const tasks: GeneratorCallback[] = [];
 
   await libraryGenerator(tree, {
@@ -30,9 +28,10 @@ export async function clientGenerator(
     name: normalizedOptions.name,
     importPath: normalizedOptions.importPath,
     bundler: 'vite',
+    publishable: true,
     style: 'tailwind',
     unitTestRunner: 'jest',
-    linter: Linter.EsLint,
+    linter: 'eslint',
     component: false,
     skipFormat: true,
     useProjectJson: true,
@@ -42,8 +41,8 @@ export async function clientGenerator(
 
   const { sourceRoot, importPath } = normalizedOptions;
 
-  updateTsConfig(tree, importPath, sourceRoot);
-  removeLibFiles(tree, sourceRoot);
+  writeWildCardPathToTsConfig(tree, importPath, sourceRoot);
+  tree.delete(path.join(sourceRoot, 'lib', 'hello-server.tsx'));
 
   const dependencies: Record<string, string> = {
     axios: AXIOS_VERSION,

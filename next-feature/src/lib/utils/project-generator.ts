@@ -14,7 +14,7 @@ import { pluralize, singularize } from './string';
  * next-feature@0.0.12
  * November 9th 2025, 3:17:18 am
  */
-export function normalizeProjectGenerator<T extends ProjectGeneratorSchema>(
+export function normalizeProjectGeneratorSchema<T extends ProjectGeneratorSchema>(
   options: T,
   projectType: string
 ): NormalizedProjectGeneratorSchema<T> {

@@ -23,8 +23,11 @@
  */
 
 // Core API utilities
-export { ApiClient, type ApiClientConfig } from './lib/client';
-export { ApiError, ApiErrorBuilder, type ProblemDetail } from './lib/error';
-export * from './lib/types';
+export { ApiClient } from './lib/client';
+export { ApiError } from './lib/error';
+
+export * from './lib/types/client';
+export * from './lib/types/index';
+export * from './lib/utils/axios';
 export * from './lib/utils/error';
-export * from './lib/utils/helper';
+export * from './lib/utils/zod';

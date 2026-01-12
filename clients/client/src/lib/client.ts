@@ -5,24 +5,8 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
-import { ApiError, ProblemDetail } from './error';
-
-/**
- * Configuration options for the API client
- */
-export interface ApiClientConfig {
-  baseURL: string;
-  timeout?: number;
-  enableRefreshToken?: boolean;
-  maxRetries?: number;
-  retryDelay?: number;
-  onAuthenticated?: (
-    config: InternalAxiosRequestConfig
-  ) => void | Promise<void>;
-  onUnauthorized?: () => void | Promise<void>;
-  onRefreshTokenExpired?: () => void | Promise<void>;
-  onRefreshToken?: () => string | Promise<string>;
-}
+import type { ApiClientConfig } from './types/client';
+import handleApiError from './utils/error';
 
 /**
  * Pending request queue item
@@ -44,23 +28,22 @@ export class ApiClient {
   constructor(config: ApiClientConfig) {
     this.config = {
       timeout: 30000,
-      enableRefreshToken: true,
+      enableRefreshToken: false,
       maxRetries: 3,
       retryDelay: 1000,
       onUnauthorized: async () => {
-        // Redirect to login page
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
-        }
+        console.log('Unauthorized');
       },
       onRefreshTokenExpired: async () => {
-        console.error('Session expired. Please login again.');
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login?expired=true';
-        }
+        console.log('Refresh token expired');
       },
       onAuthenticated: async (config) => {
-        console.log('Authenticated', config.data);
+        console.log(
+          '[api-client]',
+          config.method.toUpperCase(),
+          config.url,
+          config.data
+        );
       },
       onRefreshToken: async () => {
         return '';
@@ -109,7 +92,7 @@ export class ApiClient {
 
       return config;
     } catch (error) {
-      console.error('Error attaching token to request:', error);
+      console.error('onAuthenticated error on request:', error);
       return config;
     }
   }
@@ -139,7 +122,7 @@ export class ApiClient {
     };
 
     if (!originalRequest) {
-      return Promise.reject(this.createApiError(error));
+      return Promise.reject(handleApiError(error));
     }
 
     // Handle 401 Unauthorized - attempt token refresh
@@ -153,7 +136,7 @@ export class ApiClient {
     }
 
     // Create and reject with custom ApiError
-    return Promise.reject(this.createApiError(error));
+    return Promise.reject(handleApiError(error));
   }
 
   /**
@@ -168,7 +151,7 @@ export class ApiClient {
       if (this.config.onRefreshTokenExpired) {
         await this.config.onRefreshTokenExpired();
       }
-      return Promise.reject(this.createApiError(error));
+      return Promise.reject(handleApiError(error));
     }
 
     originalRequest._retry = true;
@@ -183,7 +166,7 @@ export class ApiClient {
           return this.instance(originalRequest);
         })
         .catch((err) => {
-          return Promise.reject(err);
+          return Promise.reject(handleApiError(err));
         });
     }
 
@@ -208,7 +191,7 @@ export class ApiClient {
         await this.config.onUnauthorized();
       }
 
-      return Promise.reject(this.createApiError(error));
+      return Promise.reject(handleApiError(error));
     } finally {
       this.isRefreshing = false;
     }
@@ -219,56 +202,11 @@ export class ApiClient {
    */
   private async refreshToken(): Promise<string> {
     try {
-      // const session = await auth();
-      //
-      // if (!session?.user || !('refreshToken' in session.user)) {
-      //   throw new Error('No refresh token available');
-      // }
-      //
-      // const refreshToken = session.user.refreshToken as string;
       const refreshToken = this.config.onRefreshToken();
 
-      // Call your refresh token endpoint
-      const response = await axios.post<{ jwtToken: string }>(
-        `${this.config.baseURL}/auth/refresh`,
-        { refreshToken },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      const newToken = response.data.jwtToken;
-
-      // Update the session with the new token
-      // Note: You'll need to implement this based on your auth setup
-      // This might involve updating cookies or calling an API route
-      await this.updateSession(newToken);
-
-      return newToken;
+      return refreshToken;
     } catch (error) {
       console.error('Token refresh failed:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Update session with new token
-   * Implement this based on your Next.js auth setup
-   */
-  private async updateSession(newToken: string): Promise<void> {
-    // Example implementation - adjust based on your auth setup
-    try {
-      await fetch('/api/auth/update-token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ jwtToken: newToken }),
-      });
-    } catch (error) {
-      console.error('Failed to update session:', error);
       throw error;
     }
   }
@@ -346,39 +284,6 @@ export class ApiClient {
    */
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  /**
-   * Create ApiError from AxiosError
-   */
-  private createApiError(error: AxiosError): ApiError {
-    const status = error.response?.status || 0;
-    const problemDetail = this.extractProblemDetail(error);
-
-    return new ApiError(status, problemDetail, error);
-  }
-
-  /**
-   * Extract ProblemDetail from error response
-   */
-  private extractProblemDetail(error: AxiosError): ProblemDetail | null {
-    if (!error.response?.data) {
-      return null;
-    }
-
-    const data = error.response.data;
-
-    // Check if response matches ProblemDetail structure
-    if (
-      typeof data === 'object' &&
-      'type' in data &&
-      'title' in data &&
-      'status' in data
-    ) {
-      return data as ProblemDetail;
-    }
-
-    return null;
   }
 
   /**

@@ -1,4 +1,5 @@
 import { ApiClient, type ApiResponse, ApiError } from '<%= clientImportPath %>';
+import type { InternalAxiosRequestConfig } from 'axios';
 import { BACKEND_API_URL } from "."
 /**
  * Centralized API client configuration
@@ -13,7 +14,10 @@ import { BACKEND_API_URL } from "."
 
 const apiClient = new ApiClient({
   baseURL: BACKEND_API_URL,
-  enableRefreshToken: false
+  enableRefreshToken: false,
+ async onAuthenticated(config: InternalAxiosRequestConfig) {
+   console.log("[<%= projectName %>-client]", config.method.toUpperCase(), config.url, config.data)
+ }
   // timeout: 30000,
   // maxRetries: 3,
   // retryDelay: 1000
@@ -41,7 +45,7 @@ const apiClient = new ApiClient({
 
 // Re-export commonly used utilities
 export { ApiError, type ApiResponse };
-export { getErrorMessage, formatProblemDetail, extractValidationErrors } from '<%= clientImportPath %>';
+
 
 // Export configured API client for use in server actions
 export default apiClient;

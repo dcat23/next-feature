@@ -20,13 +20,13 @@ export async function <%= methodName %>Action(
     const parsed = schema.safeParse(body);
 
     if (!parsed.success) {
-      const apiError = ApiError.fromZodError(parsed.error);
+      const apiError = ApiError.of(parsed.error);
 
       return {
         success: false,
         message: apiError.message,
         data: body,
-        error: apiError.problemDetail
+        error: apiError.body
       }
     }
 
@@ -43,7 +43,7 @@ export async function <%= methodName %>Action(
     const apiError = ApiError.of(error);
     return {
       data: prevState.data,
-      error: apiError.problemDetail,
+      error: apiError.body,
       message: apiError.message,
       success: false,
     };

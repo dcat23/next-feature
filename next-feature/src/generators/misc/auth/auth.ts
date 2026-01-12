@@ -11,7 +11,8 @@ import type {
   AuthGeneratorSchema,
   NormalizedAuthGeneratorSchema,
 } from './schema';
-import { initializeCodeGenerator, normalizeCodeGenerator } from '../../../lib/utils/code-generator';
+import { handleExportPath, initializeCodeGenerator, normalizeCodeGenerator } from '../../../lib/utils/code-generator';
+import { exportFile } from '../../../lib/export-file';
 
 function normalize(
   options: AuthGeneratorSchema
@@ -35,6 +36,11 @@ export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
   );
 
   const depTask = updateDependencies(tree);
+
+  await exportFile(tree, sourceRoot, handleExportPath({
+    package: "lib",
+    outputFileName: "auth"
+  }))
 
   generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, normalizedOptions);
 

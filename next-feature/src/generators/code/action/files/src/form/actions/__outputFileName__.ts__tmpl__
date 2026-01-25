@@ -1,8 +1,7 @@
 'use server';
 
 import { z } from "zod";
-import { type ApiResponse, ApiError } from "<%= clientImportPath %>"
-import api from '<%= configImportPath %>';
+import api, { type ApiResponse, ApiError } from "<%= clientImportPath %>"
 
 const schema = z.object({})
 
@@ -25,7 +24,7 @@ export async function <%= methodName %>Action(
       return {
         success: false,
         message: apiError.message,
-        data: body,
+        data: { ...prevState, ...body },
         error: apiError.body
       }
     }

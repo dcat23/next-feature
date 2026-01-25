@@ -85,7 +85,8 @@ export async function actionGenerator(
   if (normalizedOptions.export) {
     await exportFile(tree,
       sourceRoot,
-      normalizedOptions.exportPath
+      normalizedOptions.exportPath,
+      "server"
     )
   }
 

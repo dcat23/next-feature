@@ -8,13 +8,15 @@ import * as path from 'path';
  * @param tree - The Nx Tree
  * @param sourceRoot - The src directory of the project (e.g., 'packages/myfeature/src')
  * @param exportPath - The relative path to export (e.g., 'lib/actions/my-action', without .ts extension)
+ * @param exportFile - The file to export to (e.g., 'packages/myfeature/src/server.ts')
  */
 export async function exportFile(
   tree: Tree,
   sourceRoot: string,
-  exportPath: string
+  exportPath: string,
+  exportFile: "index" | "server" = "index"
 ) {
-  const rootIndexPath = path.join(sourceRoot, 'index.ts');
+  const rootIndexPath = path.join(sourceRoot, exportFile + '.ts');
   const normalizedPath = './' + exportPath.split(path.sep).join('/');
 
   let buffer = tree.read(rootIndexPath, 'utf-8') ?? '';

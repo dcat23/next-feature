@@ -21,6 +21,7 @@
         "$source": "argv",
         "index": 1
       },
+      "alias": "a",
       "default": "api",
       "enum": ["api", "db", "form"],
       "x-prompt": {

@@ -33,7 +33,7 @@ export async function utilityGenerator(
   )
 
   if (normalizedOptions.export) {
-    await exportFile(tree, sourceRoot, normalizedOptions.exportPath);
+    await exportFile(tree, sourceRoot, normalizedOptions.exportPath, "server");
   }
 
   if (!options.skipFormat) await formatFiles(tree);

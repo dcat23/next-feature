@@ -11,7 +11,6 @@ import {
 } from '../../../../../lib/utils/code-generator';
 import { pluralize, singularize } from '../../../../../lib/utils/string';
 import { NormalizedCodeGeneratorSchema } from '../../../../../lib/types';
-import path = require('node:path');
 
 /**
  * Extract HTTP method from action name

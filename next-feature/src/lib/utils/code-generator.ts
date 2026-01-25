@@ -81,10 +81,3 @@ export function normalizeCodeGenerator<T extends CodeGeneratorSchema = CodeGener
   };
 }
 
-export function getOutputFileName(options: CodeGeneratorSchema) {
-  return options.file
-    ? typeof options.file === 'string'
-      ? options.file
-      : names(options.name).fileName
-    : 'index'
-}

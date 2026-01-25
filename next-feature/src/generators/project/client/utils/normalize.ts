@@ -3,6 +3,7 @@ import {
   NormalizedClientGeneratorSchema,
 } from '../schema';
 import { normalizeProjectGeneratorSchema } from '../../../../lib/utils/project-generator';
+import { asApiKeyName } from '../../../misc/axios/utils';
 
 /**
  * [normalize-client-generator]
@@ -13,8 +14,9 @@ export function normalizeClientGenerator(
   options: ClientGeneratorSchema
 ): NormalizedClientGeneratorSchema {
   const normalized = normalizeProjectGeneratorSchema(options, "client");
-
+  const apiKeyName = asApiKeyName(options.name)
   return {
-    ...normalized
+    ...normalized,
+    apiKeyName
   };
 }

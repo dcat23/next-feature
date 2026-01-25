@@ -5,8 +5,8 @@ import { z } from 'zod';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production']),
-  <%= (apiKeyName) %>: z.string().url()
-})
+  CLIENT_API_URL: z.string().url(),
+});
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -16,4 +16,4 @@ declare global {
 }
 
 export const NODE_ENV = process.env.NODE_ENV;
-export const BACKEND_API_URL = process.env.<%= (apiKeyName) %>;
+export const BACKEND_API_URL = process.env.CLIENT_API_URL;

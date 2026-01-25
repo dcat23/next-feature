@@ -6,6 +6,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 import type { ApiClientConfig } from './types/client';
+import { BACKEND_API_URL } from './config';
 import handleApiError from './utils/error';
 
 /**
@@ -27,22 +28,23 @@ export class ApiClient {
 
   constructor(config: ApiClientConfig) {
     this.config = {
+      baseURL: BACKEND_API_URL,
       timeout: 30000,
-      enableRefreshToken: false,
+      enableRefreshToken: true,
       maxRetries: 3,
       retryDelay: 1000,
       onUnauthorized: async () => {
-        console.log('Unauthorized');
+        console.log('[client-client] Unauthorized');
       },
       onRefreshTokenExpired: async () => {
-        console.log('Refresh token expired');
+        console.log('[client-client] Refresh token expired');
       },
       onAuthenticated: async (config) => {
         console.log(
-          '[api-client]',
+          '[client-client]',
           config.method.toUpperCase(),
           config.url,
-          config.data
+          config.data ?? ''
         );
       },
       onRefreshToken: async () => {

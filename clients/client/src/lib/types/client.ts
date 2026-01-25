@@ -1,4 +1,4 @@
-import { InternalAxiosRequestConfig } from "axios";
+import { InternalAxiosRequestConfig } from 'axios';
 
 /**
  * Configuration options for the API client

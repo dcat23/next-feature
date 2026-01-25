@@ -13,19 +13,28 @@ import { BACKEND_API_URL } from "."
 
 
 const apiClient = new ApiClient({
-  baseURL: BACKEND_API_URL,
   enableRefreshToken: false,
- async onAuthenticated(config: InternalAxiosRequestConfig) {
-   console.log("[<%= projectName %>-client]", config.method.toUpperCase(), config.url, config.data)
- }
+  onUnauthorized: async () => {
+    console.log("[<%= projectName %>-client] Unauthorized")
+  },
+  onRefreshTokenExpired: async () => {
+    console.log("[<%= projectName %>-client] Refresh token expired")
+  },
+  onAuthenticated: async (config) => {
+    console.log("[<%= projectName %>-client]", config.method.toUpperCase(), config.url, config.data ?? "")
+  },
+  onRefreshToken: async () => {
+    return '';
+  },
   // timeout: 30000,
   // maxRetries: 3,
   // retryDelay: 1000
+  // baseUrl: process.env.BACKEND_API_URL
 });
 
-// includeInterceptors
+
 /**
- * Example: Add custom request interceptor
+ * Example: Override request interceptor
  */
 // apiClient.interceptors.request.use((config) => {
 //   // Add custom headers, auth tokens, etc.
@@ -33,7 +42,7 @@ const apiClient = new ApiClient({
 // });
 
 /**
- * Example: Add custom response interceptor
+ * Example: Override response interceptor
  */
 // apiClient.interceptors.response.use(
 //   (response) => response,

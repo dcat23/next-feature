@@ -5,4 +5,6 @@ export interface ClientGeneratorSchema extends ProjectGeneratorSchema {
   orgName?: "client" | string;
 }
 
-export interface NormalizedClientGeneratorSchema extends NormalizedProjectGeneratorSchema<ClientGeneratorSchema> {}
+export interface NormalizedClientGeneratorSchema extends NormalizedProjectGeneratorSchema<ClientGeneratorSchema> {
+  apiKeyName: string;
+}

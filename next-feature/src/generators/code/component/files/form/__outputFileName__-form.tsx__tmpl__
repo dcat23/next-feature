@@ -1,55 +1,61 @@
 "use client";
 
 import { ReactNode, useActionState } from 'react';
-import type { ApiResponse } from '@next-feature/client';
+import type { ApiResponse } from '';
 
 
-interface Props {
-  action: (prevState: ApiResponse<unknown>, formData: FormData) => Promise<ApiResponse<unknown>>;
-  initialState?: ApiResponse<unknown>;
+interface Props<T> {
+  action: (prevState: ApiResponse<T>, formData: FormData) => Promise<ApiResponse<T>>;
+  initialState?: T;
   children?: ReactNode;
-  submitText?: string;
-  className?: string;
 }
 
 export function <%= names.className %>Form ({
   action,
-  initialState = { data: {} },
+  initialState = {},
   children,
-  submitText = 'Submit',
-  className = '',
-}: Props) {
-  const [formState, formAction, isPending] = useActionState(action, initialState);
+}: Props<unknown>) {
+  const [formState, formAction, isPending] = useActionState(action, {
+    data: initialState
+  });
 
-  return (
-    <form action={formAction} className={`space-y-4 ${className}`}>
-      {formState?.error && formState.error.errors && (
-        <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
-          {JSON.stringify(formState.error.errors)}
-        </div>
-      )}
+  const displayError = (key: string) => {
+      if (formState?.error?.errors && formState.error.errors[key]) {
+        return (
+          <div className="rounded-md px-3 text-sm text-red-700">
+            {formState.error.errors[key]}
+          </div>
+        );
+      }
+      return null;
+    };
 
+    const displayMessage = () => {
+      if (!formState.message) return null;
 
-      {children}
+      const color = formState.success
+        ? 'green'
+        : formState.error
+        ? 'red'
+        : 'primary';
 
-      {formState?.success && (
-        <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">
-          Form submitted successfully
-        </div>
-      )}
-
-      {formState.message && !formState.success && (
-        <div className="rounded bg-red-50 p-3 text-sm text-red-700">
+      return (
+        <div
+          className={`rounded-md bg-${color}-50 p-3 text-sm text-${color}-700`}
+        >
           {formState.message}
         </div>
-      )}
+      );
+    };
 
+  return (
+    <form action={formAction}>
       <button
         type="submit"
         disabled={isPending}
-        className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isPending ? 'Submitting...' : submitText}
+        {isPending ? 'Submitting...' : 'Submit'}
       </button>
     </form>
   );

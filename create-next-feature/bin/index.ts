@@ -69,7 +69,6 @@ async function main() {
   ) as NxCloud;
 
   // This assumes "next-feature" and "create-next-feature" are at the same version
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const presetVersion = require('../package.json').version;
 
   // TODO: update below to customize the workspace

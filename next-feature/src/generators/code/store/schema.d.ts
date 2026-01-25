@@ -7,6 +7,6 @@ export interface StoreGeneratorSchema extends CodeGeneratorSchema {
 }
 
 export interface NormalizedStoreGeneratorSchema extends NormalizedCodeGeneratorSchema<StoreGeneratorSchema> {
-  createMethod: string;
+  // createMethod: string;
   storeType: 'context' | 'zustand'
 }

@@ -4,12 +4,43 @@ import { create } from "zustand";
 <% if (persist) { %>import { persist } from 'zustand/middleware';<% } %>
 <% if (useTypes) { %>import type { <%= names.className %> } from "../types";<% } %>
 
-
-interface I<%= names.className %>Store {
+interface <%= names.className %>State {
     <%= names.propertyName %>: <%= names.className %> | null;
     isLoading: boolean;
-    set<%= names.className %>: (<%= names.propertyName %>: <%= names.className %>) => void;
-    toggleLoading: () => void;
 }
 
-export const use<%= names.className %>Store = <%- createMethod %>
+interface <%= names.className %>Actions {
+    initialize<%= names.className %>: (<%= names.propertyName %>: <%= names.className %>) => void;
+    set<%= names.className %>: (<%= names.propertyName %>: <%= names.className %>) => void;
+    toggleLoading: () => void;
+    reset: () => void;
+}
+
+export type <%= names.className %>Store = <%= names.className %>State & <%= names.className %>Actions;
+
+const initialState: <%= names.className %>State = {
+  <%= names.propertyName %>: null,
+  isLoading: false
+}
+
+export const use<%= names.className %>Store = create<<%= names.className %>State>((set, get) => ({
+  ...initialState,
+
+  initialize<%= names.className %>: (<%= names.propertyName %>: <%= names.className %>) => {
+    set({
+      <%= names.propertyName %>
+    });
+  },
+
+  set<%= names.className %>: (<%= names.propertyName %>: <%= names.className %>) => {
+    set({ <%= names.propertyName %> })
+  },
+
+  toggleLoading: () => {
+    set(({ isLoading }) => ({ isLoading: !isLoading }))
+  },
+
+  reset: () => {
+    set(initialState);
+  },
+}));

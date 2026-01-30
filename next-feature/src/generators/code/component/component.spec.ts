@@ -1,29 +1,25 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { Tree, logger, readProjectConfiguration } from '@nx/devkit';
-
 import { componentGenerator } from './component';
 import { ComponentGeneratorSchema } from './schema';
-
 describe('component generator', () => {
   let tree: Tree;
-  const defaultOptions: ComponentGeneratorSchema = { projectName: 'test-component' };
-
+  const defaultOptions: ComponentGeneratorSchema = {
+    projectName: 'test-component',
+  };
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
   });
-
   it('should run successfully', async () => {
     await componentGenerator(tree, defaultOptions);
     const config = readProjectConfiguration(tree, 'base');
     expect(config).toBeDefined();
   });
-
   it('should generate default component file', async () => {
     await componentGenerator(tree, defaultOptions);
     const file = 'features/base/src/components/test-component.tsx';
     expect(tree.exists(file)).toBeTruthy();
   });
-
   it('should generate modal component', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
@@ -37,7 +33,6 @@ describe('component generator', () => {
     expect(content).toContain('isOpen');
     expect(content).toContain('onClose');
   });
-
   it('should generate card component', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
@@ -51,7 +46,6 @@ describe('component generator', () => {
     expect(content).toContain('title');
     expect(content).toContain('footer');
   });
-
   it('should generate form component', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
@@ -66,7 +60,6 @@ describe('component generator', () => {
     expect(content).toContain('action');
     expect(content).toContain('initialState');
   });
-
   it('should generate provider component', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
@@ -81,7 +74,6 @@ describe('component generator', () => {
     expect(content).toContain('Provider');
     expect(content).toContain('useTheme');
   });
-
   it('should generate page component', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
@@ -94,7 +86,6 @@ describe('component generator', () => {
     const content = tree.read(file, 'utf-8');
     expect(content).toContain('async function Page');
   });
-
   it('should generate layout component', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,

@@ -39,7 +39,8 @@ export async function applicationGenerator(
       src: normalizedOptions.useSrc,
       appDir: true,
       linter: "eslint",
-      skipFormat: true
+      skipFormat: true,
+      useProjectJson: true,
     })
   );
 

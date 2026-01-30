@@ -3,6 +3,7 @@ import {
   NormalizedApplicationGeneratorSchema,
 } from '../schema';
 import { normalizeProjectGeneratorSchema } from '../../../../lib/utils/project-generator';
+import * as path from "path";
 
 /**
  * [normalize-application-generator]
@@ -13,6 +14,11 @@ export function normalizeApplicationGeneratorSchema(
   options: ApplicationGeneratorSchema
 ): NormalizedApplicationGeneratorSchema {
   const normalized = normalizeProjectGeneratorSchema(options, "app");
+  normalized.useSrc = Boolean(options.useSrc);
+  normalized.sourceRoot = normalized.useSrc 
+    ? path.join(normalized.projectRoot, "src")
+    : normalized.projectRoot
+    
   return {
     ...normalized,
   };

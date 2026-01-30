@@ -17,7 +17,7 @@ export function writeWildCardPathToTsConfig(tree: Tree, importPathName: string, 
   tsConfig["compilerOptions"]["paths"] ??= {};
   tsConfig["compilerOptions"]["paths"][importPath] ??= [];
 
-  const srcPath = path.join(sourceRoot ?? 'src', "*");
+  const srcPath = path.join(sourceRoot ?? '', "/*");
 
   const paths = tsConfig["compilerOptions"]["paths"][importPath] as string[]
   if (!paths.includes(srcPath)) {

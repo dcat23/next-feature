@@ -3,6 +3,7 @@ import type { NormalizedProjectGeneratorSchema, ProjectGeneratorSchema } from '.
 export interface ApplicationGeneratorSchema extends ProjectGeneratorSchema {
   useAxios?: boolean;
   useAuth?: boolean;
+  useSrc?: boolean;
 }
 
 export interface NormalizedApplicationGeneratorSchema extends NormalizedProjectGeneratorSchema<ApplicationGeneratorSchema> {

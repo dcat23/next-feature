@@ -7,10 +7,10 @@ import {
 import { applicationGenerator as nextApplicationGenerator } from '@nx/next';
 import * as path from 'path';
 import { ApplicationGeneratorSchema } from './schema';
-import { Linter } from '@nx/eslint';
 import {
   SONNER_VERSION,
   TANSTACK_VERSION,
+  TAILWIND_VERSION,
   ZOD_VERSION,
 } from '../../../lib/constants/versions';
 import { updateDependencies } from '../../../lib/utils';
@@ -19,6 +19,7 @@ import authGenerator from '../../misc/auth/auth';
 import { writeToDotenv } from '../../../lib/dotenv/dot-env';
 import { generateSecret } from './utils';
 import { normalizeApplicationGeneratorSchema } from './utils/normalize';
+import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 
 
 export async function applicationGenerator(
@@ -35,19 +36,25 @@ export async function applicationGenerator(
       style: 'tailwind',
       e2eTestRunner: 'none',
       unitTestRunner: 'jest',
-      src: true,
+      src: normalizedOptions.useSrc,
       appDir: true,
       linter: "eslint",
-      skipFormat: true,
-      useProjectJson: true
+      skipFormat: true
     })
   );
 
-  const { projectRoot } = normalizedOptions;
+  const { sourceRoot, projectRoot, importPath } = normalizedOptions;
 
   generateFiles(
     tree,
-    path.join(__dirname, 'files'),
+    path.join(__dirname, 'files/src'),
+    sourceRoot,
+    normalizedOptions
+  );
+  
+  generateFiles(
+    tree,
+    path.join(__dirname, 'files/common'),
     projectRoot,
     normalizedOptions
   );
@@ -57,7 +64,10 @@ export async function applicationGenerator(
     sonner: SONNER_VERSION,
     zod: ZOD_VERSION,
   };
-  const devDependencies: Record<string, string> = {};
+  const devDependencies: Record<string, string> = {
+    '@tailwindcss/postcss': TAILWIND_VERSION,
+    'tailwindcss': TAILWIND_VERSION
+  };
 
   writeToDotenv(tree, { projectRoot, section: "auth" }, {
     NEXTAUTH_URL: "http://localhost:4200",
@@ -65,6 +75,8 @@ export async function applicationGenerator(
     AUTH_SECRET: generateSecret(),
   });
 
+  writeWildCardPathToTsConfig(tree, importPath, sourceRoot);
+  
   if (normalizedOptions.useAxios) {
     tasks.push(await axiosGenerator(tree, {
       name: normalizedOptions.name,

@@ -7,32 +7,40 @@ import {
 } from '@nx/devkit';
 import * as path from 'path';
 import { NEXTAUTH_VERSION } from '../../../lib/constants/versions';
-import { initializeGenerator } from '../../../lib/generator-config';
 import type {
   AuthGeneratorSchema,
   NormalizedAuthGeneratorSchema,
 } from './schema';
+import { handleExportPath, initializeCodeGenerator, normalizeCodeGenerator } from '../../../lib/utils/code-generator';
+import { exportFile } from '../../../lib/export-file';
 
 function normalize(
   options: AuthGeneratorSchema
 ): NormalizedAuthGeneratorSchema {
-  options.package ??= 'lib';
+  options.name = options.projectName;
+  const normalized = normalizeCodeGenerator(options);
+  normalized.projectName ??= normalized.name;
   return {
-    tmpl: '',
-    ...options,
+    ...normalized,
+    outputFileName: '',
   };
 }
 
 export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
   const normalizedOptions = normalize(options);
 
-  const { sourceRoot } = await initializeGenerator(
+  const { sourceRoot } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'auth'
   );
 
   const depTask = updateDependencies(tree);
+
+  await exportFile(tree, sourceRoot, handleExportPath({
+    package: "lib",
+    outputFileName: "auth"
+  }))
 
   generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, normalizedOptions);
 

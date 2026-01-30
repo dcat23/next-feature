@@ -1,0 +1,61 @@
+"use client";
+
+import { ReactNode, useState } from 'react';
+
+interface Props {
+  isOpen?: boolean;
+  onClose?: () => void;
+  title?: string;
+  children?: ReactNode;
+}
+
+export function <%= names.className %> ({
+  isOpen = false,
+  onClose,
+  title,
+  children,
+}: Props) {
+  const [open, setOpen] = useState(isOpen);
+
+  const handleClose = () => {
+    setOpen(false);
+    onClose?.();
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="relative w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+        {title && (
+          <h2 className="mb-4 text-lg font-semibold">
+            {title}
+          </h2>
+        )}
+
+        <button
+          onClick={handleClose}
+          className="absolute right-4 top-4 rounded-full p-1 hover:bg-gray-100"
+          aria-label="Close modal"
+        >
+          ✕
+        </button>
+
+        <div className="mb-4">
+          {children}
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={handleClose}
+            className="rounded px-4 py-2 text-gray-700 hover:bg-gray-100"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default <%= names.className %>;

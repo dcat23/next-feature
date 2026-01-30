@@ -3,43 +3,17 @@ import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
 import { Linter } from '@nx/eslint';
 import { libraryGenerator } from '@nx/next';
 import * as path from 'path';
-import axiosGenerator from '../../misc/axios/axios';
 import { SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
-import { updateTsConfig } from '../../../lib/ts-config';
-import { updateDependencies } from '../../../lib/utils';
-import authGenerator from '../../misc/auth/auth';
-import { asApiKeyName } from '../../misc/axios/utils';
-import {
-  FeatureGeneratorSchema,
-  type NormalizedFeatureGeneratorSchema,
-} from './schema';
-import { getDirectory, removeLibFiles } from './utils';
-
-function normalize(
-  options: FeatureGeneratorSchema
-): NormalizedFeatureGeneratorSchema {
-  const directory = getDirectory(options);
-  const projectRoot = directory;
-  const sourceRoot = path.join(projectRoot, 'src');
-  const importPath = `@feature/${options.name}`;
-
-  const apiKeyName = asApiKeyName(options.name)
-  return {
-    tmpl: '',
-    ...options,
-    directory,
-    projectRoot,
-    sourceRoot,
-    importPath,
-    apiKeyName
-  };
-}
+import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
+import { initializeProjectGenerator, updateDependencies } from '../../../lib/utils';
+import { FeatureGeneratorSchema } from './schema';
+import { normalizeFeatureGenerator } from './utils/normalize';
 
 export async function featureGenerator(
   tree: Tree,
   options: FeatureGeneratorSchema
 ) {
-  const normalizedOptions = normalize(options);
+  const normalizedOptions = normalizeFeatureGenerator(options);
   const tasks: GeneratorCallback[] = [];
 
   tasks.push(await libraryGenerator(tree, {
@@ -47,18 +21,22 @@ export async function featureGenerator(
     name: normalizedOptions.name,
     importPath: normalizedOptions.importPath,
     bundler: 'vite',
+    publishable: true,
     style: 'tailwind',
     unitTestRunner: 'jest',
     linter: Linter.EsLint,
     component: false,
     skipFormat: true,
-    useProjectJson: true
-  }));
+    useProjectJson: true,
+  }))
+
+  tasks.push(await initializeProjectGenerator(tree, normalizedOptions, "feature"))
 
   const { sourceRoot, importPath, name } = normalizedOptions;
 
-  updateTsConfig(tree, importPath, sourceRoot);
-  removeLibFiles(tree, sourceRoot);
+  writeWildCardPathToTsConfig(tree, importPath, sourceRoot);
+
+  tree.delete(path.join(sourceRoot, "lib", "hello-server.tsx"));
 
   const dependencies: Record<string, string> = {
     sonner: SONNER_VERSION,
@@ -84,25 +62,6 @@ export async function featureGenerator(
     sourceRoot,
     normalizedOptions
   );
-
-  if (normalizedOptions.useAxios) {
-    tasks.push(await axiosGenerator(tree, {
-      name: normalizedOptions.name,
-      projectName: name,
-      directory: normalizedOptions.directory,
-      skipFormat: true
-    }))
-  }
-
-  if (normalizedOptions.useAuth) {
-    tasks.push(
-      await authGenerator(tree, {
-        projectName: normalizedOptions.name,
-        directory: normalizedOptions.directory,
-        skipFormat: true,
-      })
-    );
-  }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
 

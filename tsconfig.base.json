@@ -15,7 +15,10 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "next-feature": ["next-feature/src/index.ts"]
+      "next-feature": ["next-feature/src/index.ts"],
+      "@next-feature/client": ["clients/client/src/index.ts"],
+      "@next-feature/client/server": ["clients/client/src/server.ts"],
+      "@next-feature/client/*": ["clients/client/src/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]

@@ -4,7 +4,7 @@ import { Tree } from '@nx/devkit';
 import * as path from 'path';
 
 
-export function updateTsConfig(tree: Tree, importPathName: string, sourceRoot: string) {
+export function writeWildCardPathToTsConfig(tree: Tree, importPathName: string, sourceRoot: string) {
   const tsConfigPath = path.join(".", "tsconfig.base.json")
 
   const tsConfig = tree.exists(tsConfigPath)
@@ -14,7 +14,6 @@ export function updateTsConfig(tree: Tree, importPathName: string, sourceRoot: s
   const importPath = path.join(importPathName, '*');
 
   tsConfig["compilerOptions"] ??= {};
-  // tsConfig["compilerOptions"]["baseUrl"] ??= '.';
   tsConfig["compilerOptions"]["paths"] ??= {};
   tsConfig["compilerOptions"]["paths"][importPath] ??= [];
 

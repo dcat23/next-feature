@@ -6,10 +6,7 @@ import {
 } from '@nx/devkit';
 import { applicationGenerator as nextApplicationGenerator } from '@nx/next';
 import * as path from 'path';
-import {
-  ApplicationGeneratorSchema,
-  NormalizedApplicationGeneratorSchema,
-} from './schema';
+import { ApplicationGeneratorSchema } from './schema';
 import { Linter } from '@nx/eslint';
 import {
   SONNER_VERSION,
@@ -21,31 +18,14 @@ import axiosGenerator from '../../misc/axios/axios';
 import authGenerator from '../../misc/auth/auth';
 import { writeToDotenv } from '../../../lib/dotenv/dot-env';
 import { generateSecret } from './utils';
+import { normalizeApplicationGeneratorSchema } from './utils/normalize';
 
-function normalize(
-  options: ApplicationGeneratorSchema
-): NormalizedApplicationGeneratorSchema {
-  const directory = path.join(options.directory ?? 'apps', options.name);
-
-  const projectRoot = directory;
-  const sourceRoot = path.join(projectRoot, 'src');
-  const importPath = `@app/${options.name}`;
-
-  return {
-    tmpl: '',
-    ...options,
-    directory,
-    projectRoot,
-    sourceRoot,
-    importPath,
-  };
-}
 
 export async function applicationGenerator(
   tree: Tree,
   options: ApplicationGeneratorSchema
 ) {
-  const normalizedOptions = normalize(options);
+  const normalizedOptions = normalizeApplicationGeneratorSchema(options);
   const tasks: GeneratorCallback[] = [];
 
   tasks.push(
@@ -57,7 +37,7 @@ export async function applicationGenerator(
       unitTestRunner: 'jest',
       src: true,
       appDir: true,
-      linter: Linter.EsLint,
+      linter: "eslint",
       skipFormat: true,
       useProjectJson: true
     })
@@ -97,6 +77,7 @@ export async function applicationGenerator(
   if (normalizedOptions.useAuth) {
     tasks.push(
       await authGenerator(tree, {
+        name: normalizedOptions.name,
         projectName: normalizedOptions.name,
         directory: normalizedOptions.directory,
         skipFormat: true,

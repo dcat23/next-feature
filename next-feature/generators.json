@@ -25,16 +25,6 @@
       "schema": "./src/generators/misc/database/schema.json",
       "description": "database generator"
     },
-    "api": {
-      "factory": "./src/generators/code/api/api",
-      "schema": "./src/generators/code/api/schema.json",
-      "description": "api generator"
-    },
-    "types": {
-      "factory": "./src/generators/code/types/types",
-      "schema": "./src/generators/code/types/schema.json",
-      "description": "types generator"
-    },
     "preset": {
       "factory": "./src/generators/preset/preset",
       "schema": "./src/generators/preset/schema.json",
@@ -56,11 +46,6 @@
       "schema": "./src/generators/tool/copy-deps/schema.json",
       "description": "copy-deps generator"
     },
-    "utils": {
-      "factory": "./src/generators/code/utils/utils",
-      "schema": "./src/generators/code/utils/schema.json",
-      "description": "utils generator"
-    },
     "constant": {
       "factory": "./src/generators/code/constant/constant",
       "schema": "./src/generators/code/constant/schema.json",
@@ -70,6 +55,31 @@
       "factory": "./src/generators/project/application/application",
       "schema": "./src/generators/project/application/schema.json",
       "description": "application generator"
+    },
+    "client": {
+      "factory": "./src/generators/project/client/client",
+      "schema": "./src/generators/project/client/schema.json",
+      "description": "client generator"
+    },
+    "utility": {
+      "factory": "./src/generators/code/utility/utility",
+      "schema": "./src/generators/code/utility/schema.json",
+      "description": "utility generator"
+    },
+    "data-type": {
+      "factory": "./src/generators/code/data-type/data-type",
+      "schema": "./src/generators/code/data-type/schema.json",
+      "description": "data type generator"
+    },
+    "action": {
+      "factory": "./src/generators/code/action/action",
+      "schema": "./src/generators/code/action/schema.json",
+      "description": "action generator"
+    },
+    "client-config": {
+      "factory": "./src/generators/misc/client-config/client-config",
+      "schema": "./src/generators/misc/client-config/schema.json",
+      "description": "client config generator"
     }
   }
 }

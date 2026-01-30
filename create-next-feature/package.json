@@ -1,11 +1,11 @@
 {
   "name": "create-next-feature",
-  "version": "0.0.10",
+  "version": "0.1.1-beta.7",
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "dependencies": {
-    "create-nx-workspace": "20.8.1",
+    "create-nx-workspace": "22.0.3",
     "tslib": "^2.3.0"
   },
   "bin": {

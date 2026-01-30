@@ -1,21 +1,25 @@
-import { names } from '@nx/devkit';
-import { formatFiles, generateFiles, Tree } from '@nx/devkit';
+import { formatFiles, generateFiles, names, Tree } from '@nx/devkit';
 import * as path from 'path';
-import { initializeGenerator } from '../../../lib/generator-config';
 import type { NormalizedComponentGeneratorSchema } from './schema';
 import { ComponentGeneratorSchema } from './schema';
+import { handleExportPath, initializeCodeGenerator, normalizeCodeGenerator } from '../../../lib/utils/code-generator';
+import { exportFile } from '../../../lib/export-file';
+import { handleComponentPackage } from './lib/utils';
 
 function normalize(
   options: ComponentGeneratorSchema
 ): NormalizedComponentGeneratorSchema {
-  options.package ??= 'components';
-
-  const mutatedNames = names(options.name);
+  const normalized = normalizeCodeGenerator(options)
+  normalized.componentType ??= 'component';
+  const mutatedNames = names(normalized.name);
+  normalized.outputFileName = mutatedNames.fileName;
+  normalized.exportPath = handleExportPath(normalized)
+  handleComponentPackage(normalized)
 
   return {
     tmpl: '',
-    ...options,
-    ...mutatedNames,
+    ...normalized,
+    names: mutatedNames,
   };
 }
 
@@ -25,13 +29,17 @@ export async function componentGenerator(
 ) {
 
   const normalizedOptions = normalize(options);
-  const { directory } = await initializeGenerator(
+  const { directory, sourceRoot } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'component'
   );
 
-  generateFiles(tree, path.join(__dirname, 'files/src'), directory, normalizedOptions);
+  generateFiles(tree, path.join(__dirname, 'files', normalizedOptions.componentType), directory, normalizedOptions);
+
+  if (normalizedOptions.export) {
+    await exportFile(tree, sourceRoot, normalizedOptions.exportPath);
+  }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
 

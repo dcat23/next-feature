@@ -1,45 +1,18 @@
-import { formatFiles, names, Tree } from '@nx/devkit';
-import { initializeGenerator } from '../../../lib/generator-config';
-import type { GeneratorSchema, Normalized, WithNames } from '../../../lib/types';
+import { formatFiles, GeneratorCallback, runTasksInSerial, Tree } from '@nx/devkit';
 import { writeFile } from '../../../lib/write-file';
-import {
-  ConstantGeneratorSchema,
-  NormalizedConstantGeneratorSchema,
-} from './schema';
-
-function normalize(
-  options: ConstantGeneratorSchema
-): NormalizedConstantGeneratorSchema {
-  const mutatedNames = names(options.name);
-  options.package ??= 'lib';
-  const outputFileName = (
-    options.file
-      ? typeof options.file === 'string'
-        ? options.file
-        : mutatedNames.fileName
-      : 'index'
-  ).concat('.ts');
-  return {
-    tmpl: '',
-    ...options,
-    ...mutatedNames,
-    outputFileName,
-  };
-}
-
-
-const constantContent = (options: Normalized<WithNames<GeneratorSchema>>) => (`
-export const ${options.constantName}: ${options.className} = null;
-`);
+import { exportFile } from '../../../lib/export-file';
+import { ConstantGeneratorSchema } from './schema';
+import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
+import * as path from 'path';
+import { constantContent, normalize } from './lib/utils';
 
 export async function constantGenerator(
   tree: Tree,
   options: ConstantGeneratorSchema
 ) {
+  const tasks: GeneratorCallback[] = [];
   const normalizedOptions = normalize(options);
-
-  // logger.debug({ normalizedOptions })
-  const { directory } = await initializeGenerator(
+  const { directory, sourceRoot } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'constant'
@@ -47,16 +20,19 @@ export async function constantGenerator(
 
   await writeFile(
     tree,
-    `${directory}/constants`,
+    path.join(directory, 'constants'),
     constantContent,
     normalizedOptions,
     normalizedOptions.outputFileName
-  );
+  )
+
+  if (normalizedOptions.export) {
+    await exportFile(tree, sourceRoot, normalizedOptions.exportPath, "server");
+  }
 
   if (!options.skipFormat) await formatFiles(tree);
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  return () => {};
+  return runTasksInSerial(...tasks)
 }
 
 export default constantGenerator;

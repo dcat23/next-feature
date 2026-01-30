@@ -1,0 +1,45 @@
+"use client"
+
+import { useEffect, useState, createContext, useContext } from "react";
+
+
+type <%= names.className %> = unknown;
+
+type <%= names.className %>ContextProviderProps = {
+    children: React.ReactNode;
+};
+
+type <%= names.className %>ContextType = {
+    <%= names.propertyName %>: <%= names.className %>;
+    set<%= names.className %>: (<%= names.propertyName %>: <%= names.className %>) => void;
+};
+
+const <%= names.className %>Context = createContext<<%= names.className %>ContextType | null>(null);
+
+
+export default function <%= names.className %>ContextProvider({
+    children,
+}: <%= names.className %>ContextProviderProps) {
+    const [<%= names.propertyName %>, set<%= names.className %>] = useState<<%= names.className %>>(null);
+
+    return (
+        <<%= names.className %>Context.Provider
+            value={{
+                <%= names.propertyName %>,
+                set<%= names.className %>,
+            }}
+        >
+            {children}
+        </<%= names.className %>Context.Provider>
+    );
+}
+
+export function use<%= names.className %>() {
+    const context = useContext(<%= names.className %>Context);
+
+    if (context === null) {
+        throw new Error("use<%= names.className %> must be used within a <%= names.className %>ContextProvider");
+    }
+
+    return context;
+}

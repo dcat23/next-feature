@@ -1,10 +1,8 @@
-import type { WithNames } from '../../../lib/types';
-import type { GeneratorSchema, Normalized } from '../../../lib/types';
+import { CodeGeneratorSchema, NormalizedCodeGeneratorSchema } from '../../../lib/types';
 
-export interface ComponentGeneratorSchema extends GeneratorSchema {
-  name: string;
+export interface ComponentGeneratorSchema extends CodeGeneratorSchema {
+  componentType: "component" | "page" | "layout" | "modal" | "card" | "form" | "provider"
 }
 
-export interface NormalizedComponentGeneratorSchema extends Normalized<WithNames<ComponentGeneratorSchema>> {
-
+export interface NormalizedComponentGeneratorSchema extends NormalizedCodeGeneratorSchema<ComponentGeneratorSchema> {
 }

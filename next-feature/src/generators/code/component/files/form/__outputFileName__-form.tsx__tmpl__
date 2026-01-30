@@ -1,0 +1,64 @@
+"use client";
+
+import { ReactNode, useActionState } from 'react';
+import type { ApiResponse } from '';
+
+
+interface Props<T> {
+  action: (prevState: ApiResponse<T>, formData: FormData) => Promise<ApiResponse<T>>;
+  initialState?: T;
+  children?: ReactNode;
+}
+
+export function <%= names.className %>Form ({
+  action,
+  initialState = {},
+  children,
+}: Props<unknown>) {
+  const [formState, formAction, isPending] = useActionState(action, {
+    data: initialState
+  });
+
+  const displayError = (key: string) => {
+      if (formState?.error?.errors && formState.error.errors[key]) {
+        return (
+          <div className="rounded-md px-3 text-sm text-red-700">
+            {formState.error.errors[key]}
+          </div>
+        );
+      }
+      return null;
+    };
+
+    const displayMessage = () => {
+      if (!formState.message) return null;
+
+      const color = formState.success
+        ? 'green'
+        : formState.error
+        ? 'red'
+        : 'primary';
+
+      return (
+        <div
+          className={`rounded-md bg-${color}-50 p-3 text-sm text-${color}-700`}
+        >
+          {formState.message}
+        </div>
+      );
+    };
+
+  return (
+    <form action={formAction}>
+      <button
+        type="submit"
+        disabled={isPending}
+        className="w-full rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isPending ? 'Submitting...' : 'Submit'}
+      </button>
+    </form>
+  );
+}
+
+export default <%= names.className %>Form;

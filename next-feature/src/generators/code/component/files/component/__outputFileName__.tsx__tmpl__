@@ -1,0 +1,19 @@
+"use client";
+
+import { ReactNode } from 'react';
+
+interface Props {
+  data?: unknown;
+  children?: ReactNode;
+}
+
+export function <%= names.className %> (props: Props) {
+  return (
+    <>
+      <%= names.className %>
+      {props.children}
+    </>
+  );
+}
+
+export default <%= names.className %>;

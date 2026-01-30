@@ -1,0 +1,50 @@
+'use server';
+
+import { z } from "zod";
+import api, { type ApiResponse, ApiError } from "<%= clientImportPath %>"
+
+const schema = z.object({})
+
+export type <%= names.className %>Request = z.infer<typeof schema>;
+
+export interface <%= names.className %>Response {};
+
+export async function <%= methodName %>Action(
+  prevState: ApiResponse<<%= names.className %>Request>,
+  formData: FormData
+): Promise<ApiResponse<<%= names.className %>Request>> {
+  try {
+    const body: <%= names.className %>Request = {}
+
+    const parsed = schema.safeParse(body);
+
+    if (!parsed.success) {
+      const apiError = ApiError.of(parsed.error);
+
+      return {
+        success: false,
+        message: apiError.message,
+        data: { ...prevState, ...body },
+        error: apiError.body
+      }
+    }
+
+    const params: URLSearchParams = new URLSearchParams();
+    const endpoint = "/<%= endpoint %>?" + params.toString();
+    const response = await api.<%= httpMethod %><<%= names.className %>Response>(endpoint, parsed.data);
+
+    return {
+      success: true,
+      message: "<%= (names.className) %> successful",
+      data: body,
+    };
+  } catch (error) {
+    const apiError = ApiError.of(error);
+    return {
+      data: prevState.data,
+      error: apiError.body,
+      message: apiError.message,
+      success: false,
+    };
+  }
+}

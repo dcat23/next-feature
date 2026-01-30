@@ -1,10 +1,8 @@
-import type { Names } from '../../../lib/types';
-import type { GeneratorSchema, Normalized, WithNames } from '../../../lib/types';
+import type {
+  CodeGeneratorSchema,
+  NormalizedCodeGeneratorSchema,
+} from '../../../lib/types';
 
-export interface ConstantGeneratorSchema extends GeneratorSchema {
-  file?: string | boolean;
-}
+export interface ConstantGeneratorSchema extends CodeGeneratorSchema {}
 
-export interface NormalizedConstantGeneratorSchema extends Normalized<WithNames<ConstantGeneratorSchema>> {
-  outputFileName: Names["fileName"] // appended with extension
-}
+export interface NormalizedConstantGeneratorSchema extends NormalizedCodeGeneratorSchema<ConstantGeneratorSchema> {}

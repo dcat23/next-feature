@@ -1,0 +1,55 @@
+'use server';
+
+import { type ApiResponse, ApiError } from "<%= clientImportPath %>"
+<% if (hasRequestBody) { %>import { z } from "zod";<% } %>
+<% if (useMapper) { %>import { <%= mapperName %> } from "../utils/<%= domain.fileName %>";<% } %>
+import api from '<%= configImportPath %>';
+import { <%= names.constantName %> } from '../constants/<%= domain.fileName %>'
+
+<% if (hasRequestBody) { %>const schema = z.object({})
+export type <%= names.className %>Request = z.infer<typeof schema>;
+<% } else { %>export interface <%= names.className %>Request {};<% }%>
+
+export interface <%= names.className %>Response {};
+
+export async function <%= methodName %>(
+  options: <%= names.className %>Request
+): Promise<ApiResponse<<%= names.className %>Response>> {
+  try {
+    <% if (hasRequestBody) { %>
+    const body: <%= names.className %>Request = {
+      ...options
+    }
+
+    const parsed = schema.safeParse(body);
+
+    if (!parsed.success) {
+      const apiError = ApiError.of(parsed.error);
+
+      return {
+        success: false,
+        message: apiError.message,
+        data: <%= names.constantName %>,
+        error: apiError.body
+      }
+    }
+    <% } %>
+    const params: URLSearchParams = new URLSearchParams();
+    const endpoint = "/<%= endpoint %>?" + params.toString();
+    const response = await api.<%= httpMethod %><<%= names.className %>Response>(endpoint<% if (hasRequestBody) { %>, parsed.data<% } %>);
+
+    return {
+      success: true,
+      message: "<%= (methodName) %> successful",
+      <% if (useMapper) { %>data: <%= mapperName %>(response)<% } else { %>data: response<% } %>
+    };
+  } catch (error) {
+    const apiError = ApiError.of(error);
+    return {
+      data: <%= names.constantName %>,
+      error: apiError.body,
+      message: apiError.message,
+      success: false
+    };
+  }
+}

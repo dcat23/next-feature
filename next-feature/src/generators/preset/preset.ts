@@ -1,4 +1,4 @@
-import type { GeneratorCallback } from '@nx/devkit';
+import  { GeneratorCallback, names } from '@nx/devkit';
 import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
 import * as path from 'path';
 import { addToGitignore, updateDependencies } from '../../lib/utils';
@@ -11,10 +11,14 @@ function normalize(
 ): NormalizedPresetGeneratorSchema {
   const projectRoot = '.';
 
+  const title = names(options.name).constantName
+    .replace(/_/g, " ")
+
   return {
     tmpl: '',
     ...options,
     projectRoot,
+    title
   };
 }
 

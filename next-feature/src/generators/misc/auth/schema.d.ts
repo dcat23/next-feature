@@ -1,9 +1,10 @@
-import type { GeneratorSchema, Normalized } from '../../../lib/types';
+import {
+  CodeGeneratorSchema,
+  NormalizedCodeGeneratorSchema,
+} from '../../../lib/types';
 
-export interface AuthGeneratorSchema extends GeneratorSchema {
+export interface AuthGeneratorSchema extends CodeGeneratorSchema {
   projectName: string;
 }
 
-export interface NormalizedAuthGeneratorSchema extends Normalized<AuthGeneratorSchema> {
-  tmpl: ""
-}
+export interface NormalizedAuthGeneratorSchema extends NormalizedCodeGeneratorSchema<AuthGeneratorSchema> {}

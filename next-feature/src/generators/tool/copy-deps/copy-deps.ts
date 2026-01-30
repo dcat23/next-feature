@@ -30,7 +30,7 @@ export async function copyDepsGenerator(
     dependencies,
     devDependencies,
     undefined,
-    true
+    !options.replaceExisting
   );
 }
 

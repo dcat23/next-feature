@@ -7,47 +7,32 @@ import {
 } from '@nx/devkit';
 import * as path from 'path';
 import { ZUSTAND_VERSION } from '../../../lib/constants/versions';
-import { initializeGenerator } from '../../../lib/generator-config';
 import { updateDependencies } from '../../../lib/utils';
-import typesGenerator from '../types/types';
-import { mutateNames, zustandCreateMethod } from './lib/options';
-import type { NormalizedStoreGeneratorSchema } from './schema';
+import { exportFile } from '../../../lib/export-file';
+import typesGenerator from '../data-type/data-type';
 import { StoreGeneratorSchema } from './schema';
+import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
+import { normalizeStoreGenerator } from './lib/utils';
 
-function normalize(
-  options: StoreGeneratorSchema
-): NormalizedStoreGeneratorSchema {
-  options.package ??= 'store';
-  options.persist = Boolean(options.persist);
-  options.useTypes = Boolean(options.useTypes);
-
-  const mutatedNames = mutateNames(options);
-  const createMethod = zustandCreateMethod({ ...options, ...mutatedNames });
-  const storeType = options.useContext ? "context" : "zustand";
-
-  return {
-    tmpl: '',
-    ...options,
-    ...mutatedNames,
-    createMethod,
-    storeType,
-  };
-}
 
 export async function storeGenerator(
   tree: Tree,
   options: StoreGeneratorSchema
 ) {
-  const normalizedOptions = normalize(options);
+  const normalizedOptions = normalizeStoreGenerator(options);
   const tasks: GeneratorCallback[] = [];
 
-  const { directory } = await initializeGenerator(
+  const { directory, sourceRoot } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'store'
   );
 
   generateFiles(tree, path.join(__dirname, "files/src", normalizedOptions.storeType), directory, normalizedOptions);
+
+  if (normalizedOptions.export) {
+    await exportFile(tree, sourceRoot, normalizedOptions.exportPath);
+  }
 
   const dependencies: Record<string, string> = {
     zustand: ZUSTAND_VERSION

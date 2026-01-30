@@ -1,7 +1,10 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "namedInputs": {
-    "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "default": [
+      "{projectRoot}/**/*",
+      "sharedGlobals"
+    ],
     "production": [
       "default",
       "!{projectRoot}/.eslintrc.json",
@@ -17,8 +20,13 @@
   "targetDefaults": {
     "@nx/js:tsc": {
       "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["production", "^production"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "production",
+        "^production"
+      ]
     },
     "@nx/eslint:lint": {
       "cache": true,
@@ -31,7 +39,11 @@
     },
     "@nx/jest:jest": {
       "cache": true,
-      "inputs": ["default", "^production", "{workspaceRoot}/jest.preset.js"],
+      "inputs": [
+        "default",
+        "^production",
+        "{workspaceRoot}/jest.preset.js"
+      ],
       "options": {
         "passWithNoTests": true
       },
@@ -44,12 +56,20 @@
     },
     "@nx/vite:test": {
       "cache": true,
-      "inputs": ["default", "^production"]
+      "inputs": [
+        "default",
+        "^production"
+      ]
     },
     "@nx/vite:build": {
       "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["production", "^production"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "production",
+        "^production"
+      ]
     }
   },
   "release": {
@@ -78,20 +98,38 @@
   ],
   "generators": {
     "next-feature": {
-      "utils": {},
-      "constant": {},
-      "types": {},
-      "api": {
-        "projectName": "hello"
+      "utility": {
+        "projectName": "next-feature",
+        "export": false
+      },
+      "constant": {
+        "projectName": "next-feature",
+        "export": false
+      },
+      "data-type": {
+        "projectName": "next-feature",
+        "export": false
       },
       "store": {
-        "projectName": "hello"
+        "projectName": "test"
       },
       "component": {
-        "projectName": "hello"
+        "projectName": "test"
       },
       "auth": {},
-      "axios": {}
+      "axios": {},
+      "action": {
+        "projectName": "test"
+      },
+      "feature": {
+        "orgName": "next-feature"
+      },
+      "application": {
+        "orgName": "next-feature"
+      },
+      "client": {
+        "orgName": "next-feature"
+      }
     },
     "@nx/react": {
       "library": {
@@ -104,5 +142,6 @@
         "linter": "eslint"
       }
     }
-  }
+  },
+  "nxCloudId": "69129491f4b8c13ae8fe089d"
 }

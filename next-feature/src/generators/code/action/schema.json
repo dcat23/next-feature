@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "Action",
+  "title": "Action Generator",
+  "description": "Generate Next.js server actions with automatic error handling, validation, and API integration. Automatically creates lib/client/config.ts on first use.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the action (e.g., getUser, createPost, deleteComment). Uses standard naming conventions.",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What name would you like to use for this action?"
+    },
+    "actionType": {
+      "type": "string",
+      "description": "Type of server action: 'api' for external API calls, 'db' for database operations, 'form' for form submission handling",
+      "$default": {
+        "$source": "argv",
+        "index": 1
+      },
+      "alias": "a",
+      "default": "api",
+      "enum": ["api", "db", "form"],
+      "x-prompt": {
+        "message": "What type of action would you like to generate?",
+        "type": "list",
+        "items": [
+          {
+            "value": "api",
+            "label": "API - Call external API endpoints with error handling"
+          },
+          {
+            "value": "db",
+            "label": "DB - Perform database operations with Prisma"
+          },
+          {
+            "value": "form",
+            "label": "Form - Handle form submissions and validation"
+          }
+        ]
+      }
+    },
+    "package": {
+      "type": "string",
+      "description": "Subdirectory within src/ where actions are created (default: 'lib' creates src/lib/actions/)",
+      "default": "lib"
+    },
+    "directory": {
+      "type": "string",
+      "description": "Override the entire directory path for action creation",
+      "alias": "d"
+    },
+    "projectName": {
+      "type": "string",
+      "description": "Target project name where action will be generated. Auto-creates feature if not found.",
+      "alias": "p"
+    },
+    "useTypes": {
+      "type": "boolean",
+      "description": "Generate TypeScript type definitions in src/lib/types/ (default: true for API actions)",
+      "default": true,
+      "alias": "t"
+    },
+    "useConstant": {
+      "type": "boolean",
+      "description": "Generate constants in src/lib/constants/ (endpoints, default values, etc.)",
+      "default": true,
+      "alias": "c"
+    },
+    "useMapper": {
+      "type": "boolean",
+      "description": "Generate data mapper utility function for response transformation",
+      "default": false,
+      "alias": "m"
+    },
+    "useInterceptor": {
+      "type": "boolean",
+      "description": "Configure request/response interceptors in lib/client/config.ts",
+      "default": false,
+      "alias": "i"
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip prettier code formatting (used internally for chained generators)",
+      "default": false
+    },
+    "clientPackage": {
+      "type": "string",
+      "description": "API client package to import from. Use @next-feature/client (default) or custom package like @myorg/api-client",
+      "alias": "client"
+    },
+    "export": {
+      "type": "boolean",
+      "description": "Export the generated action from project root src/index.ts (default: true)",
+      "default": true,
+      "alias": "e"
+    }
+  },
+  "required": ["name"]
+}
+

@@ -1,43 +1,50 @@
 {
   "$schema": "https://json-schema.org/schema",
   "$id": "Store",
-  "title": "Store generator",
-  "description": "Generate store files using Zustand or React Context",
+  "title": "State Management Store Generator",
+  "description": "Generate Zustand stores or React Context providers for state management with TypeScript type safety and custom hooks.",
   "type": "object",
   "properties": {
     "name": {
       "type": "string",
-      "description": "",
+      "description": "Name of the store (e.g., userStore, productStore, authStore). Uses camelCase naming conventions.",
       "$default": {
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What is the name for this store method?"
+      "x-prompt": "What name would you like to use for this store?"
     },
     "package": {
       "type": "string",
-      "description": "The directory within the source",
-      "$default": {
-        "$source": "argv",
-        "index": 1
-      },
-      "default": "store"
+      "description": "Subdirectory within src/ where stores are created (default: 'stores' creates src/stores/)",
+      "default": "stores"
     },
     "directory": {
       "type": "string",
-      "description": "The directory of the features plugin",
+      "description": "Override the entire directory path for store creation",
       "alias": "d"
     },
     "projectName": {
       "type": "string",
-      "description": "The package where the generated files will go",
+      "description": "Target project name where store will be generated. Auto-creates feature if not found.",
       "alias": "p"
     },
     "useContext": {
       "type": "boolean",
-      "description": "Will generated as React Context",
+      "description": "Generate as React Context provider instead of Zustand (default: false creates Zustand store)",
       "default": false,
       "alias": "c"
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip prettier code formatting (used internally for chained generators)",
+      "default": false
+    },
+    "export": {
+      "type": "boolean",
+      "description": "Export the generated store from project root src/index.ts (default: true)",
+      "default": true,
+      "alias": "e"
     }
   },
   "required": ["name"]

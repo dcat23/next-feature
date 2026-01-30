@@ -10,7 +10,7 @@ import type { ProblemDetail } from '../types';
  * January 11th 2026, 9:11:27 pm
  */
 function extractProblemDetail(
-  response: AxiosResponse<unknown, any>
+  response: AxiosResponse<unknown, any>,
 ): ProblemDetail | null {
   if (!response.data) {
     return null;

@@ -1,8 +1,15 @@
-import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from 'axios';
 import type { ApiClientConfig } from './types/client';
-import { BACKEND_API_URL } from './config';
 import handleApiError from './utils/error';
 
+// @ts-expect-error todo
+import { name, version } from "../../package.json";
 
 /**
  * Pending request queue item
@@ -23,19 +30,24 @@ export class ApiClient {
 
   constructor(config: ApiClientConfig) {
     this.config = {
-      baseURL: BACKEND_API_URL,
       timeout: 30000,
-      enableRefreshToken: true,
-      maxRetries: 3,
+      enableRefreshToken: false,
+      maxRetries: 1,
       retryDelay: 1000,
+      skipRefreshPaths: [],
       onUnauthorized: async () => {
-        console.log("[<%= name %>-client] Unauthorized")
+        console.log('[api-client] Unauthorized');
       },
       onRefreshTokenExpired: async () => {
-        console.log("[<%= name %>-client] Refresh token expired")
+        console.log('Refresh token expired');
       },
       onAuthenticated: async (config) => {
-        console.log("[<%= name %>-client]", config.method.toUpperCase(), config.url, config.data ?? "")
+        console.log(
+          '[api-client]',
+          config.method?.toUpperCase(),
+          config.url,
+          config.data ?? ''
+        );
       },
       onRefreshToken: async () => {
         return '';
@@ -48,6 +60,7 @@ export class ApiClient {
       timeout: this.config.timeout,
       headers: {
         'Content-Type': 'application/json',
+        'User-Agent': `${name}:${version}`
       },
     });
 
@@ -79,7 +92,7 @@ export class ApiClient {
   ): Promise<InternalAxiosRequestConfig> {
     try {
       if (this.config.onAuthenticated) {
-        this.config.onAuthenticated(config);
+        await this.config.onAuthenticated(config);
       }
 
       return config;
@@ -105,6 +118,16 @@ export class ApiClient {
   }
 
   /**
+   * Check if a path should skip the refresh token logic
+   */
+  private shouldSkipRefresh(url: string | undefined): boolean {
+    if (!url || !this.config.skipRefreshPaths?.length) {
+      return false;
+    }
+    return this.config.skipRefreshPaths.some((pattern) => pattern.test(url));
+  }
+
+  /**
    * Handle response errors with retry logic and token refresh
    */
   private async handleResponseRejected(error: AxiosError): Promise<any> {
@@ -117,8 +140,12 @@ export class ApiClient {
       return Promise.reject(handleApiError(error));
     }
 
-    // Handle 401 Unauthorized - attempt token refresh
-    if (error.response?.status === 401 && this.config.enableRefreshToken) {
+    // Handle 401 Unauthorized - attempt token refresh (skip for auth endpoints)
+    if (
+      error.response?.status === 401 &&
+      this.config.enableRefreshToken &&
+      !this.shouldSkipRefresh(originalRequest.url)
+    ) {
       return this.handleUnauthorizedError(error, originalRequest);
     }
 
@@ -165,7 +192,7 @@ export class ApiClient {
     this.isRefreshing = true;
 
     try {
-      const newToken = await this.refreshToken();
+      const newToken = await this.refreshToken(originalRequest);
 
       // Update the original request with new token
       originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -192,12 +219,15 @@ export class ApiClient {
   /**
    * Refresh the JWT token using the refresh token
    */
-  private async refreshToken(): Promise<string> {
+  private async refreshToken(
+    originalRequest: InternalAxiosRequestConfig<any> & { _retry?: boolean }
+  ): Promise<string> {
     try {
-
-      const refreshToken = this.config.onRefreshToken();
-
-      return refreshToken;
+      const refreshToken = await this.config.onRefreshToken();
+      return await this.post<string>("/api/auth/refresh", {
+          refreshToken,
+        headers: originalRequest.headers
+      })
     } catch (error) {
       console.error('Token refresh failed:', error);
       throw error;
@@ -278,8 +308,6 @@ export class ApiClient {
   private sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
-
-
 
   /**
    * HTTP Methods with proper typing

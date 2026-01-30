@@ -13,8 +13,13 @@ export interface ApiClientConfig {
   enableRefreshToken?: boolean;
   maxRetries?: number;
   retryDelay?: number;
+  /**
+   * Paths that should skip the refresh token logic on 401.
+   * Useful for login/register endpoints that expect 401 as a valid response.
+   */
+  skipRefreshPaths?: RegExp[];
   onAuthenticated?: (
-    config: InternalAxiosRequestConfig
+    config: InternalAxiosRequestConfig,
   ) => void | Promise<void>;
   onUnauthorized?: () => void | Promise<void>;
   onRefreshTokenExpired?: () => void | Promise<void>;

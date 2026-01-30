@@ -8,13 +8,13 @@ import handleApiError from './utils/error';
 export class ApiError extends Error {
   constructor(
     public problemDetail: ProblemDetail,
-    public originalError?: Error
+    public originalError?: Error,
   ) {
     super(
       problemDetail.detail ||
         problemDetail.title ||
         originalError?.message ||
-        'An API error occurred'
+        'An API error occurred',
     );
     this.name = 'ApiError';
     Object.setPrototypeOf(this, ApiError.prototype);

@@ -6,8 +6,10 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 import type { ApiClientConfig } from './types/client';
-import { BACKEND_API_URL } from './config';
 import handleApiError from './utils/error';
+
+// @ts-expect-error todo
+import { name, version } from '../../package.json';
 
 /**
  * Pending request queue item
@@ -28,23 +30,23 @@ export class ApiClient {
 
   constructor(config: ApiClientConfig) {
     this.config = {
-      baseURL: BACKEND_API_URL,
       timeout: 30000,
-      enableRefreshToken: true,
-      maxRetries: 3,
+      enableRefreshToken: false,
+      maxRetries: 1,
       retryDelay: 1000,
+      skipRefreshPaths: [],
       onUnauthorized: async () => {
-        console.log('[client-client] Unauthorized');
+        console.log('[api-client] Unauthorized');
       },
       onRefreshTokenExpired: async () => {
-        console.log('[client-client] Refresh token expired');
+        console.log('Refresh token expired');
       },
       onAuthenticated: async (config) => {
         console.log(
-          '[client-client]',
-          config.method.toUpperCase(),
+          '[api-client]',
+          config.method?.toUpperCase(),
           config.url,
-          config.data ?? ''
+          config.data ?? '',
         );
       },
       onRefreshToken: async () => {
@@ -58,6 +60,7 @@ export class ApiClient {
       timeout: this.config.timeout,
       headers: {
         'Content-Type': 'application/json',
+        'User-Agent': `${name}:${version}`,
       },
     });
 
@@ -71,13 +74,13 @@ export class ApiClient {
     // Request interceptor
     this.instance.interceptors.request.use(
       this.handleRequestFulfilled.bind(this),
-      this.handleRequestRejected.bind(this)
+      this.handleRequestRejected.bind(this),
     );
 
     // Response interceptor
     this.instance.interceptors.response.use(
       this.handleResponseFulfilled.bind(this),
-      this.handleResponseRejected.bind(this)
+      this.handleResponseRejected.bind(this),
     );
   }
 
@@ -85,11 +88,11 @@ export class ApiClient {
    * Attach JWT token to request headers
    */
   private async handleRequestFulfilled(
-    config: InternalAxiosRequestConfig
+    config: InternalAxiosRequestConfig,
   ): Promise<InternalAxiosRequestConfig> {
     try {
       if (this.config.onAuthenticated) {
-        this.config.onAuthenticated(config);
+        await this.config.onAuthenticated(config);
       }
 
       return config;
@@ -115,6 +118,16 @@ export class ApiClient {
   }
 
   /**
+   * Check if a path should skip the refresh token logic
+   */
+  private shouldSkipRefresh(url: string | undefined): boolean {
+    if (!url || !this.config.skipRefreshPaths?.length) {
+      return false;
+    }
+    return this.config.skipRefreshPaths.some((pattern) => pattern.test(url));
+  }
+
+  /**
    * Handle response errors with retry logic and token refresh
    */
   private async handleResponseRejected(error: AxiosError): Promise<any> {
@@ -127,8 +140,12 @@ export class ApiClient {
       return Promise.reject(handleApiError(error));
     }
 
-    // Handle 401 Unauthorized - attempt token refresh
-    if (error.response?.status === 401 && this.config.enableRefreshToken) {
+    // Handle 401 Unauthorized - attempt token refresh (skip for auth endpoints)
+    if (
+      error.response?.status === 401 &&
+      this.config.enableRefreshToken &&
+      !this.shouldSkipRefresh(originalRequest.url)
+    ) {
       return this.handleUnauthorizedError(error, originalRequest);
     }
 
@@ -146,7 +163,7 @@ export class ApiClient {
    */
   private async handleUnauthorizedError(
     error: AxiosError,
-    originalRequest: InternalAxiosRequestConfig & { _retry?: boolean }
+    originalRequest: InternalAxiosRequestConfig & { _retry?: boolean },
   ): Promise<any> {
     // Prevent infinite loops
     if (originalRequest._retry) {
@@ -175,7 +192,7 @@ export class ApiClient {
     this.isRefreshing = true;
 
     try {
-      const newToken = await this.refreshToken();
+      const newToken = await this.refreshToken(originalRequest);
 
       // Update the original request with new token
       originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -202,11 +219,15 @@ export class ApiClient {
   /**
    * Refresh the JWT token using the refresh token
    */
-  private async refreshToken(): Promise<string> {
+  private async refreshToken(
+    originalRequest: InternalAxiosRequestConfig<any> & { _retry?: boolean },
+  ): Promise<string> {
     try {
-      const refreshToken = this.config.onRefreshToken();
-
-      return refreshToken;
+      const refreshToken = await this.config.onRefreshToken();
+      return await this.post<string>('/api/auth/refresh', {
+        refreshToken,
+        headers: originalRequest.headers,
+      });
     } catch (error) {
       console.error('Token refresh failed:', error);
       throw error;
@@ -233,7 +254,7 @@ export class ApiClient {
    */
   private shouldRetry(
     error: AxiosError,
-    config: InternalAxiosRequestConfig & { _retryCount?: number }
+    config: InternalAxiosRequestConfig & { _retryCount?: number },
   ): boolean {
     const retryCount = config._retryCount || 0;
 
@@ -265,7 +286,7 @@ export class ApiClient {
    * Retry failed request with exponential backoff
    */
   private async retryRequest(
-    config: InternalAxiosRequestConfig & { _retryCount?: number }
+    config: InternalAxiosRequestConfig & { _retryCount?: number },
   ): Promise<any> {
     config._retryCount = (config._retryCount || 0) + 1;
 
@@ -275,7 +296,7 @@ export class ApiClient {
 
     console.log(
       `Retrying request (attempt ${config._retryCount}):`,
-      config.url
+      config.url,
     );
 
     return this.instance(config);
@@ -300,7 +321,7 @@ export class ApiClient {
   async post<T = any>(
     url: string,
     data?: any,
-    config?: AxiosRequestConfig
+    config?: AxiosRequestConfig,
   ): Promise<T> {
     const response = await this.instance.post<T>(url, data, config);
     return response.data;
@@ -309,7 +330,7 @@ export class ApiClient {
   async put<T = any>(
     url: string,
     data?: any,
-    config?: AxiosRequestConfig
+    config?: AxiosRequestConfig,
   ): Promise<T> {
     const response = await this.instance.put<T>(url, data, config);
     return response.data;
@@ -318,7 +339,7 @@ export class ApiClient {
   async patch<T = any>(
     url: string,
     data?: any,
-    config?: AxiosRequestConfig
+    config?: AxiosRequestConfig,
   ): Promise<T> {
     const response = await this.instance.patch<T>(url, data, config);
     return response.data;

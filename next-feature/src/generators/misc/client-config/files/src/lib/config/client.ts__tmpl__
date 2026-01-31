@@ -1,6 +1,6 @@
 import { ApiClient, type ApiResponse, ApiError } from '<%= clientImportPath %>';
 import type { InternalAxiosRequestConfig } from 'axios';
-import { BACKEND_API_URL } from "."
+import { BACKEND_API_URL } from "./env"
 /**
  * Centralized API client configuration
  *
@@ -13,6 +13,7 @@ import { BACKEND_API_URL } from "."
 
 
 const apiClient = new ApiClient({
+  baseURL: BACKEND_API_URL,
   enableRefreshToken: false,
   onUnauthorized: async () => {
     console.log("[<%= projectName %>-client] Unauthorized")

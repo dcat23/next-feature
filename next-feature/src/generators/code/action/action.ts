@@ -41,7 +41,6 @@ export async function actionGenerator(
 
   // Generate main action file based on type
   const outputFile = path.join(directory, normalizedOptions.outputFileName);
-  logger.log({ outputFile, parsed: path.parse(outputFile) })
   if (!tree.exists(outputFile)) {
     generateFiles(
       tree,
@@ -55,7 +54,7 @@ export async function actionGenerator(
       tree,
       outputFile,
       normalizedOptions,
-      () => "",
+      normalizedOptions.content,
     )
 
   // if (normalizedOptions.useConstant) {

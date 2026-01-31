@@ -1,30 +1,5 @@
 'use server';
 
 import { withApi } from '@next-feature/client/server';
-<% if (hasRequestBody) { %>import { z } from "zod";<% } %>
+import { z } from "zod";
 import api from '<%= configImportPath %>';
-<% if (useMapper) { %>import { <%= mapperName %> } from "../utils/<%= domain.fileName %>";<% } %>
-
-<% if (hasRequestBody) { %>const <%= names.propertyName %>Schema = z.object({});
-export type <%= names.className %>Request = z.infer<typeof <%= names.propertyName %>Schema>;<% } else { %>export type <%= names.className %>Request = {};<% }%>
-export type <%= names.className %>Response = {};
-
-export async function <%= methodName %>(options?: <%= names.className %>Request): Promise<<%= names.className %>Response> {
-  <% if (hasRequestBody) { %>
-  const body: <%= names.className %>Request = {
-    ...options
-  }
-
-  const parsed = <%= names.propertyName %>Schema.safeParse(body);
-
-  if (!parsed.success) {
-    throw parsed.error;
-  }
-  <% } %>
-  const params = new URLSearchParams();
-  const endpoint = "/<%= endpoint %>?" + params.toString();
-  const response = await api.<%= httpMethod %><<%= names.className %>Response>(endpoint<% if (hasRequestBody) { %>, parsed.data<% } %>);
-
-  <% if (useMapper) { %>return <%= mapperName %>(response)<% } else { %>return response<% } %>
-}
-export const <%= methodName %>Api = withApi(<%= methodName %>);

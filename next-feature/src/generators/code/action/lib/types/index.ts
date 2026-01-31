@@ -53,4 +53,6 @@ export interface NormalizedActionGeneratorSchema extends NormalizedCodeGenerator
   hasRequestBody: boolean;
   mapperName?: string;
   configImportPath: string
+
+  content: (options: NormalizedCodeGeneratorSchema) => string;
 }

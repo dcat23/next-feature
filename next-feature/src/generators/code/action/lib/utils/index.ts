@@ -13,6 +13,7 @@ import type {
   ActionType,
   NormalizedActionGeneratorSchema,
 } from '../types';
+import { apiContent } from './content';
 
 /**
  * Extract HTTP method from action name
@@ -102,6 +103,7 @@ export function normalize(
   const hasRequestBody = ['post', 'put', 'patch'].includes(httpMethod);
   const mapperName = 'mapTo'.concat(normalized.names.className);
   const configImportPath = handleConfigImportPath(normalized)
+  const content = apiContent;
 
   // finalize
   normalized.outputFileName = asOutputFile({ file: domain.fileName });
@@ -116,6 +118,7 @@ export function normalize(
     mapperName,
     domain,
     configImportPath,
+    content
   };
 }
 

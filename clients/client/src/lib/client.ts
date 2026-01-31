@@ -5,11 +5,14 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
+import { BACKEND_API_URL } from './config/env';
 import type { ApiClientConfig } from './types/client';
 import handleApiError from './utils/error';
 
 // @ts-expect-error todo
-import { name, version } from '../../package.json';
+import packageJson from '../../package.json';
+
+const { name, version } = packageJson;
 
 /**
  * Pending request queue item
@@ -30,20 +33,21 @@ export class ApiClient {
 
   constructor(config: ApiClientConfig) {
     this.config = {
+      baseURL: BACKEND_API_URL,
       timeout: 30000,
       enableRefreshToken: false,
       maxRetries: 1,
       retryDelay: 1000,
       skipRefreshPaths: [],
       onUnauthorized: async () => {
-        console.log('[api-client] Unauthorized');
+        console.log(`[${name}] Unauthorized`);
       },
       onRefreshTokenExpired: async () => {
         console.log('Refresh token expired');
       },
       onAuthenticated: async (config) => {
         console.log(
-          '[api-client]',
+          `[${name}]`,
           config.method?.toUpperCase(),
           config.url,
           config.data ?? '',

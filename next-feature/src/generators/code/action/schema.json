@@ -61,13 +61,13 @@
     "useTypes": {
       "type": "boolean",
       "description": "Generate TypeScript type definitions in src/lib/types/ (default: true for API actions)",
-      "default": true,
+      "default": false,
       "alias": "t"
     },
     "useConstant": {
       "type": "boolean",
       "description": "Generate constants in src/lib/constants/ (endpoints, default values, etc.)",
-      "default": true,
+      "default": false,
       "alias": "c"
     },
     "useMapper": {
@@ -75,12 +75,6 @@
       "description": "Generate data mapper utility function for response transformation",
       "default": false,
       "alias": "m"
-    },
-    "useInterceptor": {
-      "type": "boolean",
-      "description": "Configure request/response interceptors in lib/client/config.ts",
-      "default": false,
-      "alias": "i"
     },
     "skipFormat": {
       "type": "boolean",
@@ -90,11 +84,12 @@
     "clientPackage": {
       "type": "string",
       "description": "API client package to import from. Use @next-feature/client (default) or custom package like @myorg/api-client",
-      "alias": "client"
+      "alias": "client",
+      "default": "@next-feature/client"
     },
     "export": {
       "type": "boolean",
-      "description": "Export the generated action from project root src/index.ts (default: true)",
+      "description": "Export the generated action from project root src/server.ts (default: true)",
       "default": true,
       "alias": "e"
     }

@@ -1,4 +1,4 @@
-# Next-Feature Plugin v0.1.0
+# Next-Feature Plugin
 
 Comprehensive Nx plugin for scaffolding Next.js applications with generators for projects, APIs, components, state management, and infrastructure setup.
 

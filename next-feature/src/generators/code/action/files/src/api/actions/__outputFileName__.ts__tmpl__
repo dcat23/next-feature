@@ -4,16 +4,17 @@ import { type ApiResponse, ApiError } from "<%= clientImportPath %>"
 <% if (hasRequestBody) { %>import { z } from "zod";<% } %>
 <% if (useMapper) { %>import { <%= mapperName %> } from "../utils/<%= domain.fileName %>";<% } %>
 import api from '<%= configImportPath %>';
-import { <%= names.constantName %> } from '../constants/<%= domain.fileName %>'
 
-<% if (hasRequestBody) { %>const schema = z.object({})
-export type <%= names.className %>Request = z.infer<typeof schema>;
-<% } else { %>export interface <%= names.className %>Request {};<% }%>
+<% if (hasRequestBody) { %>const <%= names.propertyName %>Schema = z.object({});
+type <%= names.className %>Request = z.infer<typeof <%= names.propertyName %>Schema>;
+<% } else { %>interface <%= names.className %>Request {};<% }%>
 
 export interface <%= names.className %>Response {};
 
+export const <%= names.constantName %>: <%= names.className %>Response = null;
+
 export async function <%= methodName %>(
-  options: <%= names.className %>Request
+  options?: <%= names.className %>Request
 ): Promise<ApiResponse<<%= names.className %>Response>> {
   try {
     <% if (hasRequestBody) { %>
@@ -21,11 +22,10 @@ export async function <%= methodName %>(
       ...options
     }
 
-    const parsed = schema.safeParse(body);
+    const parsed = <%= names.propertyName %>Schema.safeParse(body);
 
     if (!parsed.success) {
       const apiError = ApiError.of(parsed.error);
-
       return {
         success: false,
         message: apiError.message,
@@ -40,7 +40,7 @@ export async function <%= methodName %>(
 
     return {
       success: true,
-      message: "<%= (methodName) %> successful",
+      message: "<%= (names.fileName.replace("-", " ")) %> successful",
       <% if (useMapper) { %>data: <%= mapperName %>(response)<% } else { %>data: response<% } %>
     };
   } catch (error) {

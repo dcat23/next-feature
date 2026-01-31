@@ -46,12 +46,11 @@ export interface ActionGeneratorSchema extends CodeGeneratorSchema {
  */
 export interface NormalizedActionGeneratorSchema extends NormalizedCodeGeneratorSchema<ActionGeneratorSchema> {
   // For API actions
+  domain: Names;
   httpMethod: HttpMethod;
   endpoint: string;
   methodName: string;
   hasRequestBody: boolean;
   mapperName?: string;
-  domain: Names;
   configImportPath: string
-  clientImportPath: string;
 }

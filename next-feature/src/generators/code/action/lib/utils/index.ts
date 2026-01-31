@@ -1,16 +1,18 @@
 import { logger, names } from '@nx/devkit';
-import type { HttpMethod } from '../constants';
-import { PREFIXES, RESPONSE_TYPES } from '../constants';
-import type {
-  ActionGeneratorSchema,
-  NormalizedActionGeneratorSchema,
-} from '../types';
+import { asOutputFile } from 'next-feature/src/lib/utils/files';
+import { Names } from '../../../../../lib/types';
 import {
   handleExportPath,
   normalizeCodeGenerator,
 } from '../../../../../lib/utils/code-generator';
 import { pluralize, singularize } from '../../../../../lib/utils/string';
-import { NormalizedCodeGeneratorSchema } from '../../../../../lib/types';
+import type { HttpMethod } from '../constants';
+import { PREFIXES, RESPONSE_TYPES } from '../constants';
+import type {
+  ActionGeneratorSchema,
+  ActionType,
+  NormalizedActionGeneratorSchema,
+} from '../types';
 
 /**
  * Extract HTTP method from action name
@@ -59,9 +61,11 @@ function handleConfigImportPath(options: ActionGeneratorSchema) {
 }
 
 
-function handleOutputFileName(normalized: NormalizedCodeGeneratorSchema<ActionGeneratorSchema>) {
-  const fileName = normalized.names.fileName;
-  switch (normalized.actionType) {
+function handleOutputFileName({ fileName, actionType }: {
+  fileName: Names["fileName"],
+  actionType: ActionType
+}) {
+  switch (actionType) {
     case "api":
       return fileName + "-api"
     case "form":
@@ -78,26 +82,30 @@ export function normalize(
   options: ActionGeneratorSchema
 ): NormalizedActionGeneratorSchema {
   // Set defaults
-  const normalized = normalizeCodeGenerator(options);
-  normalized.actionType ??= 'api';
-  normalized.useTypes = Boolean(normalized.useTypes);
-  normalized.useConstant = Boolean(normalized.useConstant);
-  normalized.useMapper = Boolean(normalized.useMapper);
-  normalized.outputFileName = handleOutputFileName(normalized);
-  normalized.exportPath = handleExportPath(normalized, "actions");
+  options.package ??= 'lib/actions'
+  options.actionType ??= 'api';
+  options.useTypes = Boolean(options.useTypes);
+  options.useConstant = Boolean(options.useConstant);
+  options.useMapper = Boolean(options.useMapper);
+  options.clientPackage ??= "@next-feature/client";
 
+  // normalize general options
+  const normalized = normalizeCodeGenerator(options);
+  
+  // normalized action specific schema
   const { method: httpMethod, noPrefix } = extractHttpMethod(
     normalized.names.name
   );
-
   const domain = names(noPrefix);
-  const methodName = normalized.names.propertyName;
   const endpoint = extractEndpoint(domain.fileName);
+  const methodName = normalized.names.propertyName;
   const hasRequestBody = ['post', 'put', 'patch'].includes(httpMethod);
   const mapperName = 'mapTo'.concat(normalized.names.className);
-
   const configImportPath = handleConfigImportPath(normalized)
-  const clientImportPath = normalized.clientPackage || "../config/client";
+
+  // finalize
+  normalized.outputFileName = asOutputFile({ file: domain.fileName });
+  normalized.exportPath = handleExportPath(normalized);
 
   return {
     ...normalized,
@@ -108,23 +116,9 @@ export function normalize(
     mapperName,
     domain,
     configImportPath,
-    clientImportPath,
   };
 }
 
-/**
- * Get file template path based on action type
- */
-export function getActionTemplatePath(
-  actionType: 'api' | 'db' | 'form'
-): string {
-  const paths: Record<string, string> = {
-    api: 'api',
-    db: 'db',
-    form: 'form',
-  };
-  return paths[actionType] || 'api';
-}
 
 /**
  * [extract-endpoint]

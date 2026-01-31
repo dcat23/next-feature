@@ -46,7 +46,7 @@
     "package": {
       "type": "string",
       "description": "Subdirectory within src/ where actions are created (default: 'lib' creates src/lib/actions/)",
-      "default": "lib"
+      "default": "lib/actions"
     },
     "directory": {
       "type": "string",

@@ -27,6 +27,7 @@ export const PREFIXES = [
   'post',
   'submit',
   'send',
+  'upload',
   /* PUT */
   'update',
   'edit',
@@ -35,6 +36,7 @@ export const PREFIXES = [
   /* PATCH */
   'patch',
   'set',
+  'toggle',
   /* DELETE */
   'delete',
   'remove',
@@ -76,6 +78,8 @@ export const RESPONSE_TYPES: Record<(typeof PREFIXES)[number], HttpMethod> = {
   use: 'get',
   with: 'get',
   start: 'post',
+  upload: "post",
+  toggle: "patch"
 };
 
 export const TYPE_IMPORT_SEPARATOR = ', ';

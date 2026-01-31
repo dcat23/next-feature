@@ -18,10 +18,7 @@
       "next-feature": ["next-feature/src/index.ts"],
       "@next-feature/client": ["clients/client/src/index.ts"],
       "@next-feature/client/server": ["clients/client/src/server.ts"],
-      "@next-feature/client/*": ["clients/client/src/*"],
-      "@next-feature/test": ["features/test/src/index.ts"],
-      "@next-feature/test/server": ["features/test/src/server.ts"],
-      "@next-feature/test/*": ["features/test/src/*"]
+      "@next-feature/client/*": ["clients/client/src/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]

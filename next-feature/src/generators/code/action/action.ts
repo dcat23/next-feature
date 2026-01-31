@@ -2,18 +2,17 @@ import {
   formatFiles,
   generateFiles,
   type GeneratorCallback,
+  logger,
   runTasksInSerial,
   Tree,
 } from '@nx/devkit';
+import { writeCodeFile } from 'next-feature/src/lib/write-file';
 import * as path from 'path';
-import type { ActionGeneratorSchema } from './schema';
-import { getActionTemplatePath, normalize } from './lib/utils';
-import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
 import { exportFile } from '../../../lib/export-file';
-import constantGenerator from '../constant/constant';
-import utilsGenerator from '../utility/utility';
-import dataTypeGenerator from '../data-type/data-type';
+import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
 import clientConfigGenerator from '../../misc/client-config/client-config';
+import { normalize } from './lib/utils';
+import type { ActionGeneratorSchema } from './schema';
 
 export async function actionGenerator(
   tree: Tree,
@@ -41,46 +40,56 @@ export async function actionGenerator(
   }
 
   // Generate main action file based on type
-  const templatePath = getActionTemplatePath(normalizedOptions.actionType);
-  generateFiles(
-    tree,
-    path.join(__dirname, 'files', 'src', templatePath),
-    directory,
-    normalizedOptions
-  );
-
-  if (normalizedOptions.useConstant) {
-    tasks.push(
-      await constantGenerator(tree, {
-        ...normalizedOptions,
-        name: normalizedOptions.name,
-        file: normalizedOptions.domain.fileName,
-        skipFormat: true,
-      })
+  const outputFile = path.join(directory, normalizedOptions.outputFileName);
+  logger.log({ outputFile, parsed: path.parse(outputFile) })
+  if (!tree.exists(outputFile)) {
+    generateFiles(
+      tree,
+      path.join(__dirname, 'files/src', normalizedOptions.actionType),
+      directory,
+      normalizedOptions
     );
   }
 
-  if (normalizedOptions.useMapper) {
-    tasks.push(
-      await utilsGenerator(tree, {
-        ...normalizedOptions,
-        name: normalizedOptions.mapperName,
-        file: normalizedOptions.domain.fileName,
-        skipFormat: true,
-      })
-    );
-  }
+  await writeCodeFile(
+      tree,
+      outputFile,
+      normalizedOptions,
+      () => "",
+    )
 
-  if (normalizedOptions.useTypes) {
-    tasks.push(
-      await dataTypeGenerator(tree, {
-        ...normalizedOptions,
-        name: normalizedOptions.domain.className,
-        file: normalizedOptions.domain.fileName,
-        skipFormat: true,
-      })
-    );
-  }
+  // if (normalizedOptions.useConstant) {
+  //   tasks.push(
+  //     await constantGenerator(tree, {
+  //       ...normalizedOptions,
+  //       name: normalizedOptions.name,
+  //       file: normalizedOptions.domain.fileName,
+  //       skipFormat: true,
+  //     })
+  //   );
+  // }
+
+  // if (normalizedOptions.useMapper) {
+  //   tasks.push(
+  //     await utilsGenerator(tree, {
+  //       ...normalizedOptions,
+  //       name: normalizedOptions.mapperName,
+  //       file: normalizedOptions.domain.fileName,
+  //       skipFormat: true,
+  //     })
+  //   );
+  // }
+
+  // if (normalizedOptions.useTypes) {
+  //   tasks.push(
+  //     await dataTypeGenerator(tree, {
+  //       ...normalizedOptions,
+  //       name: normalizedOptions.domain.className,
+  //       file: normalizedOptions.domain.fileName,
+  //       skipFormat: true,
+  //     })
+  //   );
+  // }
 
   if (normalizedOptions.export) {
     await exportFile(tree,

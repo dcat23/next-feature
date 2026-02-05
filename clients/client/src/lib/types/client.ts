@@ -8,7 +8,7 @@ import { InternalAxiosRequestConfig } from 'axios';
  * January 11th 2026, 9:00:22 pm
  */
 export interface ApiClientConfig {
-  baseURL?: string;
+  baseURL: string;
   timeout?: number;
   enableRefreshToken?: boolean;
   maxRetries?: number;

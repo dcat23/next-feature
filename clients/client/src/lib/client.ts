@@ -5,9 +5,9 @@ import axios, {
   AxiosResponse,
   InternalAxiosRequestConfig,
 } from 'axios';
-import { BACKEND_API_URL } from './config/env';
 import type { ApiClientConfig } from './types/client';
 import handleApiError from './utils/error';
+import { BACKEND_API_URL } from './config/env';
 
 // @ts-expect-error todo
 import packageJson from '../../package.json';

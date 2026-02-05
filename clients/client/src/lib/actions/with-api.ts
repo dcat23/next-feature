@@ -5,18 +5,17 @@ type WrapperFn<F extends (...args: unknown[]) => unknown> = (
   ...args: Parameters<F>
 ) => Promise<ApiResponse<ReturnType<F>>>;
 
-
 interface WithApiOptions<T> {
-  fallbackData?: T | null,
+  fallbackData?: T | null;
   successMessage?: string;
 }
 
 export const withApi = <F extends (...args: any[]) => any>(
   fn: F,
-  options?: WithApiOptions<ReturnType<F>>
+  options?: WithApiOptions<ReturnType<F>>,
 ): WrapperFn<F> => {
   options.fallbackData ??= null;
-  options.successMessage ??= "success";
+  options.successMessage ??= 'success';
 
   return async (...args: Parameters<F>) => {
     try {
@@ -35,5 +34,5 @@ export const withApi = <F extends (...args: any[]) => any>(
         success: false,
       };
     }
-  }
-}
+  };
+};

@@ -1,22 +1,22 @@
 import { ApiError } from '../error';
 import type { ApiResponse } from '../types';
 
-type WrapperFn<F extends (...args: unknown[]) => unknown> = (
+type WrapperFn<T, F extends (...args: unknown[]) => Promise<T> | T> = (
   ...args: Parameters<F>
-) => Promise<ApiResponse<ReturnType<F>>>;
-
+) => Promise<ApiResponse<T>>;
 
 interface WithApiOptions<T> {
-  fallbackData?: T | null,
+  fallbackData?: T | null;
   successMessage?: string;
 }
 
-export const withApi = <F extends (...args: any[]) => any>(
+export const withApi = <T, F extends (...args: any[]) => Promise<T>>(
   fn: F,
-  options?: WithApiOptions<ReturnType<F>>
-): WrapperFn<F> => {
+  options?: WithApiOptions<T>,
+): WrapperFn<T, F> => {
+  options ??= {};
   options.fallbackData ??= null;
-  options.successMessage ??= "success";
+  options.successMessage ??= 'success';
 
   return async (...args: Parameters<F>) => {
     try {
@@ -35,5 +35,5 @@ export const withApi = <F extends (...args: any[]) => any>(
         success: false,
       };
     }
-  }
-}
+  };
+};

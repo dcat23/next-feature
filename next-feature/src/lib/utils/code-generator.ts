@@ -69,7 +69,7 @@ export function normalizeCodeGenerator<T extends CodeGeneratorSchema = CodeGener
 
   const outputFileName = asOutputFile({ file: options.file, fileName: mutatedNames.fileName });
 
-  const exportPath = handleExportPath({ package: options.package, outputFileName: "index" });
+  const exportPath = handleExportPath({ package: options.package, outputFileName });
 
   return {
     tmpl: '',

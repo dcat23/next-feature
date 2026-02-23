@@ -58,6 +58,11 @@
       "description": "Target project name where action will be generated. Auto-creates feature if not found.",
       "alias": "p"
     },
+    "file": {
+      "type": "string",
+      "description": "Optional: Create or append constants to existing file instead of creating separate file",
+      "alias": "f"
+    },
     "useTypes": {
       "type": "boolean",
       "description": "Generate TypeScript type definitions in src/lib/types/ (default: true for API actions)",

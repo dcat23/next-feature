@@ -100,14 +100,18 @@ export function normalize(
   const domain = names(noPrefix);
   const endpoint = extractEndpoint(domain.fileName);
   const methodName = normalized.names.propertyName;
-  const hasRequestBody = ['post', 'put', 'patch'].includes(httpMethod);
+  const hasRequestBody = /(post|put|patch)/.test(httpMethod);
   const mapperName = 'mapTo'.concat(normalized.names.className);
   const configImportPath = handleConfigImportPath(normalized)
   const content = apiContent;
 
   // finalize
-  normalized.outputFileName = asOutputFile({ file: domain.fileName });
-  normalized.exportPath = handleExportPath(normalized);
+  if (!options.file) {
+    // sets file name to domain if file was not specified
+    normalized.outputFileName = asOutputFile({ file: domain.fileName });
+    // export path needs to be overidden with new ouputFileName
+    normalized.exportPath = handleExportPath(normalized);
+  }
 
   return {
     ...normalized,

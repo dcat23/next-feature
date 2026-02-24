@@ -4,13 +4,16 @@ import {
   type GeneratorCallback,
   logger,
   runTasksInSerial,
-  Tree,
+  Tree
 } from '@nx/devkit';
+import { Names, NormalizedCodeGeneratorSchema, ProjectGeneratorSchema } from 'next-feature/src/lib/types';
 import { writeCodeFile } from 'next-feature/src/lib/write-file';
 import * as path from 'path';
 import { exportFile } from '../../../lib/export-file';
 import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
 import clientConfigGenerator from '../../misc/client-config/client-config';
+import { HttpMethod } from './lib/constants';
+import { ActionType } from './lib/types';
 import { normalize } from './lib/utils';
 import type { ActionGeneratorSchema } from './schema';
 
@@ -21,6 +24,7 @@ export async function actionGenerator(
   const normalizedOptions = normalize(options);
   const tasks: GeneratorCallback[] = [];
 
+  logger.info(normalizedOptions);
   const { directory, projectName, sourceRoot } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
@@ -62,7 +66,7 @@ export async function actionGenerator(
   //     await constantGenerator(tree, {
   //       ...normalizedOptions,
   //       name: normalizedOptions.name,
-  //       file: normalizedOptions.domain.fileName,
+  //       file: normalizedOptions.outputFileName,
   //       skipFormat: true,
   //     })
   //   );
@@ -73,7 +77,7 @@ export async function actionGenerator(
   //     await utilsGenerator(tree, {
   //       ...normalizedOptions,
   //       name: normalizedOptions.mapperName,
-  //       file: normalizedOptions.domain.fileName,
+  //       file: normalizedOptions.outputFileName,
   //       skipFormat: true,
   //     })
   //   );
@@ -84,7 +88,7 @@ export async function actionGenerator(
   //     await dataTypeGenerator(tree, {
   //       ...normalizedOptions,
   //       name: normalizedOptions.domain.className,
-  //       file: normalizedOptions.domain.fileName,
+  //       file: normalizedOptions.outputFileName,
   //       skipFormat: true,
   //     })
   //   );
@@ -104,3 +108,7 @@ export async function actionGenerator(
 }
 
 export default actionGenerator;
+function utilsGenerator(tree: Tree, arg1: { name: string; file: string; skipFormat: boolean; domain: Names; httpMethod: HttpMethod; endpoint: string; methodName: string; hasRequestBody: boolean; mapperName?: string; configImportPath: string; content: (options: NormalizedCodeGeneratorSchema) => string; actionType: ActionType; useTypes?: boolean; useConstant?: boolean; useMapper?: boolean; clientPackage?: string; projectName: ProjectGeneratorSchema["name"]; export?: boolean; directory?: string; package?: string; tmpl: ""; names: Names; outputFileName: Names["fileName"]; exportPath: string; }): GeneratorCallback | PromiseLike<GeneratorCallback> {
+  throw new Error('Function not implemented.');
+}
+

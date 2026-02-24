@@ -1,6 +1,6 @@
 {
   "name": "@next-feature/client",
-  "version": "0.1.2-6",
+  "version": "0.1.2-10",
   "type": "module",
   "main": "./index.js",
   "types": "./index.d.ts",

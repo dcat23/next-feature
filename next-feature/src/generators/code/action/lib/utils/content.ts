@@ -14,7 +14,7 @@ ${options.hasRequestBody ? `const ${schema} = z.object({});` : ""}
 export type ${requestType} = ${options.hasRequestBody ? `z.infer<typeof ${schema}>;` : "{};"}
 export type ${responseType} = {};
 
-export async function ${options.methodName}(options?: ${requestType}): Promise<${responseType}> {
+export const ${options.methodName} = withApi(async (options?: ${requestType}) => {
   ${options.hasRequestBody ? `const parsed = ${schema}.safeParse(options);
 
   if (!parsed.success) {
@@ -24,9 +24,7 @@ export async function ${options.methodName}(options?: ${requestType}): Promise<$
   const params = new URLSearchParams();
   const endpoint = "/${options.endpoint}?" + params.toString();
   const response = await api.${options.httpMethod}<${responseType}>(endpoint${options.hasRequestBody ? ", parsed.data" : ""});
-
-  ${options.useMapper ? `return ${options.mapperName}(response);` : `return response;`}
-}
-export const ${options.methodName}Api = withApi(${options.methodName});
+  return ${options.useMapper ? `${options.mapperName}(response)` : "response"};
+}, {});
 `
 }

@@ -53,7 +53,6 @@ export class ApiError extends Error {
   }
 
   static of(error: Error | unknown): ApiError {
-    console.error('ApiError#of', error);
     return handleApiError(error);
   }
 }

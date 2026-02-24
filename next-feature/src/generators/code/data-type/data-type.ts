@@ -2,14 +2,14 @@ import {
   formatFiles,
   GeneratorCallback,
   runTasksInSerial,
-  Tree,
+  Tree
 } from '@nx/devkit';
-import { DataTypeGeneratorSchema } from './schema';
-import { dataTypeContent, normalize } from './lib/utils';
-import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
-import { exportFile } from '../../../lib/export-file';
-import { writeFile } from '../../../lib/write-file';
 import * as path from 'path';
+import { exportFile } from '../../../lib/export-file';
+import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
+import { writeFile } from '../../../lib/write-file';
+import { dataTypeContent, normalize } from './lib/utils';
+import { DataTypeGeneratorSchema } from './schema';
 
 export async function dataTypeGenerator(
   tree: Tree,

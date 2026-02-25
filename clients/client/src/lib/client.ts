@@ -3,6 +3,7 @@ import axios, {
   AxiosInstance,
   AxiosRequestConfig,
   AxiosResponse,
+  CreateAxiosDefaults,
   InternalAxiosRequestConfig,
 } from 'axios';
 import type { ApiClientConfig } from './types/client';
@@ -29,9 +30,9 @@ export class ApiClient {
   private readonly instance: AxiosInstance;
   private isRefreshing = false;
   private pendingRequests: PendingRequest[] = [];
-  private config: Required<ApiClientConfig>;
+  private config: ApiClientConfig;
 
-  constructor(config: ApiClientConfig) {
+  constructor(config: ApiClientConfig & Partial<CreateAxiosDefaults>) {
     this.config = {
       baseURL: BACKEND_API_URL,
       timeout: 30000,
@@ -39,20 +40,9 @@ export class ApiClient {
       maxRetries: 1,
       retryDelay: 1000,
       skipRefreshPaths: [],
-      onUnauthorized: async () => {
-        console.log(`[${name}] Unauthorized`);
-      },
-      onRefreshTokenExpired: async () => {
-        console.log('Refresh token expired');
-      },
-      onAuthenticated: async (config) => {
-        console.log(
-          `[${name}]`,
-          config.method?.toUpperCase(),
-          config.url,
-          config.data ?? '',
-        );
-      },
+      onUnauthorized: async () => {},
+      onRefreshTokenExpired: async () => {},
+      onAuthenticated: async (config) => {},
       onRefreshToken: async () => {
         return '';
       },
@@ -62,10 +52,7 @@ export class ApiClient {
     this.instance = axios.create({
       baseURL: this.config.baseURL,
       timeout: this.config.timeout,
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': `${name}:${version}`,
-      },
+      ...this.config
     });
 
     this.setupInterceptors();

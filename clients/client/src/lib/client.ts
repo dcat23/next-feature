@@ -3,7 +3,6 @@ import axios, {
   AxiosInstance,
   AxiosRequestConfig,
   AxiosResponse,
-  CreateAxiosDefaults,
   InternalAxiosRequestConfig,
 } from 'axios';
 import type { ApiClientConfig } from './types/client';
@@ -32,7 +31,7 @@ export class ApiClient {
   private pendingRequests: PendingRequest[] = [];
   private config: ApiClientConfig;
 
-  constructor(config: ApiClientConfig & Partial<CreateAxiosDefaults>) {
+  constructor(config: ApiClientConfig) {
     this.config = {
       baseURL: BACKEND_API_URL,
       timeout: 30000,
@@ -43,7 +42,7 @@ export class ApiClient {
       onUnauthorized: async () => {},
       onRefreshTokenExpired: async () => {},
       onAuthenticated: async (config) => {},
-      onRefreshToken: async () => {
+      onRefreshToken: async (originalRequest) => {
         return '';
       },
       ...config,
@@ -52,7 +51,6 @@ export class ApiClient {
     this.instance = axios.create({
       baseURL: this.config.baseURL,
       timeout: this.config.timeout,
-      ...this.config
     });
 
     this.setupInterceptors();
@@ -214,11 +212,7 @@ export class ApiClient {
     originalRequest: InternalAxiosRequestConfig<any> & { _retry?: boolean },
   ): Promise<string> {
     try {
-      const refreshToken = await this.config.onRefreshToken();
-      return await this.post<string>('/api/auth/refresh', {
-        refreshToken,
-        headers: originalRequest.headers,
-      });
+      return this.config.onRefreshToken(originalRequest);
     } catch (error) {
       console.error('Token refresh failed:', error);
       throw error;

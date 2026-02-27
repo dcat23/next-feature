@@ -7,7 +7,7 @@ import {
 import * as path from 'path';
 import type { ClientConfigGeneratorSchema } from './schema';
 import { normalize } from './lib/utils';
-import { NEXT_FEATURE_CLIENT_VERSION } from '../../../lib/constants/versions';
+import { PLUGIN_VERSION } from '../../../lib/constants/versions';
 import { updateDependencies } from '../../../lib/utils';
 
 /**
@@ -37,7 +37,7 @@ export async function clientConfigGenerator(
 
   // Add @next-feature/client dependency
   const dependencies: Record<string, string> = {
-    "@next-feature/client": NEXT_FEATURE_CLIENT_VERSION
+    "@next-feature/client": PLUGIN_VERSION
   };
 
   const dependenciesTask = updateDependencies(tree, dependencies, {});

@@ -24,13 +24,12 @@ const apiClient = new ApiClient({
   onAuthenticated: async (config) => {
     console.log("[<%= projectName %>-client]", config.method.toUpperCase(), config.url, config.data ?? "")
   },
-  onRefreshToken: async () => {
+  onRefreshToken: async (originalRequest) => {
     return '';
   },
   // timeout: 30000,
   // maxRetries: 3,
   // retryDelay: 1000
-  // baseUrl: process.env.BACKEND_API_URL
 });
 
 

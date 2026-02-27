@@ -2,7 +2,6 @@ import {
   formatFiles,
   generateFiles,
   type GeneratorCallback,
-  logger,
   runTasksInSerial,
   Tree
 } from '@nx/devkit';
@@ -24,7 +23,6 @@ export async function actionGenerator(
   const normalizedOptions = normalize(options);
   const tasks: GeneratorCallback[] = [];
 
-  logger.info(normalizedOptions);
   const { directory, projectName, sourceRoot } = await initializeCodeGenerator(
     tree,
     normalizedOptions,

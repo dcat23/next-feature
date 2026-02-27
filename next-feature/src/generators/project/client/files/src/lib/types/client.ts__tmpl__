@@ -23,5 +23,7 @@ export interface ApiClientConfig {
   ) => void | Promise<void>;
   onUnauthorized?: () => void | Promise<void>;
   onRefreshTokenExpired?: () => void | Promise<void>;
-  onRefreshToken?: () => string | Promise<string>;
+  onRefreshToken?: (
+    originalRequest: InternalAxiosRequestConfig
+  ) => string | Promise<string>;
 }

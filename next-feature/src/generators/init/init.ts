@@ -42,6 +42,7 @@ function updateDependencies(tree: Tree) {
       tree,
       {
         "lucide-react": LUCIDE_VERSION,
+        "@next-feature/client": PLUGIN_VERSION
       },
       {
         [PLUGIN_NAME]: PLUGIN_VERSION,

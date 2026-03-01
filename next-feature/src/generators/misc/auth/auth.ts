@@ -42,6 +42,11 @@ export async function authGenerator(tree: Tree, options: AuthGeneratorSchema) {
     outputFileName: "auth"
   }))
 
+  await exportFile(tree, sourceRoot, handleExportPath({
+    package: "lib/types",
+    outputFileName: "next-auth"
+  }))
+
   generateFiles(tree, path.join(__dirname, 'files/src'), sourceRoot, normalizedOptions);
 
   if (!options.skipFormat) await formatFiles(tree);

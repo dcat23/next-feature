@@ -22,3 +22,5 @@ declare module 'next-auth/jwt' {
     refreshToken: string;
   }
 }
+
+export type { User, Session, JWT }

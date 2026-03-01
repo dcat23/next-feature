@@ -9,11 +9,6 @@ import type { ApiClientConfig } from './types/client';
 import handleApiError from './utils/error';
 import { BACKEND_API_URL } from './config/env';
 
-// @ts-expect-error todo
-import packageJson from '../../package.json';
-
-const { name, version } = packageJson;
-
 /**
  * Pending request queue item
  */
@@ -338,7 +333,7 @@ export class ApiClient {
   /**
    * Get the underlying Axios instance for advanced usage
    */
-  getAxiosInstance(): AxiosInstance {
+  get axios(): AxiosInstance {
     return this.instance;
   }
 }

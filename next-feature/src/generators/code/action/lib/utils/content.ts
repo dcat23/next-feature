@@ -6,25 +6,37 @@ import { NormalizedActionGeneratorSchema } from "../types"
  * January 31st 2026, 2:17:33 pm
  */
 export function apiContent(options: NormalizedActionGeneratorSchema) {
+  const { hasRequestBody } = options; 
   const responseType = options.names.className + "Response";
   const requestType = options.names.className + "Request";
   const schema = options.names.propertyName + "Schema";
+  const useApi = /(api|form)/.test(options.actionType);
+  const useForm = options.actionType === 'form';
+  const formMapper = "parse" + requestType;
   return`
-${options.hasRequestBody ? `const ${schema} = z.object({});` : ""}
-export type ${requestType} = ${options.hasRequestBody ? `z.infer<typeof ${schema}>;` : "{};"}
+${hasRequestBody ? `const ${schema} = z.object({});` : ""}
+export type ${requestType} = ${hasRequestBody ? `z.infer<typeof ${schema}>;` : "{};"}
 export type ${responseType} = {};
 
-export const ${options.methodName} = withApi(async (options?: ${requestType}) => {
-  ${options.hasRequestBody ? `const parsed = ${schema}.safeParse(options);
+${useForm ? `function ${formMapper}(formData: FormData): ${requestType} {
+  return {};
+}`: ""}
+
+export const ${options.methodName} = ${useApi ? "withApi" : ""}(async (${useForm ? "formData: FormData" : `options?: ${requestType}`}) => {
+  ${useForm ? `const options = ${formMapper}(formData);` : ""}
+  ${hasRequestBody ? `const parsed = ${schema}.safeParse(options);
 
   if (!parsed.success) {
     throw parsed.error;
   }` : ""}
   
-  const params = new URLSearchParams();
+  ${!hasRequestBody ? `const params = new URLSearchParams();
   const endpoint = "/${options.endpoint}?" + params.toString();
-  const response = await api.${options.httpMethod}<${responseType}>(endpoint${options.hasRequestBody ? ", parsed.data" : ""});
+  ` : `const endpoint = "/${options.endpoint}";`}
+  const response = await api.${options.httpMethod}<${responseType}>(endpoint${hasRequestBody ? ", parsed.data" : ""});
   return ${options.useMapper ? `${options.mapperName}(response)` : "response"};
-}, {});
+}${useApi ? ", {}": ""});
+
+${useForm ? `export const ${options.methodName}Action = withForm(${options.methodName})` : ""}
 `
 }

@@ -1,4 +1,5 @@
 import { HttpStatusCode } from "axios";
+import { ApiError } from '../error';
 
 /**
  * [api-response]
@@ -8,7 +9,7 @@ import { HttpStatusCode } from "axios";
 export interface ApiResponse<Response> {
   success?: boolean;
   message?: string;
-  error?: ProblemDetail;
+  error?: ApiError;
   data: Response;
 }
 

@@ -61,7 +61,10 @@ function handleConfigImportPath(options: ActionGeneratorSchema) {
   ].join("/");
 }
 
-
+/**
+ * @deprecated unified files
+ * @returns 
+ */
 function handleOutputFileName({ fileName, actionType }: {
   fileName: Names["fileName"],
   actionType: ActionType
@@ -134,6 +137,7 @@ export function normalize(
  */
 export function extractEndpoint(text: string) {
   return names(text).fileName.split(/-/)
+    .reverse()
     .map(pluralize)
     .join("/")
 }

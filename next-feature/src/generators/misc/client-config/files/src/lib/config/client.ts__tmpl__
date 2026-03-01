@@ -1,6 +1,7 @@
 import { ApiClient, type ApiResponse, ApiError } from '<%= clientImportPath %>';
-import type { InternalAxiosRequestConfig } from 'axios';
 import { BACKEND_API_URL } from "./env"
+const json = require("../../../package.json");
+
 /**
  * Centralized API client configuration
  *
@@ -10,8 +11,6 @@ import { BACKEND_API_URL } from "./env"
  * - Default headers
  * - Authentication handling
  */
-
-
 const apiClient = new ApiClient({
   baseURL: BACKEND_API_URL,
   enableRefreshToken: false,
@@ -31,6 +30,9 @@ const apiClient = new ApiClient({
   // maxRetries: 3,
   // retryDelay: 1000
 });
+
+apiClient.axios.defaults.headers.common['User-Agent'] = [json.name, json.version].join(":")
+apiClient.axios.defaults.headers.common['Content-Type'] = "application/json";
 
 
 /**

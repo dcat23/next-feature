@@ -28,10 +28,21 @@ export function withApi<F extends (...args: any[]) => Promise<any>>(
       const apiError = ApiError.of(e);
       return {
         data: opts.fallbackData,
-        error: apiError.body,
+        error: apiError,
         message: apiError.message,
         success: false,
       };
     }
   };
+}
+
+export function withForm<State>(
+  fn: (formData: FormData) => Promise<ApiResponse<State>>
+) {
+  return async (prevState: Awaited<ApiResponse<State>>, formData: FormData) => {
+    const response = await fn(formData);
+    return (response.error || !response.success)
+      ? { ...response, data: prevState.data }
+      : response;
+  }
 }

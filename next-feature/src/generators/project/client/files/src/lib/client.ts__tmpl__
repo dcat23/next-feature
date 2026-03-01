@@ -334,7 +334,7 @@ export class ApiClient {
   /**
    * Get the underlying Axios instance for advanced usage
    */
-  getAxiosInstance(): AxiosInstance {
+  get axios(): AxiosInstance {
     return this.instance;
   }
 }

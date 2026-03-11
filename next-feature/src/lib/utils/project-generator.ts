@@ -1,12 +1,9 @@
+import { joinPathFragments } from '@nx/devkit';
+import * as path from 'path';
 import {
   NormalizedProjectGeneratorSchema,
   ProjectGeneratorSchema,
 } from '../types';
-import * as path from 'path';
-import { NormalizedClientGeneratorSchema } from '../../generators/project/client/schema';
-import { Linter } from '@nx/eslint';
-import { libraryGenerator } from '@nx/next';
-import { joinPathFragments, Tree } from '@nx/devkit';
 import { pluralize, singularize } from './string';
 
 /**

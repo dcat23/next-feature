@@ -75,7 +75,10 @@
   "release": {
     "version": {
       "preVersionCommand": "pnpm dlx nx run-many -t build",
-      "manifestRootsToUpdate": ["{projectRoot}", "dist/{projectRoot}"]
+      "manifestRootsToUpdate": [
+        "{projectRoot}",
+        "dist/{projectRoot}"
+      ]
     }
   },
   "plugins": [

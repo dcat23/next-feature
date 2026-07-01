@@ -1,5 +1,5 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
-import { Tree, readProjectConfiguration } from '@nx/devkit';
+import { Tree, readJson, readProjectConfiguration } from '@nx/devkit';
 import { applicationGenerator } from './application';
 import { ApplicationGeneratorSchema } from './schema';
 describe('application generator', () => {
@@ -12,5 +12,60 @@ describe('application generator', () => {
     await applicationGenerator(tree, options);
     const config = readProjectConfiguration(tree, 'test');
     expect(config).toBeDefined();
+  });
+
+  describe('useAuth option', () => {
+    it('should not generate the auth route or feature by default', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      expect(tree.exists('apps/test/app/api/auth/[...nextauth]/route.ts')).toBeFalsy();
+      expect(() => readProjectConfiguration(tree, 'auth')).toThrow();
+    });
+
+    it('should not require next-auth by default', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.['next-auth']).toBeUndefined();
+    });
+
+    it('should generate the auth route handler when useAuth is true', async () => {
+      await applicationGenerator(tree, { name: 'test', useAuth: true });
+      const route = tree.read('apps/test/app/api/auth/[...nextauth]/route.ts', 'utf-8');
+      expect(route).toContain("from '@feature/auth'");
+    });
+
+    it('should wrap providers with SessionProvider when useAuth is true', async () => {
+      await applicationGenerator(tree, { name: 'test', useAuth: true });
+      const providers = tree.read('apps/test/app/providers.tsx', 'utf-8');
+      expect(providers).toContain('SessionProvider');
+    });
+
+    it('should not wrap providers with SessionProvider by default', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const providers = tree.read('apps/test/app/providers.tsx', 'utf-8');
+      expect(providers).not.toContain('SessionProvider');
+    });
+
+    it('should create a sibling @feature/auth library when missing', async () => {
+      await applicationGenerator(tree, { name: 'test', useAuth: true });
+      const config = readProjectConfiguration(tree, 'auth');
+      expect(config.root).toBe('features/auth');
+      expect(tree.exists('features/auth/src/lib/auth/index.ts')).toBeTruthy();
+    });
+
+    it('should not recreate the auth library if one already exists', async () => {
+      await applicationGenerator(tree, { name: 'first', useAuth: true });
+      tree.write('features/auth/src/lib/auth/index.ts', '// customized by user');
+      await applicationGenerator(tree, { name: 'second', useAuth: true });
+      expect(tree.read('features/auth/src/lib/auth/index.ts', 'utf-8')).toContain('// customized by user');
+    });
+
+    it('should add next-auth dependency and auth env vars when useAuth is true', async () => {
+      await applicationGenerator(tree, { name: 'test', useAuth: true });
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.['next-auth']).toBeDefined();
+      const dotenv = tree.read('apps/test/.env', 'utf-8');
+      expect(dotenv).toContain('AUTH_SECRET');
+      expect(dotenv).toContain('NEXTAUTH_URL');
+    });
   });
 });

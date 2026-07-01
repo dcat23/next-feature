@@ -96,6 +96,11 @@ describe('feature generator', () => {
       const normalized = normalizeFeatureGenerator({ name: 'apiClient', type: 'client', orgName: 'myorg' });
       expect(normalized.importPath).toBe('@myorg/apiClient');
     });
+
+    it('should set type to auth when name is auth and type is not specified', () => {
+      const normalized = normalizeFeatureGenerator({ name: 'auth' });
+      expect(normalized.type).toBe('auth');
+    });
   });
 
   describe('generic type', () => {
@@ -259,6 +264,85 @@ describe('feature generator', () => {
       await featureGenerator(tree, { name: 'client', skipFormat: true });
       expect(tree.exists('features/client/src/lib/client.ts')).toBeTruthy();
       expect(tree.exists('features/client/src/lib/error.ts')).toBeTruthy();
+    });
+  });
+
+  describe('auth type', () => {
+    const options: FeatureGeneratorSchema = { name: 'auth', type: 'auth', skipFormat: true };
+
+    it('should generate auth files', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/auth/src/lib/auth/index.ts')).toBeTruthy();
+      expect(tree.exists('features/auth/src/lib/auth/auth.config.ts')).toBeTruthy();
+      expect(tree.exists('features/auth/src/lib/auth/callbacks.ts')).toBeTruthy();
+      expect(tree.exists('features/auth/src/lib/types/next-auth.d.ts')).toBeTruthy();
+    });
+
+    it('should not generate logging, base, or client files', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/auth/src/config.ts')).toBeFalsy();
+      expect(tree.exists('features/auth/src/components/error-component.tsx')).toBeFalsy();
+      expect(tree.exists('features/auth/src/lib/client.ts')).toBeFalsy();
+    });
+
+    it('should add the next-auth dependency', async () => {
+      await featureGenerator(tree, options);
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.['next-auth']).toBeDefined();
+    });
+
+    it('should assemble callbacks as named methods in auth.config.ts', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/auth/src/lib/auth/auth.config.ts', 'utf-8');
+      expect(content).toContain("import { authorized, jwt, redirect, session } from './callbacks'");
+      expect(content).toContain('callbacks: {\n    authorized,\n    jwt,\n    session,\n    redirect,\n  }');
+    });
+
+    it('should export named callback functions from callbacks.ts', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/auth/src/lib/auth/callbacks.ts', 'utf-8');
+      expect(content).toContain('export const jwt');
+      expect(content).toContain('export const session');
+      expect(content).toContain('export const redirect');
+      expect(content).toContain('export const authorized');
+    });
+
+    it('should have index.ts spread authConfig and only define providers', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/auth/src/lib/auth/index.ts', 'utf-8');
+      expect(content).toContain('...authConfig');
+      expect(content).toContain('providers: [');
+      expect(content).not.toContain('callbacks:');
+    });
+
+    it('should include common OAuth providers alongside credentials', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/auth/src/lib/auth/index.ts', 'utf-8');
+      expect(content).toContain("from 'next-auth/providers/github'");
+      expect(content).toContain("from 'next-auth/providers/google'");
+      expect(content).toContain("from 'next-auth/providers/discord'");
+      expect(content).toContain("from 'next-auth/providers/facebook'");
+      expect(content).toContain('CredentialsProvider');
+    });
+
+    it('should export authConfig and augmented types from the root index.ts', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/auth/src/index.ts', 'utf-8');
+      expect(content).toContain("export { authConfig } from './lib/auth/auth.config'");
+      expect(content).toContain("export type { JWT, Session, User } from './lib/types/next-auth'");
+    });
+
+    it('should export the server-only NextAuth instance from server.ts', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/auth/src/server.ts', 'utf-8');
+      expect(content).toContain("export { auth, handlers, signIn, signOut } from './lib/auth'");
+    });
+  });
+
+  describe('auth name inference', () => {
+    it('should infer auth type from name auth', async () => {
+      await featureGenerator(tree, { name: 'auth', skipFormat: true });
+      expect(tree.exists('features/auth/src/lib/auth/index.ts')).toBeTruthy();
     });
   });
 

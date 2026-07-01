@@ -10,7 +10,7 @@ NextFeature is an Nx workspace containing a **generator plugin ecosystem** that 
 - **@next-feature/client** - API client library with error handling and utilities
 - **create-next-feature** - CLI tool for creating new NextFeature workspaces
 
-The plugin provides generators for creating projects, server actions (API, form, database), components, stores, and configurations (auth, client-config).
+The plugin provides generators for creating projects, server actions (API, form, database), components, stores, and configurations (client-config).
 
 Key technologies:
 - **Nx 22.0.3** - Monorepo framework
@@ -58,9 +58,8 @@ The plugin follows an Nx plugin structure with generators organized by category:
 ### Generator Categories
 
 **Project Generators** (`src/generators/project/`)
-- `feature` - Creates a feature project with Next.js library
+- `feature` - Creates a feature project with Next.js library. The `type` option selects scaffolding: `generic` (default), `base`, `logging`, `client` (API client library with error handling), or `auth` (NextAuth.js configuration)
 - `application` - Creates a Next.js application
-- `client` - Creates an API client library with error handling
 
 **Code Generators** (`src/generators/code/`)
 - `action` - Generates Next.js server actions (API, form, or database operations) with client integration
@@ -72,7 +71,6 @@ The plugin follows an Nx plugin structure with generators organized by category:
 
 **Misc Generators** (`src/generators/misc/`)
 - `client-config` - Creates centralized API client configuration (auto-invoked by action generator)
-- `auth` - Adds NextAuth configuration
 - `axios` - Adds axios HTTP client setup
 
 **Tool Generators** (`src/generators/tool/`)
@@ -143,7 +141,8 @@ All generators follow a consistent pattern:
 Generators can invoke other generators via `runTasksInSerial()`:
 - Action generator auto-creates client-config if it doesn't exist
 - Action generator can chain data-type, constant, and utility generators based on options
-- Feature generator chains auth and axios setup
+- Feature generator chains axios setup when `useAxios` is set
+- Application generator chains axios setup when `useAxios` is set, and creates a sibling `auth`-type feature (if missing) when `useAuth` is set
 - This avoids duplication and ensures consistent setup
 
 **Important:** When chaining generators, pass `skipFormat: true` to avoid multiple formatting passes.
@@ -237,7 +236,7 @@ Package manager: `pnpm` (use `pnpm install`, not npm or yarn)
 1. Create directory in `src/generators/project/[name]/`
 2. Create `schema.json` with options (extend `ProjectGeneratorSchema`)
 3. Use `initializeProjectGenerator()` to set up Nx configuration
-4. Chain other generators as needed (auth, axios, etc.)
+4. Chain other generators as needed (axios, etc.)
 5. Update `nx.json` generators section with default `orgName`
 
 **Updating generated code templates:**

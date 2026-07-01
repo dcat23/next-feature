@@ -15,11 +15,6 @@
       "schema": "./src/generators/project/feature/schema.json",
       "description": "feature generator"
     },
-    "auth": {
-      "factory": "./src/generators/misc/auth/auth",
-      "schema": "./src/generators/misc/auth/schema.json",
-      "description": "auth generator"
-    },
     "preset": {
       "factory": "./src/generators/preset/preset",
       "schema": "./src/generators/preset/schema.json",

@@ -21,6 +21,7 @@ export function normalizeFeatureGenerator(
   if (type === 'generic') {
     switch (normalized.name) {
       case 'client':
+      case 'auth':
       case 'base':
       case 'logging':
         type = normalized.name;

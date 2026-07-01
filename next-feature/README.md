@@ -8,7 +8,7 @@ The next-feature plugin provides a complete set of generators organized into cat
 
 - **Project Generators** - Create feature libraries and applications
 - **Code Generators** - Generate individual code elements (APIs, components, stores, etc.)
-- **Configuration Generators** - Setup infrastructure (auth, client config, axios, etc.)
+- **Configuration Generators** - Setup infrastructure (client config, axios, etc.)
 - **Tool Generators** - Workspace utilities
 
 ## Quick Reference
@@ -16,7 +16,7 @@ The next-feature plugin provides a complete set of generators organized into cat
 ### Project Generators
 
 ```bash
-# Create a feature library with auth and client setup
+# Create a feature library
 npx nx g next-feature:feature --name=users
 
 # Create a Next.js application
@@ -24,6 +24,9 @@ npx nx g next-feature:application --name=myapp
 
 # Create an API client library
 npx nx g next-feature:feature --name=apiClient --type=client
+
+# Create a NextAuth.js configuration library
+npx nx g next-feature:feature --name=auth --type=auth
 ```
 
 ### Code Generators
@@ -53,9 +56,6 @@ npx nx g next-feature:utility --name=userHelpers --projectName=users
 ```bash
 # Centralized API client configuration (auto-invoked by action generator)
 npx nx g next-feature:client-config --projectName=users
-
-# NextAuth.js authentication setup
-npx nx g next-feature:auth --projectName=users
 
 # Axios HTTP client configuration
 npx nx g next-feature:axios --projectName=users
@@ -177,11 +177,8 @@ editor apps/products/src/lib/client/config.ts
 ### Workflow: Setup Authentication
 
 ```bash
-# Create auth feature
+# Create the auth feature library (type is inferred from the name)
 npx nx g next-feature:feature --name=auth
-
-# Add NextAuth setup
-npx nx g next-feature:auth --projectName=auth
 
 # Create login action
 npx nx g next-feature:action --name=login --actionType=form --projectName=auth
@@ -290,7 +287,7 @@ npx nx g next-feature:feature --name=users [options]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| --type | enum | "generic" | Type: generic, base, logging, or client |
+| --type | enum | "generic" | Type: generic, base, logging, client, or auth |
 | --orgName | string | - | Scoped organization name |
 | --useAxios | boolean | false | Chain the axios generator (lib/axios/) into the feature |
 

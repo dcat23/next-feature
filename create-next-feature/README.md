@@ -236,7 +236,6 @@ npm run nx -- g next-feature:utility --name=userHelpers --projectName=users
 
 ```bash
 npm run nx -- g next-feature:client-config --projectName=users
-npm run nx -- g next-feature:auth --projectName=users
 npm run nx -- g next-feature:axios --projectName=users
 ```
 
@@ -329,16 +328,13 @@ npm run nx -- g next-feature:constant --name=userEndpoints --projectName=api
 ### Workflow 2: Full-Stack with Auth
 
 ```bash
-# 1. Create auth feature
+# 1. Create the auth feature library (type is inferred from the name)
 npm run nx -- g next-feature:feature --name=auth
 
-# 2. Add NextAuth setup
-npm run nx -- g next-feature:auth --projectName=auth
-
-# 3. Create login action
+# 2. Create login action
 npm run nx -- g next-feature:action --name=login --actionType=form --projectName=auth
 
-# 4. Create user store
+# 3. Create user store
 npm run nx -- g next-feature:store --name=authStore --projectName=auth
 
 # 5. Create protected pages

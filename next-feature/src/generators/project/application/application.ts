@@ -1,12 +1,14 @@
 import {
   generateFiles,
   type GeneratorCallback,
+  readProjectConfiguration,
   runTasksInSerial,
   Tree,
 } from '@nx/devkit';
 import { applicationGenerator as nextApplicationGenerator } from '@nx/next';
 import * as path from 'path';
 import {
+  NEXTAUTH_VERSION,
   SONNER_VERSION,
   TAILWIND_VERSION,
   TANSTACK_VERSION,
@@ -15,8 +17,8 @@ import {
 import { writeToDotenv } from '../../../lib/dotenv/dot-env';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { updateDependencies } from '../../../lib/utils';
-import authGenerator from '../../misc/auth/auth';
 import axiosGenerator from '../../misc/axios/axios';
+import featureGenerator from '../feature/feature';
 import { ApplicationGeneratorSchema } from './schema';
 import { generateSecret } from './utils';
 import { normalizeApplicationGeneratorSchema } from './utils/normalize';
@@ -70,12 +72,6 @@ export async function applicationGenerator(
     'tailwindcss': TAILWIND_VERSION
   };
 
-  writeToDotenv(tree, { projectRoot, section: "auth" }, {
-    NEXTAUTH_URL: "http://localhost:4200",
-    NEXT_PUBLIC_ROOT_DOMAIN: "localhost:4200",
-    AUTH_SECRET: generateSecret(),
-  });
-
   writeWildCardPathToTsConfig(tree, importPath, sourceRoot);
 
   if (normalizedOptions.useAxios) {
@@ -88,14 +84,33 @@ export async function applicationGenerator(
   }
 
   if (normalizedOptions.useAuth) {
-    tasks.push(
-      await authGenerator(tree, {
-        name: normalizedOptions.name,
-        projectName: normalizedOptions.name,
-        directory: normalizedOptions.directory,
-        skipFormat: true,
-      })
+    // Route handler + SessionProvider wiring that expects a sibling `@feature/auth` library.
+    generateFiles(
+      tree,
+      path.join(__dirname, 'files/auth'),
+      sourceRoot,
+      normalizedOptions
     );
+
+    dependencies['next-auth'] = NEXTAUTH_VERSION;
+
+    writeToDotenv(tree, { projectRoot, section: "auth" }, {
+      NEXTAUTH_URL: "http://localhost:4200",
+      NEXT_PUBLIC_ROOT_DOMAIN: "localhost:4200",
+      AUTH_SECRET: generateSecret(),
+    });
+
+    try {
+      readProjectConfiguration(tree, 'auth');
+    } catch {
+      tasks.push(
+        await featureGenerator(tree, {
+          name: 'auth',
+          type: 'auth',
+          skipFormat: true,
+        })
+      );
+    }
   }
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies));

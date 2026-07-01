@@ -2,7 +2,7 @@ import type { GeneratorCallback } from '@nx/devkit';
 import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
 import { libraryGenerator } from '@nx/next';
 import * as path from 'path';
-import { AXIOS_VERSION, PINO_HTTP_VERSION, PINO_PRETTY_VERSION, PINO_VERSION, SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
+import { AXIOS_VERSION, NEXTAUTH_VERSION, PINO_HTTP_VERSION, PINO_PRETTY_VERSION, PINO_VERSION, SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { initializeProjectGenerator, updateDependencies } from '../../../lib/utils';
 import axiosGenerator from '../../misc/axios/axios';
@@ -53,6 +53,8 @@ export async function featureGenerator(
     devDependencies['pino-pretty'] = PINO_PRETTY_VERSION;
   } else if (type === 'client') {
     dependencies['axios'] = AXIOS_VERSION;
+  } else if (type === 'auth') {
+    dependencies['next-auth'] = NEXTAUTH_VERSION;
   }
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies))

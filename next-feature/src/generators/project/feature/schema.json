@@ -31,10 +31,15 @@
     },
     "type": {
       "type": "string",
-      "description": "Type of feature library to create. 'base' includes base components and logging, 'logging' includes only logging config, 'generic' is a plain feature library.",
-      "enum": ["base", "logging", "generic"],
+      "description": "Type of feature library to create. 'base' includes base components and logging, 'logging' includes only logging config, 'client' creates a reusable API client library with error handling and utilities, 'generic' is a plain feature library.",
+      "enum": ["base", "logging", "client", "generic"],
       "default": "generic",
       "alias": "t"
+    },
+    "useAxios": {
+      "type": "boolean",
+      "description": "Setup Axios HTTP client with interceptors in lib/axios/ for API requests",
+      "default": false
     },
     "skipFormat": {
       "type": "boolean",

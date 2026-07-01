@@ -17,21 +17,20 @@ export function normalizeFeatureGenerator(
   const normalized = normalizeProjectGeneratorSchema(options, "feature");
   const apiKeyName = asApiKeyName(options.name)
 
-  let type: FeatureType = options.type ?? 'generic';
+  let type: FeatureType = normalized.type ?? 'generic';
   if (type === 'generic') {
-    switch (options.name) {
+    switch (normalized.name) {
+      case 'client':
       case 'base':
       case 'logging':
-        type = options.name;
+        type = normalized.name;
         break;
     }
   }
 
-
   return {
     ...normalized,
-    directory: normalized.directory as string,
     apiKeyName,
-    type
+    type,
   };
 }

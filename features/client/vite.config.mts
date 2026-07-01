@@ -8,7 +8,7 @@ import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
-  cacheDir: '../../node_modules/.vite/clients/client',
+  cacheDir: '../../node_modules/.vite/features/client',
   plugins: [
     react(),
     nxViteTsPaths(),
@@ -26,7 +26,7 @@ export default defineConfig(() => ({
   // Configuration for building your library.
   // See: https://vite.dev/guide/build.html#library-mode
   build: {
-    outDir: '../../dist/clients/client',
+    outDir: '../../dist/features/client',
     emptyOutDir: true,
     reportCompressedSize: true,
     commonjsOptions: {

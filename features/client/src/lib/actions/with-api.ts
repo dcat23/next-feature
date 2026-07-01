@@ -37,12 +37,12 @@ export function withApi<F extends (...args: any[]) => Promise<any>>(
 }
 
 export function withForm<State>(
-  fn: (formData: FormData) => Promise<ApiResponse<State>>
+  fn: (formData: FormData) => Promise<ApiResponse<State>>,
 ) {
   return async (prevState: Awaited<ApiResponse<State>>, formData: FormData) => {
     const response = await fn(formData);
-    return (response.error || !response.success)
+    return response.error || !response.success
       ? { ...response, data: prevState.data }
       : response;
-  }
+  };
 }

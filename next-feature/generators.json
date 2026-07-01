@@ -5,10 +5,10 @@
       "schema": "./src/generators/init/schema.json",
       "description": "init generator"
     },
-    "axios": {
-      "factory": "./src/generators/misc/axios/axios",
-      "schema": "./src/generators/misc/axios/schema.json",
-      "description": "axios generator"
+    "dotenv": {
+      "factory": "./src/generators/misc/dotenv/dotenv",
+      "schema": "./src/generators/misc/dotenv/schema.json",
+      "description": "dotenv generator"
     },
     "feature": {
       "factory": "./src/generators/project/feature/feature",

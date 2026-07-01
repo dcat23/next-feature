@@ -60,6 +60,6 @@ async function createNodesInternal(
 }
 
 export { initGenerator as featureInitGenerator } from "./generators/init/init"
-export { axiosGenerator as featureAxiosGenerator } from "./generators/misc/axios/axios"
+export { dotenvGenerator as featureDotenvGenerator } from "./generators/misc/dotenv/dotenv"
 export { presetGenerator as featurePresetGenerator } from "./generators/preset/preset"
 export * as constants from "./lib/constants"

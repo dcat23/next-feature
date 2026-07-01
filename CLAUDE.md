@@ -71,7 +71,7 @@ The plugin follows an Nx plugin structure with generators organized by category:
 
 **Misc Generators** (`src/generators/misc/`)
 - `client-config` - Creates centralized API client configuration (auto-invoked by action generator)
-- `axios` - Adds axios HTTP client setup
+- `dotenv` - Creates, updates, or removes environment variables across a project's `.env*` files, optionally syncing the same change to other projects, and keeps `lib/config/env.ts`'s zod schema/accessors in sync (see `src/lib/dotenv/`)
 
 **Tool Generators** (`src/generators/tool/`)
 - `copy-deps` - Copies dependencies between projects
@@ -89,7 +89,11 @@ The plugin follows an Nx plugin structure with generators organized by category:
 **Project Generator Utilities** (`src/lib/utils/index.ts`)
 - `initializeProjectGenerator()` - Initializes project generators and updates Nx configuration.
 - `updateDependencies()` - Updates package.json dependencies.
-- `addToGitignore()` - Adds entries to .gitignore files.
+- `addToGitignore()` - Adds entries to .gitignore files (idempotent - safe to call repeatedly).
+
+**Dotenv Utilities** (`src/lib/dotenv/`)
+- `updateDotenv()` / `syncDotenv()` (`dot-env.ts`) - Set/unset vars across a project's (or multiple projects') `.env`/`.env.example`/`.env.<suffix>` files, grouped under `### SECTION ###` headers, preserving comments/blank lines. Non-`.env.example` files touched this way are auto-gitignored.
+- `updateEnvConfig()` (`env-config.ts`) - Keeps a project's `lib/config/env.ts` zod schema and `process.env` accessors in sync with the same key set, via `/* schema start/end */` and `/* vars start/end */` markers. The schema property, exported accessor, and `.env` key are always the same name (e.g. `USERS_API_URL`). Called by `feature`/`application`/`client-config` generators directly, and exposed as a standalone generator via `misc/dotenv`.
 
 **Client Library** (`clients/client/src/`)
 - `ApiError` - Custom error class with status helpers (isUnauthorized, isNotFound, etc.)
@@ -141,8 +145,8 @@ All generators follow a consistent pattern:
 Generators can invoke other generators via `runTasksInSerial()`:
 - Action generator auto-creates client-config if it doesn't exist
 - Action generator can chain data-type, constant, and utility generators based on options
-- Feature generator chains axios setup when `useAxios` is set
-- Application generator chains axios setup when `useAxios` is set, and creates a sibling `auth`-type feature (if missing) when `useAuth` is set
+- Feature generator adds the axios dependency and registers a `<NAME>_API_URL` var (in `.env`/`.env.example` and `lib/config/env.ts`) when `env` is set
+- Application generator does the same when `env` is set, and creates a sibling `auth`-type feature (if missing) when `useAuth` is set
 - This avoids duplication and ensures consistent setup
 
 **Important:** When chaining generators, pass `skipFormat: true` to avoid multiple formatting passes.
@@ -236,7 +240,7 @@ Package manager: `pnpm` (use `pnpm install`, not npm or yarn)
 1. Create directory in `src/generators/project/[name]/`
 2. Create `schema.json` with options (extend `ProjectGeneratorSchema`)
 3. Use `initializeProjectGenerator()` to set up Nx configuration
-4. Chain other generators as needed (axios, etc.)
+4. Chain other generators as needed (dotenv, etc.)
 5. Update `nx.json` generators section with default `orgName`
 
 **Updating generated code templates:**

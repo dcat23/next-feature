@@ -10,7 +10,7 @@ export interface FeatureGeneratorSchema extends ProjectGeneratorSchema {
   directory?: "features" | string;
   orgName?: "feature" | string;
   type?: FeatureType;
-  useAxios?: boolean;
+  env?: boolean;
 }
 
 export interface NormalizedFeatureGeneratorSchema extends NormalizedProjectGeneratorSchema<FeatureGeneratorSchema> {

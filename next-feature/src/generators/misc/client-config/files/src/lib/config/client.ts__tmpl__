@@ -1,5 +1,5 @@
 import { ApiClient, type ApiResponse, ApiError } from '<%= clientImportPath %>';
-import { BACKEND_API_URL } from "./env"
+import { <%= apiKeyName %> } from "./env"
 // import { logger } from '@next-feature/logging/server';
 
 // const log = logger.child({ module: '<%= projectName %>-client' });
@@ -15,7 +15,7 @@ import { BACKEND_API_URL } from "./env"
  * - Authentication handling
  */
 const apiClient = new ApiClient({
-  baseURL: BACKEND_API_URL,
+  baseURL: <%= apiKeyName %>,
   onAuthenticated: async (config) => {
     // log.info(`${config.method.toUpperCase()} ${config.url} ${config.data ?? ""}`)
   }

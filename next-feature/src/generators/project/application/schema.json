@@ -23,10 +23,11 @@
       },
       "alias": "d"
     },
-    "useAxios": {
+    "env": {
       "type": "boolean",
-      "description": "Setup Axios HTTP client with interceptors in lib/axios/ for API requests",
-      "default": false
+      "description": "Add the axios dependency and register a <NAME>_API_URL variable in this app's .env/.env.example",
+      "default": false,
+      "alias": "e"
     },
     "useAuth": {
       "type": "boolean",

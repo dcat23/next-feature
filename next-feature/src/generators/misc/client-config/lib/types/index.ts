@@ -5,6 +5,7 @@ export interface NormalizedClientConfigGeneratorSchema
   projectPath: string;
   sourceRoot: string;
   clientImportPath: string;
+  apiKeyName: string;
 }
 
 export type { ClientConfigGeneratorSchema };

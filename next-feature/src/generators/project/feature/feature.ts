@@ -3,12 +3,14 @@ import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
 import { libraryGenerator } from '@nx/next';
 import * as path from 'path';
 import { AXIOS_VERSION, NEXTAUTH_VERSION, PINO_HTTP_VERSION, PINO_PRETTY_VERSION, PINO_VERSION, SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
+import { updateDotenv } from '../../../lib/dotenv/dot-env';
+import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { initializeProjectGenerator, updateDependencies } from '../../../lib/utils';
-import axiosGenerator from '../../misc/axios/axios';
 import { FeatureGeneratorSchema } from './schema';
 import { updatePackageJsonExports } from './utils';
 import { normalizeFeatureGenerator } from './utils/normalize';
+import { dotenvGenerator } from '../../misc/dotenv/dotenv';
 
 export async function featureGenerator(
   tree: Tree,
@@ -35,7 +37,7 @@ export async function featureGenerator(
 
   tasks.push(await initializeProjectGenerator(tree, normalizedOptions, "feature"))
 
-  const { sourceRoot, importPath, type } = normalizedOptions;
+  const { sourceRoot, importPath, type, projectRoot, apiKeyName } = normalizedOptions;
 
   writeWildCardPathToTsConfig(tree, importPath, sourceRoot);
 
@@ -76,13 +78,15 @@ export async function featureGenerator(
     );
   }
 
-  if (normalizedOptions.useAxios) {
-    tasks.push(await axiosGenerator(tree, {
-      name: normalizedOptions.name,
+  if (normalizedOptions.env) {
+    await dotenvGenerator(tree, {
       projectName: normalizedOptions.name,
-      directory: normalizedOptions.directory,
+      set: [
+        `${apiKeyName}=http://localhost:8080`
+      ],
+      section: 'axios',
       skipFormat: true,
-    }));
+    })
   }
 
   /* Clean up */

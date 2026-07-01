@@ -8,6 +8,7 @@ import * as path from 'path';
 import type { ClientConfigGeneratorSchema } from './schema';
 import { normalize } from './lib/utils';
 import { PLUGIN_VERSION } from '../../../lib/constants/versions';
+import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { updateDependencies } from '../../../lib/utils';
 
 /**
@@ -41,6 +42,11 @@ export async function clientConfigGenerator(
   };
 
   const dependenciesTask = updateDependencies(tree, dependencies, {});
+
+  // Ensure the API URL var this config imports actually exists in env.ts.
+  updateEnvConfig(tree, normalizedOptions.sourceRoot, {
+    set: { [normalizedOptions.apiKeyName]: 'z.string().url()' },
+  });
 
   // Generate the config file from template
   generateFiles(

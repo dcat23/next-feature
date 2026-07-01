@@ -410,26 +410,26 @@ describe('feature generator', () => {
     });
   });
 
-  describe('useAxios option', () => {
+  describe('env option', () => {
     it('should not touch .env by default', async () => {
       await featureGenerator(tree, { name: 'test', skipFormat: true });
       expect(tree.exists('features/test/.env')).toBeFalsy();
     });
 
-    it('should chain the axios generator when useAxios is true', async () => {
-      await featureGenerator(tree, { name: 'test', useAxios: true, skipFormat: true });
+    it('should register the API URL env var when env is true', async () => {
+      await featureGenerator(tree, { name: 'test', env: true, skipFormat: true });
       const dotenv = tree.read('features/test/.env', 'utf-8');
       expect(dotenv).toContain('API_URL');
     });
 
-    it('should add axios dependency when useAxios is true', async () => {
-      await featureGenerator(tree, { name: 'test', useAxios: true, skipFormat: true });
+    it('should add axios dependency when env is true', async () => {
+      await featureGenerator(tree, { name: 'test', env: true, skipFormat: true });
       const packageJson = readJson(tree, 'package.json');
       expect(packageJson.dependencies?.axios).toBeDefined();
     });
 
     it('should work alongside a feature type', async () => {
-      await featureGenerator(tree, { name: 'logger', type: 'logging', useAxios: true, skipFormat: true });
+      await featureGenerator(tree, { name: 'logger', type: 'logging', env: true, skipFormat: true });
       expect(tree.exists('features/logger/src/lib/server.ts')).toBeTruthy();
       const dotenv = tree.read('features/logger/.env', 'utf-8');
       expect(dotenv).toContain('API_URL');

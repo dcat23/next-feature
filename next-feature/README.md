@@ -8,7 +8,7 @@ The next-feature plugin provides a complete set of generators organized into cat
 
 - **Project Generators** - Create feature libraries and applications
 - **Code Generators** - Generate individual code elements (APIs, components, stores, etc.)
-- **Configuration Generators** - Setup infrastructure (client config, axios, etc.)
+- **Configuration Generators** - Setup infrastructure (client config, dotenv, etc.)
 - **Tool Generators** - Workspace utilities
 
 ## Quick Reference
@@ -57,8 +57,8 @@ npx nx g next-feature:utility --name=userHelpers --projectName=users
 # Centralized API client configuration (auto-invoked by action generator)
 npx nx g next-feature:client-config --projectName=users
 
-# Axios HTTP client configuration
-npx nx g next-feature:axios --projectName=users
+# Create/update/remove env vars across .env* files (and keep env.ts in sync)
+npx nx g next-feature:dotenv --projectName=users --set=API_URL=http://localhost:8080
 ```
 
 ## Key Features
@@ -143,8 +143,9 @@ Generate entire project structures:
 Setup project infrastructure:
 
 - **client-config** - Centralized API configuration (auto-invoked by actions)
-- **auth** - NextAuth.js authentication with routes
-- **axios** - Axios HTTP client with interceptors
+- **dotenv** - Create/update/remove `.env*` vars, sync across projects, keep `env.ts` typed
+
+NextAuth.js authentication is a `feature` type (`--type=auth`), not a separate misc generator.
 
 ### tool/ - Workspace Utilities
 
@@ -289,7 +290,7 @@ npx nx g next-feature:feature --name=users [options]
 |--------|------|---------|-------------|
 | --type | enum | "generic" | Type: generic, base, logging, client, or auth |
 | --orgName | string | - | Scoped organization name |
-| --useAxios | boolean | false | Chain the axios generator (lib/axios/) into the feature |
+| --env | boolean | false | Add the axios dependency and register a `<NAME>_API_URL` variable in this feature's .env/.env.example |
 
 ### Client-Config Generator
 

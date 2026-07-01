@@ -8,20 +8,23 @@ import {
 import { applicationGenerator as nextApplicationGenerator } from '@nx/next';
 import * as path from 'path';
 import {
+  AXIOS_VERSION,
   NEXTAUTH_VERSION,
   SONNER_VERSION,
   TAILWIND_VERSION,
   TANSTACK_VERSION,
   ZOD_VERSION
 } from '../../../lib/constants/versions';
-import { writeToDotenv } from '../../../lib/dotenv/dot-env';
+import { updateDotenv } from '../../../lib/dotenv/dot-env';
+import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { updateDependencies } from '../../../lib/utils';
-import axiosGenerator from '../../misc/axios/axios';
+import { asApiKeyName } from '../feature/utils';
 import featureGenerator from '../feature/feature';
 import { ApplicationGeneratorSchema } from './schema';
 import { generateSecret } from './utils';
 import { normalizeApplicationGeneratorSchema } from './utils/normalize';
+import { dotenvGenerator } from '../../misc/dotenv/dotenv';
 
 
 export async function applicationGenerator(
@@ -74,14 +77,13 @@ export async function applicationGenerator(
 
   writeWildCardPathToTsConfig(tree, importPath, sourceRoot);
 
-  if (normalizedOptions.useAxios) {
-    tasks.push(await axiosGenerator(tree, {
-      name: normalizedOptions.name,
-      projectName: normalizedOptions.name,
-      directory: normalizedOptions.directory,
-      skipFormat: true
-    }))
-  }
+  /* layout.tsx always reads NEXT_PUBLIC_ROOT_DOMAIN; keep env.ts in sync regardless of useAuth/env. */
+  await dotenvGenerator(tree, {
+    projectName: normalizedOptions.name,
+    set: [`NEXT_PUBLIC_ROOT_DOMAIN=localhost:4200`],
+    section: 'root',
+    skipFormat: true,
+  })
 
   if (normalizedOptions.useAuth) {
     // Route handler + SessionProvider wiring that expects a sibling `@feature/auth` library.
@@ -94,11 +96,16 @@ export async function applicationGenerator(
 
     dependencies['next-auth'] = NEXTAUTH_VERSION;
 
-    writeToDotenv(tree, { projectRoot, section: "auth" }, {
-      NEXTAUTH_URL: "http://localhost:4200",
-      NEXT_PUBLIC_ROOT_DOMAIN: "localhost:4200",
-      AUTH_SECRET: generateSecret(),
-    });
+    await dotenvGenerator(tree, {
+      projectName: normalizedOptions.name,
+      set: [
+        `NEXTAUTH_URL=http://localhost:4200`,
+        `AUTH_SECRET: ${generateSecret()}`
+      ],
+      section: 'auth',
+      skipEnvConfig: true,
+      skipFormat: true,
+    })
 
     try {
       readProjectConfiguration(tree, 'auth');

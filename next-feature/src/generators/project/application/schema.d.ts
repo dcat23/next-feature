@@ -1,7 +1,7 @@
 import type { NormalizedProjectGeneratorSchema, ProjectGeneratorSchema } from '../../../lib/types';
 
 export interface ApplicationGeneratorSchema extends ProjectGeneratorSchema {
-  useAxios?: boolean;
+  env?: boolean;
   useAuth?: boolean;
   useSrc?: boolean;
 }

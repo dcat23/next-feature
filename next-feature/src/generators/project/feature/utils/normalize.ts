@@ -4,7 +4,7 @@ import {
   type NormalizedFeatureGeneratorSchema,
 } from '../schema';
 import { normalizeProjectGeneratorSchema } from '../../../../lib/utils/project-generator';
-import { asApiKeyName } from '../../../misc/axios/utils';
+import { asApiKeyName } from './index';
 
 /**
  * [normalize-feature-generator]

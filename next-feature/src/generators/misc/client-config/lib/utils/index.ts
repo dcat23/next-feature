@@ -1,4 +1,5 @@
 import { readProjectConfiguration, Tree } from '@nx/devkit';
+import { asApiKeyName } from '../../../../project/feature/utils';
 import type {
   ClientConfigGeneratorSchema,
   NormalizedClientConfigGeneratorSchema,
@@ -26,5 +27,6 @@ export async function normalize(
     projectPath,
     sourceRoot,
     clientImportPath,
+    apiKeyName: asApiKeyName(options.projectName),
   };
 }

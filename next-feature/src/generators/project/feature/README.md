@@ -40,7 +40,7 @@ npx nx g next-feature:feature --name=users --directory=libs/users
 | `--type` | `base \| logging \| client \| generic` | `generic` | `-t` | Type of feature library to scaffold |
 | `--directory` | string | `features/[name]` | `-d` | Override the output directory |
 | `--orgName` | string | — | `--org` | Organization prefix for import paths (`@myorg/[name]`) |
-| `--useAxios` | boolean | `false` | — | Chain the axios generator to scaffold `lib/axios/` HTTP client setup |
+| `--env` | boolean | `false` | `-e` | Add the axios dependency and register a `<NAME>_API_URL` variable in this feature's `.env`/`.env.example` |
 | `--skipFormat` | boolean | false | — | Skip prettier formatting (used internally for chained generators) |
 
 ### `type` Option
@@ -70,10 +70,12 @@ These files are always generated regardless of type:
 features/[name]/src/
 ├── lib/
 │   └── config/
-│       └── env.ts          # Environment variable helpers
+│       └── env.ts          # Typed process.env accessors (zod schema; see below)
 ├── index.ts                # Public browser exports
 └── server.ts               # Public server-side exports
 ```
+
+`env.ts` starts with just `NODE_ENV` typed. When `--env` is set (or `--type=client`), a `<NAME>_API_URL` var is added to it (and to `.env`/`.env.example`). It's kept up to date by the [dotenv generator](../../misc/dotenv/README.md)'s marker-based sync, so you can add/remove further vars later with `npx nx g next-feature:dotenv --projectName=[name] --set=KEY=VALUE` without disturbing what's already there.
 
 ### `logging` type — additional files
 
@@ -325,5 +327,6 @@ pnpm install
 - [Action Generator](../../code/action/README.md) - Server actions (API, form, database)
 - [Component Generator](../../code/component/README.md) - React components
 - [Store Generator](../../code/store/README.md) - Zustand stores
+- [Dotenv Generator](../../misc/dotenv/README.md) - Manage .env* vars and env.ts
 - [Preset Generator](../preset/README.md) - Initialize first application
 - [next-feature Plugin](../../README.md) - All generators

@@ -11,3 +11,6 @@ export const TANSTACK_VERSION = "5.75.7";
 export const SONNER_VERSION = "2.0.3";
 export const LUCIDE_VERSION = "^0.542.0";
 export const TAILWIND_VERSION = "^4.1.9";
+export const PINO_VERSION = "^10.3.1";
+export const PINO_HTTP_VERSION = "^11.0.0";
+export const PINO_PRETTY_VERSION = "^13.0.0";

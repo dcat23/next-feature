@@ -18,7 +18,10 @@
       "next-feature": ["next-feature/src/index.ts"],
       "@next-feature/client": ["clients/client/src/index.ts"],
       "@next-feature/client/server": ["clients/client/src/server.ts"],
-      "@next-feature/client/*": ["clients/client/src/*"]
+      "@next-feature/client/*": ["clients/client/src/*"],
+      "@next-feature/logging": ["features/logging/src/index.ts"],
+      "@next-feature/logging/server": ["features/logging/src/server.ts"],
+      "@next-feature/logging/*": ["features/logging/src/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]

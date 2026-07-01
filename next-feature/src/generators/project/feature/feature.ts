@@ -1,9 +1,8 @@
 import type { GeneratorCallback } from '@nx/devkit';
 import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
-import { Linter } from '@nx/eslint';
 import { libraryGenerator } from '@nx/next';
 import * as path from 'path';
-import { SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
+import { PINO_HTTP_VERSION, PINO_PRETTY_VERSION, PINO_VERSION, SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { initializeProjectGenerator, updateDependencies } from '../../../lib/utils';
 import { FeatureGeneratorSchema } from './schema';
@@ -24,7 +23,7 @@ export async function featureGenerator(
     publishable: true,
     style: 'tailwind',
     unitTestRunner: 'jest',
-    linter: Linter.EsLint,
+    linter: "eslint",
     component: false,
     skipFormat: true,
     useProjectJson: true,
@@ -32,12 +31,11 @@ export async function featureGenerator(
 
   tasks.push(await initializeProjectGenerator(tree, normalizedOptions, "feature"))
 
-  const { sourceRoot, importPath, name } = normalizedOptions;
+  const { sourceRoot, importPath, type } = normalizedOptions;
 
   writeWildCardPathToTsConfig(tree, importPath, sourceRoot);
 
-  tree.delete(path.join(sourceRoot, "lib", "hello-server.tsx"));
-
+  /* Update dependencies */
   const dependencies: Record<string, string> = {
     sonner: SONNER_VERSION,
     zod: ZOD_VERSION
@@ -45,23 +43,33 @@ export async function featureGenerator(
 
   const devDependencies: Record<string, string> = {};
 
-  tasks.push(updateDependencies(tree, dependencies, devDependencies))
-
-  if (name === 'base') {
-    generateFiles(
-      tree,
-      path.join(__dirname, 'files', 'base'),
-      sourceRoot,
-      normalizedOptions
-    );
+  if (type === 'logging') {
+    dependencies['pino'] = PINO_VERSION;
+    dependencies['pino-http'] = PINO_HTTP_VERSION;
+    devDependencies['pino-pretty'] = PINO_PRETTY_VERSION;
   }
 
+  tasks.push(updateDependencies(tree, dependencies, devDependencies))
+
+  /* Generate files */
   generateFiles(
     tree,
     path.join(__dirname, 'files', 'src'),
     sourceRoot,
     normalizedOptions
   );
+
+  if (type !== 'generic') {
+    generateFiles(
+      tree,
+      path.join(__dirname, 'files', type),
+      sourceRoot,
+      normalizedOptions
+    );
+  }
+
+  /* Clean up */
+  tree.delete(path.join(sourceRoot, "lib", "hello-server.tsx"));
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
 

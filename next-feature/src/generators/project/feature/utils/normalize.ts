@@ -1,5 +1,6 @@
 import {
   FeatureGeneratorSchema,
+  FeatureType,
   type NormalizedFeatureGeneratorSchema,
 } from '../schema';
 import { normalizeProjectGeneratorSchema } from '../../../../lib/utils/project-generator';
@@ -16,8 +17,21 @@ export function normalizeFeatureGenerator(
   const normalized = normalizeProjectGeneratorSchema(options, "feature");
   const apiKeyName = asApiKeyName(options.name)
 
+  let type: FeatureType = options.type ?? 'generic';
+  if (type === 'generic') {
+    switch (options.name) {
+      case 'base':
+      case 'logging':
+        type = options.name;
+        break;
+    }
+  }
+
+
   return {
     ...normalized,
-    apiKeyName
+    directory: normalized.directory as string,
+    apiKeyName,
+    type
   };
 }

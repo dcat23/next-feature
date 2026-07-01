@@ -1,29 +1,254 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
-import { Tree, readProjectConfiguration, logger } from '@nx/devkit';
+import { Tree, readProjectConfiguration, readJson } from '@nx/devkit';
 import { featureGenerator } from './feature';
 import { FeatureGeneratorSchema } from './schema';
+import { normalizeFeatureGenerator } from './utils/normalize';
+
 describe('feature generator', () => {
   let tree: Tree;
-  const options: FeatureGeneratorSchema = {
-    name: 'test',
-  };
+
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
   });
-  it('should run successfully', async () => {
-    await featureGenerator(tree, options);
-    const config = readProjectConfiguration(tree, 'test');
-    expect(config).toBeDefined();
+
+  describe('basic functionality', () => {
+    const options: FeatureGeneratorSchema = { name: 'test', skipFormat: true };
+
+    it('should create project with correct configuration', async () => {
+      await featureGenerator(tree, options);
+      const config = readProjectConfiguration(tree, 'test');
+      expect(config.root).toBe('features/test');
+      expect(config.sourceRoot).toBe('features/test/src');
+      expect(config.projectType).toBe('library');
+    });
+
+    it('should set import path in tsconfig', async () => {
+      await featureGenerator(tree, options);
+      const tsConfig = tree.read('tsconfig.base.json', 'utf-8');
+      expect(tsConfig).toContain('@feature/test');
+      expect(tsConfig).toContain('features/test/src');
+    });
+
+    it('should use custom orgName in import path', async () => {
+      await featureGenerator(tree, { name: 'test', orgName: 'myorg', skipFormat: true });
+      const tsConfig = tree.read('tsconfig.base.json', 'utf-8');
+      expect(tsConfig).toContain('@myorg/test');
+    });
+
+    it('should generate src files', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/test/src/lib/config/env.ts')).toBeTruthy();
+    });
+
+    it('should delete hello-server.tsx scaffold file', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/test/src/lib/hello-server.tsx')).toBeFalsy();
+    });
   });
-  it('should generate files', async () => {
-    await featureGenerator(tree, options);
-    const files = tree.children('test/src/lib/config');
-    expect(files.some((file) => ['index.ts'].includes(file))).toBeTruthy();
+
+  describe('type normalization', () => {
+    it('should default type to generic for unknown names', () => {
+      const normalized = normalizeFeatureGenerator({ name: 'test' });
+      expect(normalized.type).toBe('generic');
+    });
+
+    it('should set type to base when name is base and type is not specified', () => {
+      const normalized = normalizeFeatureGenerator({ name: 'base' });
+      expect(normalized.type).toBe('base');
+    });
+
+    it('should set type to base when name is base and type is generic', () => {
+      const normalized = normalizeFeatureGenerator({ name: 'base', type: 'generic' });
+      expect(normalized.type).toBe('base');
+    });
+
+    it('should set type to logging when name is logging and type is not specified', () => {
+      const normalized = normalizeFeatureGenerator({ name: 'logging' });
+      expect(normalized.type).toBe('logging');
+    });
+
+    it('should set type to logging when name is logging and type is generic', () => {
+      const normalized = normalizeFeatureGenerator({ name: 'logging', type: 'generic' });
+      expect(normalized.type).toBe('logging');
+    });
+
+    it('should keep explicit type for non-inferred names', () => {
+      expect(normalizeFeatureGenerator({ name: 'test', type: 'logging' }).type).toBe('logging');
+      expect(normalizeFeatureGenerator({ name: 'test', type: 'base' }).type).toBe('base');
+    });
+
+    it('should allow explicit type override on inferred names', () => {
+      expect(normalizeFeatureGenerator({ name: 'base', type: 'logging' }).type).toBe('logging');
+      expect(normalizeFeatureGenerator({ name: 'logging', type: 'base' }).type).toBe('base');
+    });
   });
-  it('should set import path', async () => {
-    await featureGenerator(tree, options);
-    const tsConfig = tree.read('tsconfig.base.json', 'utf-8');
-    logger.debug(tsConfig);
-    expect(tsConfig.includes('@feature/test')).toBeTruthy();
+
+  describe('generic type', () => {
+    const options: FeatureGeneratorSchema = { name: 'test', type: 'generic', skipFormat: true };
+
+    it('should not generate logging files', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/test/src/config.ts')).toBeFalsy();
+      expect(tree.exists('features/test/src/lib/server.ts')).toBeFalsy();
+      expect(tree.exists('features/test/src/lib/client.ts')).toBeFalsy();
+      expect(tree.exists('features/test/src/lib/correlation.ts')).toBeFalsy();
+    });
+
+    it('should not generate base component files', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/test/src/components/error-component.tsx')).toBeFalsy();
+    });
+
+    it('should not add pino dependencies', async () => {
+      await featureGenerator(tree, options);
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.pino).toBeUndefined();
+      expect(packageJson.devDependencies?.['pino-pretty']).toBeUndefined();
+    });
+  });
+
+  describe('logging type', () => {
+    const options: FeatureGeneratorSchema = { name: 'logger', type: 'logging', skipFormat: true };
+
+    it('should generate logging files', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/logger/src/config.ts')).toBeTruthy();
+      expect(tree.exists('features/logger/src/lib/server.ts')).toBeTruthy();
+      expect(tree.exists('features/logger/src/lib/client.ts')).toBeTruthy();
+      expect(tree.exists('features/logger/src/lib/correlation.ts')).toBeTruthy();
+    });
+
+    it('should not generate base component files', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/logger/src/components/error-component.tsx')).toBeFalsy();
+    });
+
+    it('should add pino dependencies', async () => {
+      await featureGenerator(tree, options);
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.pino).toBeDefined();
+      expect(packageJson.devDependencies?.['pino-pretty']).toBeDefined();
+    });
+
+    it('should generate server logger implementation', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/logger/src/lib/server.ts', 'utf-8');
+      expect(content).toContain("from 'pino'");
+      expect(content).toContain('pinoOptions');
+    });
+
+    it('should generate browser client logger with use client directive', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/logger/src/lib/client.ts', 'utf-8');
+      expect(content).toContain("'use client'");
+      expect(content).toContain("from 'pino'");
+    });
+
+    it('should generate correlation utilities', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/logger/src/lib/correlation.ts', 'utf-8');
+      expect(content).toContain('getCorrelationId');
+      expect(content).toContain('setCorrelationId');
+    });
+
+    it('should generate pino config with pinoOptions export', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/logger/src/config.ts', 'utf-8');
+      expect(content).toContain('pinoOptions');
+      expect(content).toContain('pino-pretty');
+    });
+
+    it('should generate index.ts exporting browser logger and correlation', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/logger/src/index.ts', 'utf-8');
+      expect(content).toContain("export { default as logger } from './lib/client'");
+      expect(content).toContain("export * from './lib/correlation'");
+    });
+
+    it('should generate server.ts exporting server logger', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/logger/src/server.ts', 'utf-8');
+      expect(content).toContain("export { default as logger } from");
+      expect(content).toContain('server');
+    });
+  });
+
+  describe('logging name inference', () => {
+    it('should infer logging type from name logging', async () => {
+      await featureGenerator(tree, { name: 'logging', skipFormat: true });
+      expect(tree.exists('features/logging/src/config.ts')).toBeTruthy();
+      expect(tree.exists('features/logging/src/lib/server.ts')).toBeTruthy();
+      expect(tree.exists('features/logging/src/lib/client.ts')).toBeTruthy();
+    });
+
+    it('should add pino deps when name is logging', async () => {
+      await featureGenerator(tree, { name: 'logging', skipFormat: true });
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.pino).toBeDefined();
+    });
+  });
+
+  describe('base type', () => {
+    const options: FeatureGeneratorSchema = { name: 'base', skipFormat: true };
+
+    it('should auto-resolve to base type when name is base', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/base/src/components/error-component.tsx')).toBeTruthy();
+    });
+
+    it('should not generate logging files for base type', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/base/src/config.ts')).toBeFalsy();
+      expect(tree.exists('features/base/src/lib/server.ts')).toBeFalsy();
+    });
+
+    it('should not add pino dependencies for base type', async () => {
+      await featureGenerator(tree, options);
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.pino).toBeUndefined();
+    });
+
+    it('should add base sonner and zod dependencies', async () => {
+      await featureGenerator(tree, options);
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.sonner).toBeDefined();
+      expect(packageJson.dependencies?.zod).toBeDefined();
+    });
+  });
+
+  describe('dependencies', () => {
+    it('should always add sonner and zod', async () => {
+      await featureGenerator(tree, { name: 'test', skipFormat: true });
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.sonner).toBeDefined();
+      expect(packageJson.dependencies?.zod).toBeDefined();
+    });
+
+    it('should use correct pino version format', async () => {
+      await featureGenerator(tree, { name: 'test', type: 'logging', skipFormat: true });
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.pino).toMatch(/^\^?\d+\.\d+\.\d+/);
+      expect(packageJson.devDependencies?.['pino-pretty']).toMatch(/^\^?\d+\.\d+\.\d+/);
+    });
+  });
+
+  describe('custom directory', () => {
+    it('should use custom directory when provided', async () => {
+      await featureGenerator(tree, { name: 'test', directory: 'libs/features/test', skipFormat: true });
+      const config = readProjectConfiguration(tree, 'test');
+      expect(config.root).toBe('libs/features/test');
+      expect(config.sourceRoot).toBe('libs/features/test/src');
+    });
+
+    it('should generate logging files in custom directory', async () => {
+      await featureGenerator(tree, {
+        name: 'test',
+        directory: 'libs/logging/test',
+        type: 'logging',
+        skipFormat: true,
+      });
+      expect(tree.exists('libs/logging/test/src/config.ts')).toBeTruthy();
+      expect(tree.exists('libs/logging/test/src/lib/server.ts')).toBeTruthy();
+    });
   });
 });

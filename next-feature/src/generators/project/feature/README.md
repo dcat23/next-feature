@@ -1,215 +1,186 @@
 # Feature Library Generator
 
-The Feature generator creates a complete Next.js feature library with integrated development dependencies, TypeScript configuration, and optional authentication and HTTP client setup.
+The Feature generator creates a Next.js feature library in your monorepo with TypeScript configuration and type-specific file scaffolding.
 
 ## Overview
 
-The Feature generator creates a feature library (not a full application) in your monorepo that allows you to organize code by feature or domain. It provides:
+Feature libraries are domain-scoped code modules (users, products, auth) created under `features/[name]/`. The generator supports three types:
 
-- **Feature Library Structure** - Create in `libs/[name]/` or `apps/[name]/` depending on preference
-- **TypeScript Path Aliases** - Automatic `@feature/[name]` import paths
-- **Development Dependencies** - Includes sonner (toasts) and zod (validation)
-- **Optional Setup** - Auth and Axios can be added during or after creation
-- **Project Configuration** - Full Nx project configuration for building and testing
+- **`generic`** (default) — Plain feature library with shared utilities only
+- **`logging`** — Adds pino-based server + browser logging with correlation ID support
+- **`base`** — Adds base UI components (error boundary, etc.)
+
+Type is inferred automatically from the feature name: `--name=logging` sets `type=logging`, `--name=base` sets `type=base`.
 
 ## Quick Start
 
-### Basic Usage
-
 ```bash
-# Create a feature library
+# Create a generic feature library
 npx nx g next-feature:feature --name=users
-```
 
-### With Options
+# Create a logging library (explicit type)
+npx nx g next-feature:feature --name=logger --type=logging
 
-```bash
-# Create with authentication
-npx nx g next-feature:feature --name=users --useAuth=true
-
-# Create with HTTP client
-npx nx g next-feature:feature --name=users --useAxios=true
-
-# Both
-npx nx g next-feature:feature --name=users --useAuth=true --useAxios=true
+# Create a logging library (inferred from name)
+npx nx g next-feature:feature --name=logging
 
 # Custom directory
-npx nx g next-feature:feature --name=users --directory=libs
+npx nx g next-feature:feature --name=users --directory=libs/users
 ```
 
 ## Generator Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `--name` | string | required | Name of the feature library (e.g., users, products, dashboard) |
-| `--directory` | string | "apps" | Directory where feature is created (apps or libs) |
-| `--useAxios` | boolean | false | Setup Axios HTTP client with interceptors |
-| `--useAuth` | boolean | false | Setup NextAuth.js authentication |
-| `--orgName` | string | - | Organization name for scoped imports (@myorg/[name]) |
-| `--skipFormat` | boolean | false | Skip prettier code formatting |
+| Option | Type | Default | Alias | Description |
+|--------|------|---------|-------|-------------|
+| `--name` | string | required | positional | Name of the feature library |
+| `--type` | `base \| logging \| generic` | `generic` | `-t` | Type of feature library to scaffold |
+| `--directory` | string | `features/[name]` | `-d` | Override the output directory |
+| `--orgName` | string | — | `--org` | Organization prefix for import paths (`@myorg/[name]`) |
+| `--skipFormat` | boolean | false | — | Skip prettier formatting (used internally for chained generators) |
 
-### Option Details
+### `type` Option
 
-#### `name` (required)
+Controls which additional files are scaffolded beyond the base `src/` structure.
 
-Name of the feature library. This will:
-- Create directory `apps/[name]/` or `libs/[name]/`
-- Set up TypeScript path alias `@feature/[name]`
-- Configure for code generation (actions, components, stores)
+#### Auto-inference
 
-Examples: `users`, `products`, `dashboard`, `billing`, `auth`
+The `type` is inferred from `name` when `type` is `generic` or omitted:
 
-#### `directory`
+| Name | Inferred type |
+|------|--------------|
+| `base` | `base` |
+| `logging` | `logging` |
+| anything else | `generic` |
 
-Override where the feature library is created. Default is `apps/`.
-
-```bash
-# Create in apps/ (default)
-npx nx g next-feature:feature --name=users
-
-# Create in libs/
-npx nx g next-feature:feature --name=users --directory=libs
-
-# Create in custom location
-npx nx g next-feature:feature --name=users --directory=projects/features
-```
-
-#### `useAxios`
-
-Include Axios HTTP client setup for API calls.
-
-```bash
-npx nx g next-feature:feature --name=users --useAxios=true
-```
-
-This creates `src/lib/axios/` with:
-- Configured Axios instance
-- Interceptors for requests/responses
-- API key environment variables
-- Error handling setup
-
-#### `useAuth`
-
-Include NextAuth.js authentication setup.
-
-```bash
-npx nx g next-feature:feature --name=auth --useAuth=true
-```
-
-This creates `src/lib/auth/` with:
-- NextAuth route handlers
-- Session provider setup
-- Authentication utilities
-- .env configuration for auth secrets
-
-#### `orgName`
-
-Create scoped package with organization name.
-
-```bash
-# Creates @mycompany/users import path
-npx nx g next-feature:feature --name=users --orgName=mycompany
-
-# tsconfig.base.json will include:
-# "@mycompany/users/*": ["apps/users/src/*"]
-```
+An explicit `--type` always takes precedence over inference.
 
 ## What Gets Created
 
-### Directory Structure
+### All types — base `src/` files
+
+These files are always generated regardless of type:
 
 ```
-apps/[name]/  (or libs/[name]/)
+features/[name]/src/
+├── lib/
+│   └── config/
+│       └── env.ts          # Environment variable helpers
+├── index.ts                # Public browser exports
+└── server.ts               # Public server-side exports
+```
+
+### `logging` type — additional files
+
+```
+features/[name]/src/
+├── config.ts               # Shared pino options (pinoOptions export)
+├── lib/
+│   ├── server.ts           # Server-side pino logger (Node.js)
+│   ├── client.ts           # Browser pino logger ('use client', transmit config)
+│   └── correlation.ts      # getCorrelationId / setCorrelationId (sessionStorage)
+├── index.ts                # Exports browser logger + correlation utilities
+└── server.ts               # Exports server logger
+```
+
+**Additional dependencies added:**
+
+```json
+{
+  "dependencies": { "pino": "^9.x.x" },
+  "devDependencies": { "pino-pretty": "^13.x.x" }
+}
+```
+
+**Browser logger** (`lib/client.ts`) uses pino's browser transport with correlation ID injection. Marked `'use client'` for Next.js.
+
+**Server logger** (`lib/server.ts`) uses pino with pino-pretty in development (`NODE_ENV !== 'production'`).
+
+### `base` type — additional files
+
+```
+features/[name]/src/
+└── components/
+    └── error-component.tsx  # Base error boundary component
+```
+
+No pino dependencies are added for the `base` type.
+
+### `generic` type
+
+No additional files beyond the base `src/` structure.
+
+## Directory Structure (full example — logging type)
+
+```
+features/[name]/
 ├── src/
 │   ├── lib/
-│   │   ├── actions/           # Server actions
-│   │   ├── components/        # React components
-│   │   ├── stores/            # Zustand stores
-│   │   ├── types/             # TypeScript types
-│   │   ├── constants/         # Constants and enums
-│   │   ├── utils/             # Utility functions
-│   │   ├── axios/             # HTTP client (if --useAxios)
-│   │   │   ├── instance.ts
-│   │   │   └── interceptors.ts
-│   │   └── auth/              # Auth setup (if --useAuth)
-│   │       ├── authOptions.ts
-│   │       └── routes.ts
-│   ├── .env.example           # Environment variables template
-│   └── index.ts               # Public API exports
+│   │   ├── config/
+│   │   │   └── env.ts
+│   │   ├── server.ts           # pino server logger
+│   │   ├── client.ts           # pino browser logger
+│   │   └── correlation.ts      # correlation ID helpers
+│   ├── config.ts               # pinoOptions
+│   ├── index.ts                # browser exports
+│   └── server.ts               # server exports
 ├── .eslintrc.json
 ├── jest.config.ts
 ├── tailwind.config.js
 ├── tsconfig.json
 ├── package.json
-└── project.json               # Nx project configuration
+└── project.json
 ```
 
-### TypeScript Path Aliases
+## TypeScript Path Aliases
 
-After creating a feature, your `tsconfig.base.json` includes:
+After creating a feature, `tsconfig.base.json` gets a wildcard path alias:
 
 ```json
 {
   "compilerOptions": {
     "paths": {
-      "@feature/[name]/*": ["apps/[name]/src/*"]
+      "@feature/[name]/*": ["features/[name]/src/*"]
     }
   }
 }
 ```
 
-This enables clean imports:
+With `--orgName=myorg`: `@myorg/[name]/*`.
+
+Usage:
 
 ```typescript
-// Instead of: import { getUsers } from '../../../lib/actions'
-import { getUsers } from '@feature/[name]/lib/actions'
+// Browser
+import { logger } from '@feature/logging';
+import { getCorrelationId } from '@feature/logging';
+
+// Server (Next.js server components / actions)
+import { logger } from '@feature/logging/server';
 ```
 
-### Default Dependencies
+## Default Dependencies
 
-All features include:
+All feature types include:
 
-```json
-{
-  "dependencies": {
-    "sonner": "^0.x.x",
-    "zod": "^3.x.x"
-  }
-}
-```
-
-- **sonner** - Toast notifications
-- **zod** - TypeScript-first schema validation
-
-### Optional Dependencies
-
-#### With `--useAxios`
-
-```json
-{
-  "dependencies": {
-    "axios": "^1.x.x"
-  }
-}
-```
-
-Includes HTTP client setup at `src/lib/axios/`
-
-#### With `--useAuth`
-
-```json
-{
-  "dependencies": {
-    "next-auth": "^5.x.x"
-  }
-}
-```
-
-Includes authentication setup at `src/lib/auth/`
+| Package | Purpose |
+|---------|---------|
+| `sonner` | Toast notifications |
+| `zod` | Schema validation |
 
 ## Common Workflows
 
-### Workflow 1: Create Users Feature
+### Create a logging library
+
+```bash
+# Name infers type automatically
+npx nx g next-feature:feature --name=logging
+
+# Import in your app
+# Browser: import { logger } from '@feature/logging'
+# Server:  import { logger } from '@feature/logging/server'
+```
+
+### Create a users feature with API actions
 
 ```bash
 # 1. Create feature
@@ -225,296 +196,85 @@ npx nx g next-feature:component --name=UserList --projectName=users
 npx nx g next-feature:store --name=userStore --projectName=users
 ```
 
-### Workflow 2: Create Auth Feature with NextAuth
-
-```bash
-# 1. Create auth feature with NextAuth
-npx nx g next-feature:feature --name=auth --useAuth=true
-
-# 2. Create login action
-npx nx g next-feature:action --name=login --actionType=form --projectName=auth
-
-# 3. Create types
-npx nx g next-feature:data-type --name=User --projectName=auth
-
-# 4. Create authentication UI
-npx nx g next-feature:component --name=LoginForm --projectName=auth
-```
-
-### Workflow 3: Create API Feature with Axios
-
-```bash
-# 1. Create API feature
-npx nx g next-feature:feature --name=api --useAxios=true
-
-# 2. Create API action
-npx nx g next-feature:action --name=fetchData --actionType=api --projectName=api
-
-# 3. Create error handler
-npx nx g next-feature:utility --name=errorHandler --projectName=api
-
-# 4. Create API types
-npx nx g next-feature:data-type --name=ApiResponse --projectName=api
-```
-
 ## Development Commands
 
-### Build Feature
-
 ```bash
+# Build feature library
 npx nx build [name]
-```
 
-### Run Tests
-
-```bash
+# Run tests
 npx nx test [name]
-```
 
-### Lint Code
-
-```bash
+# Lint code
 npx nx lint [name]
+
+# Run all project tests (includes required env flag)
+pnpm test
 ```
 
-### Generate Code in Feature
+> **Note:** Tests that invoke `@nx/next`'s `libraryGenerator` require `NODE_OPTIONS=--experimental-vm-modules` due to a dynamic ESM import in newer prettier versions. Running `pnpm test` sets this automatically. For direct `nx test` calls: `NODE_OPTIONS=--experimental-vm-modules npx nx test next-feature`.
 
-All code generators support `--projectName` to target a feature:
+## Generating Code Inside Features
 
 ```bash
-# Generate component in feature
-npx nx g next-feature:component --name=Button --projectName=[name]
+# Server action
+npx nx g next-feature:action --name=getUser --actionType=api --projectName=[name]
 
-# Generate action in feature
-npx nx g next-feature:action --name=getUser --projectName=[name]
+# React component
+npx nx g next-feature:component --name=UserCard --projectName=[name]
 
-# Generate store in feature
+# Zustand store
 npx nx g next-feature:store --name=userStore --projectName=[name]
-```
 
-## Generating Code in Features
+# TypeScript types
+npx nx g next-feature:data-type --name=User --projectName=[name]
 
-### Actions (Server Functions)
-
-```bash
-npx nx g next-feature:action \
-  --name=getUser \
-  --actionType=api \
-  --projectName=[name] \
-  --useTypes \
-  --useConstant
-```
-
-Creates:
-- `src/lib/actions/get-user.ts` - Server action
-- `src/lib/types/user.ts` - Type definitions
-- `src/lib/constants/endpoints.ts` - API endpoints
-
-### Components
-
-```bash
-npx nx g next-feature:component \
-  --name=UserCard \
-  --componentType=component \
-  --projectName=[name]
-```
-
-Creates:
-- `src/lib/components/UserCard.tsx` - React component
-- `src/lib/components/UserCard.module.css` - Styles
-
-### State Management
-
-```bash
-npx nx g next-feature:store \
-  --name=userStore \
-  --projectName=[name]
-```
-
-Creates `src/lib/stores/user-store.ts` with Zustand hook
-
-### Types and Constants
-
-```bash
-# Create type
-npx nx g next-feature:data-type \
-  --name=User \
-  --projectName=[name]
-
-# Create constants
-npx nx g next-feature:constant \
-  --name=userRoles \
-  --projectName=[name]
-```
-
-## Feature Best Practices
-
-### 1. Organize by Domain
-
-Create features around business domains:
-
-```
-libs/
-├── auth/           # Authentication
-├── users/          # User management
-├── products/       # Product catalog
-├── billing/        # Billing/payments
-└── admin/          # Admin panel
-```
-
-### 2. Public API Pattern
-
-Use `index.ts` to export public APIs:
-
-```typescript
-// apps/[name]/src/index.ts
-export * from './lib/actions';
-export * from './lib/components';
-export { useUserStore } from './lib/stores/user-store';
-export type * from './lib/types';
-```
-
-### 3. Feature Independence
-
-Keep features independent:
-- Don't import between feature libraries
-- Share code via dedicated packages
-- Use a shared components library if needed
-
-### 4. Environment Variables
-
-Create `.env.example` for documentation:
-
-```bash
-# apps/[name]/.env.example
-NEXT_PUBLIC_API_URL=http://localhost:3000
-DATABASE_URL=postgresql://...
-```
-
-Copy to `.env.local` for development:
-
-```bash
-cp .env.example .env.local
-```
-
-## Configuration
-
-### Update TypeScript Paths
-
-If needed, update `tsconfig.json`:
-
-```json
-{
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@feature/*": ["src/*"]
-    }
-  }
-}
-```
-
-### Configure Tailwind
-
-Customize `tailwind.config.js`:
-
-```javascript
-module.exports = {
-  content: ["./src/**/*.{js,ts,jsx,tsx}"],
-  theme: {
-    extend: {
-      colors: {
-        primary: '#...'
-      }
-    }
-  }
-}
-```
-
-### Setup Environment Variables
-
-Create `.env.local` with your configuration:
-
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:3000
-NEXTAUTH_SECRET=generated-secret
-DATABASE_URL=postgresql://...
-```
-
-## Sharing Features
-
-### Publishing as NPM Package
-
-```bash
-# Build feature
-npx nx build [name]
-
-# Publish
-npm publish dist/apps/[name]
-```
-
-### Monorepo Usage
-
-Import in other features or apps:
-
-```typescript
-// In another feature
-import { UserCard } from '@feature/users'
-import { useUserStore } from '@feature/users'
+# Constants
+npx nx g next-feature:constant --name=userRoles --projectName=[name]
 ```
 
 ## Troubleshooting
 
-### Issue: TypeScript path aliases not working
+### TypeScript path aliases not resolving
 
-**Solution:** Check `tsconfig.base.json`:
+Check `tsconfig.base.json`:
 
 ```bash
-cat tsconfig.base.json | grep -A 10 '"paths"'
+cat tsconfig.base.json | grep -A 5 '"paths"'
 ```
 
-### Issue: Imports failing after feature creation
+If missing, re-run the generator or add the paths manually.
 
-**Solution:** Clear Nx cache:
+### Imports failing after feature creation
+
+Clear the Nx cache:
 
 ```bash
 npx nx reset
-npx nx build [name]
 ```
 
-### Issue: Dependencies not installed
+### Tests failing with "dynamic import callback" error
 
-**Solution:** Install manually:
+Run tests with the required Node.js flag:
 
 ```bash
-npm install
-npx nx reset
+NODE_OPTIONS=--experimental-vm-modules npx nx test next-feature
+# or via the workspace script:
+pnpm test
 ```
 
-## Comparison: Feature vs Application
+### pino not found at runtime
 
-| Feature | Feature Library | Application |
-|---------|--------|-------------|
-| Directory | `apps/` or `libs/` | `apps/` |
-| Use Case | Domain-specific code | Runnable application |
-| Imports | `@feature/[name]` | `@app/[name]` |
-| Publishing | Can publish to npm | Typically deployed |
-| Setup | Library structure | Full app setup |
+Ensure dependencies are installed after generator runs:
 
-## Next Steps
-
-After creating a feature:
-
-1. **Generate Code** - Create actions, components, stores
-2. **Setup Configuration** - Configure auth, database, API
-3. **Add Tests** - Create unit and integration tests
-4. **Build & Deploy** - Build and deploy to production
+```bash
+pnpm install
+```
 
 ## See Also
 
-- [Preset Generator](../preset/README.md) - Initialize first application
-- [Action Generator](../../code/action/README.md) - Server actions
+- [Action Generator](../../code/action/README.md) - Server actions (API, form, database)
 - [Component Generator](../../code/component/README.md) - React components
-- [Store Generator](../../code/store/README.md) - State management
+- [Store Generator](../../code/store/README.md) - Zustand stores
+- [Preset Generator](../preset/README.md) - Initialize first application
 - [next-feature Plugin](../../README.md) - All generators
-- [NextFeature](../../../README.md) - Main documentation

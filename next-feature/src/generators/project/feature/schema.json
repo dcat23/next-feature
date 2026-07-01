@@ -24,20 +24,17 @@
       },
       "alias": "d"
     },
-    "useAxios": {
-      "type": "boolean",
-      "description": "Setup Axios HTTP client with interceptors in lib/axios/ for API requests",
-      "default": false
-    },
-    "useAuth": {
-      "type": "boolean",
-      "description": "Setup NextAuth.js authentication with route handlers and providers in lib/auth/",
-      "default": false
-    },
     "orgName": {
       "type": "string",
       "description": "Organization name for scoped import paths (e.g., @myorg creates @myorg/[name] path alias)",
       "alias": "org"
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of feature library to create. 'base' includes base components and logging, 'logging' includes only logging config, 'generic' is a plain feature library.",
+      "enum": ["base", "logging", "generic"],
+      "default": "generic",
+      "alias": "t"
     },
     "skipFormat": {
       "type": "boolean",

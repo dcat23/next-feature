@@ -1,6 +1,8 @@
+// import { registerPino } from '@next-feature/logging';
+
 /**
     
  */
 export function register() {
-
+  // registerPino();    
 }

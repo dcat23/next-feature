@@ -32,6 +32,7 @@ export type NormalizedProjectGeneratorSchema<
   projectRoot: string;
   sourceRoot: string;
   importPath: string;
+  directory: string;
 };
 
 export type NormalizedCodeGeneratorSchema<

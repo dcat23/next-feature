@@ -52,7 +52,7 @@ export async function initializeProjectGenerator(
   options: NormalizedProjectGeneratorSchema,
   generatorName: string
 ) {
-  const nxJson = readNxJson(tree);
+  const nxJson = readNxJson(tree) || {};
 
   nxJson.generators ??= {};
   nxJson.generators[PLUGIN_NAME] ??= {};

@@ -2,10 +2,12 @@
   "name": "@next-feature/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "test": "NODE_OPTIONS=--experimental-vm-modules nx run-many -t test"
+  },
   "private": true,
   "dependencies": {
-    "@next-feature/client": "latest",
+    "@next-feature/client": "workspace:*",
     "@nx/devkit": "22.4.3",
     "@tanstack/react-query": "5.75.7",
     "axios": "1.9.0",

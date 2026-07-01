@@ -41,7 +41,8 @@ function updateDependencies(tree: Tree) {
     addDependenciesToPackageJson(
       tree,
       {
-        "@next-feature/client": PLUGIN_VERSION
+        "@next-feature/client": PLUGIN_VERSION,
+        "@next-feature/logging": PLUGIN_VERSION
       },
       {
         [PLUGIN_NAME]: PLUGIN_VERSION,

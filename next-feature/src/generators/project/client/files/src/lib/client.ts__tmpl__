@@ -76,10 +76,7 @@ export class ApiClient {
     config: InternalAxiosRequestConfig
   ): Promise<InternalAxiosRequestConfig> {
     try {
-      if (this.config.onAuthenticated) {
-        await this.config.onAuthenticated(config);
-      }
-
+      await this.config.onAuthenticated(config);
       return config;
     } catch (error) {
       console.error('onAuthenticated error on request:', error);

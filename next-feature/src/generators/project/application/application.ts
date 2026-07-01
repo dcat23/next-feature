@@ -6,20 +6,20 @@ import {
 } from '@nx/devkit';
 import { applicationGenerator as nextApplicationGenerator } from '@nx/next';
 import * as path from 'path';
-import { ApplicationGeneratorSchema } from './schema';
 import {
   SONNER_VERSION,
-  TANSTACK_VERSION,
   TAILWIND_VERSION,
-  ZOD_VERSION,
+  TANSTACK_VERSION,
+  ZOD_VERSION
 } from '../../../lib/constants/versions';
-import { updateDependencies } from '../../../lib/utils';
-import axiosGenerator from '../../misc/axios/axios';
-import authGenerator from '../../misc/auth/auth';
 import { writeToDotenv } from '../../../lib/dotenv/dot-env';
+import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
+import { updateDependencies } from '../../../lib/utils';
+import authGenerator from '../../misc/auth/auth';
+import axiosGenerator from '../../misc/axios/axios';
+import { ApplicationGeneratorSchema } from './schema';
 import { generateSecret } from './utils';
 import { normalizeApplicationGeneratorSchema } from './utils/normalize';
-import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 
 
 export async function applicationGenerator(
@@ -52,7 +52,7 @@ export async function applicationGenerator(
     sourceRoot,
     normalizedOptions
   );
-  
+
   generateFiles(
     tree,
     path.join(__dirname, 'files/common'),
@@ -77,7 +77,7 @@ export async function applicationGenerator(
   });
 
   writeWildCardPathToTsConfig(tree, importPath, sourceRoot);
-  
+
   if (normalizedOptions.useAxios) {
     tasks.push(await axiosGenerator(tree, {
       name: normalizedOptions.name,

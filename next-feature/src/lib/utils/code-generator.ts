@@ -30,7 +30,7 @@ export async function initializeCodeGenerator(
     projectConfiguration = readProjectConfiguration(tree, projectName);
   }
 
-  const nxJson = readNxJson(tree);
+  const nxJson = readNxJson(tree) || {};
 
   nxJson.generators ??= {};
   nxJson.generators[PLUGIN_NAME] ??= {};
@@ -39,7 +39,7 @@ export async function initializeCodeGenerator(
   updateNxJson(tree, nxJson);
 
   const projectRoot = projectConfiguration.root;
-  const sourceRoot = projectConfiguration.sourceRoot;
+  const sourceRoot = projectConfiguration.sourceRoot || projectRoot;
   const directory = path.join(sourceRoot, options.package ?? '');
 
   return {

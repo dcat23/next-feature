@@ -232,12 +232,11 @@ npx nx g next-feature:feature --name=auth --useAuth=true
 npx nx g next-feature:auth --projectName=auth
 ```
 
-### 3. Setup Database
+### 3. Add Database Operations
 
-For database-driven features:
+For database-driven features (expects Prisma configured in the project):
 
 ```bash
-npx nx g next-feature:database --projectName=[name]
 npx nx g next-feature:action --name=getUsers --actionType=db --projectName=[name]
 ```
 

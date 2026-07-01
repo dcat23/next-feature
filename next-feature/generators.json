@@ -20,11 +20,6 @@
       "schema": "./src/generators/misc/auth/schema.json",
       "description": "auth generator"
     },
-    "database": {
-      "factory": "./src/generators/misc/database/database",
-      "schema": "./src/generators/misc/database/schema.json",
-      "description": "database generator"
-    },
     "preset": {
       "factory": "./src/generators/preset/preset",
       "schema": "./src/generators/preset/schema.json",

@@ -10,7 +10,7 @@ NextFeature is an Nx workspace containing a **generator plugin ecosystem** that 
 - **@next-feature/client** - API client library with error handling and utilities
 - **create-next-feature** - CLI tool for creating new NextFeature workspaces
 
-The plugin provides generators for creating projects, server actions (API, form, database), components, stores, and configurations (auth, database, client-config).
+The plugin provides generators for creating projects, server actions (API, form, database), components, stores, and configurations (auth, client-config).
 
 Key technologies:
 - **Nx 22.0.3** - Monorepo framework
@@ -74,7 +74,6 @@ The plugin follows an Nx plugin structure with generators organized by category:
 - `client-config` - Creates centralized API client configuration (auto-invoked by action generator)
 - `auth` - Adds NextAuth configuration
 - `axios` - Adds axios HTTP client setup
-- `database` - Adds database configuration
 
 **Tool Generators** (`src/generators/tool/`)
 - `copy-deps` - Copies dependencies between projects

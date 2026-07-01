@@ -238,7 +238,6 @@ npm run nx -- g next-feature:utility --name=userHelpers --projectName=users
 npm run nx -- g next-feature:client-config --projectName=users
 npm run nx -- g next-feature:auth --projectName=users
 npm run nx -- g next-feature:axios --projectName=users
-npm run nx -- g next-feature:database --projectName=users
 ```
 
 ## Full Documentation
@@ -318,14 +317,11 @@ Override with `--package-manager` flag.
 # 1. Create feature
 npm run nx -- g next-feature:feature --name=api
 
-# 2. Setup database
-npm run nx -- g next-feature:database --projectName=api
-
-# 3. Create API actions
+# 2. Create API actions
 npm run nx -- g next-feature:action --name=getUsers --actionType=api --projectName=api
 npm run nx -- g next-feature:action --name=createUser --actionType=api --projectName=api
 
-# 4. Create types and constants
+# 3. Create types and constants
 npm run nx -- g next-feature:types --name=user --projectName=api
 npm run nx -- g next-feature:constant --name=userEndpoints --projectName=api
 ```

@@ -8,7 +8,7 @@ The next-feature plugin provides a complete set of generators organized into cat
 
 - **Project Generators** - Create feature libraries and applications
 - **Code Generators** - Generate individual code elements (APIs, components, stores, etc.)
-- **Configuration Generators** - Setup infrastructure (auth, client config, database, etc.)
+- **Configuration Generators** - Setup infrastructure (auth, client config, axios, etc.)
 - **Tool Generators** - Workspace utilities
 
 ## Quick Reference
@@ -59,9 +59,6 @@ npx nx g next-feature:auth --projectName=users
 
 # Axios HTTP client configuration
 npx nx g next-feature:axios --projectName=users
-
-# Prisma database configuration
-npx nx g next-feature:database --projectName=users
 ```
 
 ## Key Features
@@ -138,9 +135,8 @@ Generate self-contained pieces of functionality:
 
 Generate entire project structures:
 
-- **feature** - Feature library with auth, axios, and client setup
+- **feature** - Feature library; `--type=client` scaffolds an API client library with error handling and utilities
 - **application** - Next.js application with layout, providers, routing
-- **client** - API client library with error handling and utilities
 
 ### misc/ - Infrastructure Configuration
 
@@ -149,7 +145,6 @@ Setup project infrastructure:
 - **client-config** - Centralized API configuration (auto-invoked by actions)
 - **auth** - NextAuth.js authentication with routes
 - **axios** - Axios HTTP client with interceptors
-- **database** - Prisma database setup with migrations
 
 ### tool/ - Workspace Utilities
 
@@ -201,10 +196,7 @@ npx nx g next-feature:store --name=userStore --projectName=auth
 # Create data feature
 npx nx g next-feature:feature --name=data
 
-# Setup database
-npx nx g next-feature:database --projectName=data
-
-# Create database action
+# Create database action (expects Prisma configured in the project)
 npx nx g next-feature:action --name=getUserFromDb --actionType=db --projectName=data
 
 # Create database utilities

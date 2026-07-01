@@ -2,10 +2,12 @@ import type { GeneratorCallback } from '@nx/devkit';
 import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
 import { libraryGenerator } from '@nx/next';
 import * as path from 'path';
-import { PINO_HTTP_VERSION, PINO_PRETTY_VERSION, PINO_VERSION, SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
+import { AXIOS_VERSION, PINO_HTTP_VERSION, PINO_PRETTY_VERSION, PINO_VERSION, SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { initializeProjectGenerator, updateDependencies } from '../../../lib/utils';
+import axiosGenerator from '../../misc/axios/axios';
 import { FeatureGeneratorSchema } from './schema';
+import { updatePackageJsonExports } from './utils';
 import { normalizeFeatureGenerator } from './utils/normalize';
 
 export async function featureGenerator(
@@ -29,6 +31,8 @@ export async function featureGenerator(
     useProjectJson: true,
   }))
 
+  updatePackageJsonExports(tree, normalizedOptions.projectRoot);
+
   tasks.push(await initializeProjectGenerator(tree, normalizedOptions, "feature"))
 
   const { sourceRoot, importPath, type } = normalizedOptions;
@@ -47,6 +51,8 @@ export async function featureGenerator(
     dependencies['pino'] = PINO_VERSION;
     dependencies['pino-http'] = PINO_HTTP_VERSION;
     devDependencies['pino-pretty'] = PINO_PRETTY_VERSION;
+  } else if (type === 'client') {
+    dependencies['axios'] = AXIOS_VERSION;
   }
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies))
@@ -66,6 +72,15 @@ export async function featureGenerator(
       sourceRoot,
       normalizedOptions
     );
+  }
+
+  if (normalizedOptions.useAxios) {
+    tasks.push(await axiosGenerator(tree, {
+      name: normalizedOptions.name,
+      projectName: normalizedOptions.name,
+      directory: normalizedOptions.directory,
+      skipFormat: true,
+    }));
   }
 
   /* Clean up */

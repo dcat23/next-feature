@@ -218,7 +218,7 @@ The created workspace includes all next-feature generators:
 ```bash
 npm run nx -- g next-feature:feature --name=users
 npm run nx -- g next-feature:application --name=myapp
-npm run nx -- g next-feature:client --name=apiClient
+npm run nx -- g next-feature:feature --name=apiClient --type=client
 ```
 
 ### Code Generators

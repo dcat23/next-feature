@@ -81,6 +81,21 @@ describe('feature generator', () => {
       expect(normalizeFeatureGenerator({ name: 'base', type: 'logging' }).type).toBe('logging');
       expect(normalizeFeatureGenerator({ name: 'logging', type: 'base' }).type).toBe('base');
     });
+
+    it('should set type to client when name is client and type is not specified', () => {
+      const normalized = normalizeFeatureGenerator({ name: 'client' });
+      expect(normalized.type).toBe('client');
+    });
+
+    it('should use the standard @feature import scope for client type without an explicit orgName', () => {
+      const normalized = normalizeFeatureGenerator({ name: 'apiClient', type: 'client' });
+      expect(normalized.importPath).toBe('@feature/apiClient');
+    });
+
+    it('should respect an explicit orgName for client type', () => {
+      const normalized = normalizeFeatureGenerator({ name: 'apiClient', type: 'client', orgName: 'myorg' });
+      expect(normalized.importPath).toBe('@myorg/apiClient');
+    });
   });
 
   describe('generic type', () => {
@@ -188,6 +203,65 @@ describe('feature generator', () => {
     });
   });
 
+  describe('client type', () => {
+    const options: FeatureGeneratorSchema = { name: 'apiClient', type: 'client', skipFormat: true };
+
+    it('should generate client files', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/apiClient/src/lib/client.ts')).toBeTruthy();
+      expect(tree.exists('features/apiClient/src/lib/error.ts')).toBeTruthy();
+      expect(tree.exists('features/apiClient/src/lib/actions/with-api.ts')).toBeTruthy();
+      expect(tree.exists('features/apiClient/src/hooks/use-api-error.tsx')).toBeTruthy();
+      expect(tree.exists('features/apiClient/src/components/api-error-boundary.tsx')).toBeTruthy();
+    });
+
+    it('should not generate logging or base files', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/apiClient/src/config.ts')).toBeFalsy();
+      expect(tree.exists('features/apiClient/src/components/error-component.tsx')).toBeFalsy();
+    });
+
+    it('should add axios dependency', async () => {
+      await featureGenerator(tree, options);
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.axios).toBeDefined();
+    });
+
+    it('should generate index.ts exporting the client, error, and hooks', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/apiClient/src/index.ts', 'utf-8');
+      expect(content).toContain("export { ApiClient } from './lib/client'");
+      expect(content).toContain("export { ApiError } from './lib/error'");
+    });
+
+    it('should generate server.ts exporting the withApi action wrapper', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/apiClient/src/server.ts', 'utf-8');
+      expect(content).toContain("export * from './lib/actions/with-api'");
+    });
+
+    it('should fix package.json exports to remove the ./dist/ prefix', async () => {
+      await featureGenerator(tree, options);
+      const packageJson = readJson(tree, 'features/apiClient/package.json');
+      expect(packageJson.exports['.'].import).toBe('./index.js');
+      expect(packageJson.exports['./server'].import).toBe('./server.js');
+    });
+
+    it('should use the standard @feature import path like other types', async () => {
+      await featureGenerator(tree, options);
+      const tsConfig = tree.read('tsconfig.base.json', 'utf-8');
+      expect(tsConfig).toContain('@feature/apiClient');
+    });
+  });
+
+  describe('client name inference', () => {
+    it('should infer client type from name client', async () => {
+      await featureGenerator(tree, { name: 'client', skipFormat: true });
+      expect(tree.exists('features/client/src/lib/client.ts')).toBeTruthy();
+      expect(tree.exists('features/client/src/lib/error.ts')).toBeTruthy();
+    });
+  });
+
   describe('base type', () => {
     const options: FeatureGeneratorSchema = { name: 'base', skipFormat: true };
 
@@ -249,6 +323,32 @@ describe('feature generator', () => {
       });
       expect(tree.exists('libs/logging/test/src/config.ts')).toBeTruthy();
       expect(tree.exists('libs/logging/test/src/lib/server.ts')).toBeTruthy();
+    });
+  });
+
+  describe('useAxios option', () => {
+    it('should not touch .env by default', async () => {
+      await featureGenerator(tree, { name: 'test', skipFormat: true });
+      expect(tree.exists('features/test/.env')).toBeFalsy();
+    });
+
+    it('should chain the axios generator when useAxios is true', async () => {
+      await featureGenerator(tree, { name: 'test', useAxios: true, skipFormat: true });
+      const dotenv = tree.read('features/test/.env', 'utf-8');
+      expect(dotenv).toContain('API_URL');
+    });
+
+    it('should add axios dependency when useAxios is true', async () => {
+      await featureGenerator(tree, { name: 'test', useAxios: true, skipFormat: true });
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.axios).toBeDefined();
+    });
+
+    it('should work alongside a feature type', async () => {
+      await featureGenerator(tree, { name: 'logger', type: 'logging', useAxios: true, skipFormat: true });
+      expect(tree.exists('features/logger/src/lib/server.ts')).toBeTruthy();
+      const dotenv = tree.read('features/logger/.env', 'utf-8');
+      expect(dotenv).toContain('API_URL');
     });
   });
 });

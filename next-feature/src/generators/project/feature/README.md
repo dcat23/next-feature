@@ -4,13 +4,14 @@ The Feature generator creates a Next.js feature library in your monorepo with Ty
 
 ## Overview
 
-Feature libraries are domain-scoped code modules (users, products, auth) created under `features/[name]/`. The generator supports three types:
+Feature libraries are domain-scoped code modules (users, products, auth) created under `features/[name]/`. The generator supports four types:
 
 - **`generic`** (default) — Plain feature library with shared utilities only
 - **`logging`** — Adds pino-based server + browser logging with correlation ID support
 - **`base`** — Adds base UI components (error boundary, etc.)
+- **`client`** — Adds a reusable API client (Axios wrapper, `ApiError`, hooks, error boundary)
 
-Type is inferred automatically from the feature name: `--name=logging` sets `type=logging`, `--name=base` sets `type=base`.
+Type is inferred automatically from the feature name: `--name=logging` sets `type=logging`, `--name=base` sets `type=base`, `--name=client` sets `type=client`.
 
 ## Quick Start
 
@@ -24,6 +25,9 @@ npx nx g next-feature:feature --name=logger --type=logging
 # Create a logging library (inferred from name)
 npx nx g next-feature:feature --name=logging
 
+# Create an API client library (explicit type)
+npx nx g next-feature:feature --name=apiClient --type=client
+
 # Custom directory
 npx nx g next-feature:feature --name=users --directory=libs/users
 ```
@@ -33,9 +37,10 @@ npx nx g next-feature:feature --name=users --directory=libs/users
 | Option | Type | Default | Alias | Description |
 |--------|------|---------|-------|-------------|
 | `--name` | string | required | positional | Name of the feature library |
-| `--type` | `base \| logging \| generic` | `generic` | `-t` | Type of feature library to scaffold |
+| `--type` | `base \| logging \| client \| generic` | `generic` | `-t` | Type of feature library to scaffold |
 | `--directory` | string | `features/[name]` | `-d` | Override the output directory |
 | `--orgName` | string | — | `--org` | Organization prefix for import paths (`@myorg/[name]`) |
+| `--useAxios` | boolean | `false` | — | Chain the axios generator to scaffold `lib/axios/` HTTP client setup |
 | `--skipFormat` | boolean | false | — | Skip prettier formatting (used internally for chained generators) |
 
 ### `type` Option
@@ -50,6 +55,7 @@ The `type` is inferred from `name` when `type` is `generic` or omitted:
 |------|--------------|
 | `base` | `base` |
 | `logging` | `logging` |
+| `client` | `client` |
 | anything else | `generic` |
 
 An explicit `--type` always takes precedence over inference.
@@ -104,6 +110,40 @@ features/[name]/src/
 ```
 
 No pino dependencies are added for the `base` type.
+
+### `client` type — additional files
+
+```
+features/[name]/src/
+├── components/
+│   └── api-error-boundary.tsx  # React error boundary for ApiError
+├── hooks/
+│   └── use-api-error.tsx       # useApiError() hook
+├── lib/
+│   ├── client.ts                # ApiClient (Axios wrapper: retries, token refresh)
+│   ├── error.ts                 # ApiError class + ApiErrorBuilder
+│   ├── actions/
+│   │   └── with-api.ts          # withApi / withForm server action wrappers
+│   ├── types/
+│   │   ├── index.ts             # ApiResponse, ProblemDetail
+│   │   └── client.ts            # ApiClientConfig
+│   └── utils/
+│       ├── axios.ts             # Axios error -> ProblemDetail extraction
+│       ├── zod.ts                # Zod error -> ApiError conversion
+│       └── error.ts              # getErrorMessage, isHttpStatus, handleApiError
+├── index.ts                     # Exports ApiClient, ApiError, hooks, components
+└── server.ts                    # Exports withApi / withForm
+```
+
+**Additional dependencies added:**
+
+```json
+{
+  "dependencies": { "axios": "^1.x.x" }
+}
+```
+
+Published package exports are rewritten so `.` and `./server` resolve without a `./dist/` prefix (see [`updatePackageJsonExports`](./utils/index.ts)), matching how the package root looks once built.
 
 ### `generic` type
 
@@ -178,6 +218,15 @@ npx nx g next-feature:feature --name=logging
 # Import in your app
 # Browser: import { logger } from '@feature/logging'
 # Server:  import { logger } from '@feature/logging/server'
+```
+
+### Create an API client library
+
+```bash
+npx nx g next-feature:feature --name=apiClient --type=client
+
+# Import in your app
+import { ApiClient, ApiError, useApiError } from '@feature/apiClient';
 ```
 
 ### Create a users feature with API actions

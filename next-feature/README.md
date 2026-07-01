@@ -23,7 +23,7 @@ npx nx g next-feature:feature --name=users
 npx nx g next-feature:application --name=myapp
 
 # Create an API client library
-npx nx g next-feature:client --name=apiClient
+npx nx g next-feature:feature --name=apiClient --type=client
 ```
 
 ### Code Generators
@@ -298,18 +298,9 @@ npx nx g next-feature:feature --name=users [options]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
+| --type | enum | "generic" | Type: generic, base, logging, or client |
 | --orgName | string | - | Scoped organization name |
-
-### Client Generator
-
-```bash
-npx nx g next-feature:client --name=apiClient [options]
-```
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| --orgName | string | - | Scoped organization name |
-| --directory | string | "clients" | Base directory for clients |
+| --useAxios | boolean | false | Chain the axios generator (lib/axios/) into the feature |
 
 ### Client-Config Generator
 

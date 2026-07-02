@@ -103,6 +103,11 @@ export function applySectionChange(
     }
     if (unsetKeys.has(line.key)) continue;
     if (pending.has(line.key)) {
+      if (change.skipExisting) {
+        pending.delete(line.key);
+        result.push(line);
+        continue;
+      }
       const value = pending.get(line.key) as string;
       result.push({ raw: serialize(line.key, value), key: line.key });
       pending.delete(line.key);

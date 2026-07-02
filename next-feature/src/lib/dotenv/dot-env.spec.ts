@@ -45,6 +45,19 @@ describe('updateDotenv', () => {
     expect(dotenv).toContain('API_URL=http://b');
   });
 
+  it('leaves an existing value untouched when skipExisting is true', () => {
+    updateDotenv(tree, { projectRoot: '' }, { set: { API_URL: 'http://a' } });
+    updateDotenv(
+      tree,
+      { projectRoot: '' },
+      { set: { API_URL: 'http://b' }, skipExisting: true }
+    );
+
+    const dotenv = tree.read('.env', 'utf-8');
+    expect(dotenv.match(/API_URL=/g)).toHaveLength(1);
+    expect(dotenv).toContain('API_URL=http://a');
+  });
+
   it('removes a variable via unset', () => {
     updateDotenv(tree, { projectRoot: '' }, { set: { API_URL: 'http://a' } });
     updateDotenv(tree, { projectRoot: '' }, { unset: ['API_URL'] });

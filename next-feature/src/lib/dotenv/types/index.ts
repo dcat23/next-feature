@@ -34,9 +34,13 @@ export interface DotenvTarget {
 
 /**
  * [dotenv-change]
+ * `skipExisting` leaves an already-present key's value untouched instead of
+ * overwriting it with `set`'s value — for registering a sane default
+ * without clobbering a value a developer has since hand-edited.
  * January 30th 2026
  */
 export interface DotenvChange {
   set?: Record<string, string>;
   unset?: string[];
+  skipExisting?: boolean;
 }

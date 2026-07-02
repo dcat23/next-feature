@@ -23,12 +23,6 @@
       },
       "alias": "d"
     },
-    "env": {
-      "type": "boolean",
-      "description": "Add the axios dependency and register a <NAME>_API_URL variable in this app's .env/.env.example",
-      "default": false,
-      "alias": "e"
-    },
     "useAuth": {
       "type": "boolean",
       "description": "Setup NextAuth.js authentication: adds the route handler and SessionProvider to this app, and creates a sibling '@feature/auth' library (via next-feature:feature --type=auth) if one doesn't already exist",

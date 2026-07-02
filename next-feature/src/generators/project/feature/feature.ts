@@ -10,7 +10,6 @@ import { initializeProjectGenerator, updateDependencies } from '../../../lib/uti
 import { FeatureGeneratorSchema } from './schema';
 import { updatePackageJsonExports } from './utils';
 import { normalizeFeatureGenerator } from './utils/normalize';
-import { dotenvGenerator } from '../../misc/dotenv/dotenv';
 
 export async function featureGenerator(
   tree: Tree,
@@ -49,15 +48,23 @@ export async function featureGenerator(
 
   const devDependencies: Record<string, string> = {};
 
-  if (type === 'logging') {
-    dependencies['pino'] = PINO_VERSION;
-    dependencies['pino-http'] = PINO_HTTP_VERSION;
-    devDependencies['pino-pretty'] = PINO_PRETTY_VERSION;
-  } else if (type === 'client') {
-    dependencies['axios'] = AXIOS_VERSION;
-  } else if (type === 'auth') {
-    dependencies['next-auth'] = NEXTAUTH_VERSION;
+  switch (type) {
+    case 'logging':
+      // Handle logging-specific logic
+      dependencies['pino'] = PINO_VERSION;
+      dependencies['pino-http'] = PINO_HTTP_VERSION;
+      devDependencies['pino-pretty'] = PINO_PRETTY_VERSION;
+      break;
+    case 'client':
+        // Handle client-specific logic
+        dependencies['axios'] = AXIOS_VERSION;
+      break;
+    case 'auth':
+      // Handle auth-specific logic
+      dependencies['next-auth'] = NEXTAUTH_VERSION;
+      break;
   }
+
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies))
 
@@ -78,16 +85,12 @@ export async function featureGenerator(
     );
   }
 
-  if (normalizedOptions.env) {
-    await dotenvGenerator(tree, {
-      projectName: normalizedOptions.name,
-      set: [
-        `${apiKeyName}=http://localhost:8080`
-      ],
-      section: 'axios',
-      skipFormat: true,
-    })
-  }
+  updateDotenv(
+    tree,
+    { projectRoot, section: 'axios' },
+    { set: { [apiKeyName]: 'http://localhost:8080' }, skipExisting: true }
+  );
+  updateEnvConfig(tree, sourceRoot, { set: [apiKeyName] });
 
   /* Clean up */
   tree.delete(path.join(sourceRoot, "lib", "hello-server.tsx"));

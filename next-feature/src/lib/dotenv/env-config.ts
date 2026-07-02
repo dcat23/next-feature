@@ -1,7 +1,7 @@
 import { joinPathFragments, Tree } from '@nx/devkit';
 import { NEWLINE_SEPARATOR } from '../constants';
 import { applySectionChange } from './utils';
-import type { DotenvChange, SectionLine } from './types';
+import type { SectionLine } from './types';
 
 const ENV_CONFIG_RELATIVE_PATH = 'lib/config/env.ts';
 const SCHEMA_START = '/* schema start */';
@@ -64,10 +64,20 @@ function parseKeyedLines(lines: string[], identifier: RegExp): SectionLine[] {
 }
 
 /**
+ * [env-config-change]
+ * Every var is typed as `z.string()`, so only the key is needed — unlike
+ * `DotenvChange.set`, there's no per-key value to provide.
+ * January 30th 2026
+ */
+export interface EnvConfigChange {
+  set?: string[];
+  unset?: string[];
+}
+
+/**
  * [update-env-config]
  * Keeps `lib/config/env.ts`'s zod schema and process.env accessors in sync
- * with the vars a project's .env files declare. `change.set` maps key ->
- * zod schema expression (e.g. `z.string().url()`); the same key is used for
+ * with the vars a project's .env files declare. The same key is used for
  * the schema property and the exported accessor, per `export const KEY =
  * process.env.KEY`. Idempotent and marker-based, mirroring how .env files
  * themselves are updated in place.
@@ -76,16 +86,18 @@ function parseKeyedLines(lines: string[], identifier: RegExp): SectionLine[] {
 export function updateEnvConfig(
   tree: Tree,
   sourceRoot: string,
-  change: DotenvChange
+  change: EnvConfigChange
 ): void {
   const filePath = joinPathFragments(sourceRoot, ENV_CONFIG_RELATIVE_PATH);
   const text = tree.read(filePath, 'utf-8') ?? BASE_ENV_CONFIG;
   let lines = text.split(NEWLINE_SEPARATOR);
 
+  const set = Object.fromEntries((change.set ?? []).map((key) => [key, DEFAULT_ENV_VAR_SCHEMA]));
+
   const schemaBlock = findBlock(lines, SCHEMA_START, SCHEMA_END);
   const schemaLines = applySectionChange(
     parseKeyedLines(lines.slice(schemaBlock.startIndex + 1, schemaBlock.endIndex), SCHEMA_LINE_IDENTIFIER),
-    change,
+    { set, unset: change.unset },
     (key, schema) => `  ${key}: ${schema},`
   );
   lines = replaceBlock(lines, schemaBlock.startIndex, schemaBlock.endIndex, schemaLines.map((line) => line.raw));
@@ -93,7 +105,7 @@ export function updateEnvConfig(
   const varsBlock = findBlock(lines, VARS_START, VARS_END);
   const varLines = applySectionChange(
     parseKeyedLines(lines.slice(varsBlock.startIndex + 1, varsBlock.endIndex), VAR_LINE_IDENTIFIER),
-    change,
+    { set, unset: change.unset },
     (key) => `export const ${key} = process.env.${key};`
   );
   lines = replaceBlock(lines, varsBlock.startIndex, varsBlock.endIndex, varLines.map((line) => line.raw));

@@ -45,7 +45,7 @@ export async function clientConfigGenerator(
 
   // Ensure the API URL var this config imports actually exists in env.ts.
   updateEnvConfig(tree, normalizedOptions.sourceRoot, {
-    set: { [normalizedOptions.apiKeyName]: 'z.string().url()' },
+    set: [normalizedOptions.apiKeyName],
   });
 
   // Generate the config file from template

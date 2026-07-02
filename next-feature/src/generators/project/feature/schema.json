@@ -36,12 +36,6 @@
       "default": "generic",
       "alias": "t"
     },
-    "env": {
-      "type": "boolean",
-      "description": "Add the axios dependency and register a <NAME>_API_URL variable in this feature's .env/.env.example",
-      "default": false,
-      "alias": "e"
-    },
     "skipFormat": {
       "type": "boolean",
       "description": "Skip prettier code formatting (used internally for chained generators)",

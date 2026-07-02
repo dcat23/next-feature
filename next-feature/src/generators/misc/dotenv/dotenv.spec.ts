@@ -50,8 +50,8 @@ describe('dotenv generator', () => {
       skipFormat: true,
     });
 
-    expect(tree.read(`${root('one')}/.env`, 'utf-8') ?? '').not.toContain(
-      'API_URL'
+    expect(tree.read(`${root('one')}/.env`, 'utf-8') ?? '').not.toMatch(
+      /\bAPI_URL\b/
     );
   });
 
@@ -138,7 +138,7 @@ describe('dotenv generator', () => {
         skipFormat: true,
       });
 
-      expect(envConfig('one')).not.toContain('API_URL');
+      expect(envConfig('one')).not.toMatch(/\bAPI_URL\b/);
     });
 
     it('removes the schema entry and accessor on unset', async () => {
@@ -153,7 +153,7 @@ describe('dotenv generator', () => {
         skipFormat: true,
       });
 
-      expect(envConfig('one')).not.toContain('API_URL');
+      expect(envConfig('one')).not.toMatch(/\bAPI_URL\b/);
     });
   });
 });

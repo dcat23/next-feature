@@ -8,7 +8,6 @@ import {
 import { applicationGenerator as nextApplicationGenerator } from '@nx/next';
 import * as path from 'path';
 import {
-  AXIOS_VERSION,
   NEXTAUTH_VERSION,
   SONNER_VERSION,
   TAILWIND_VERSION,
@@ -19,12 +18,10 @@ import { updateDotenv } from '../../../lib/dotenv/dot-env';
 import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { updateDependencies } from '../../../lib/utils';
-import { asApiKeyName } from '../feature/utils';
 import featureGenerator from '../feature/feature';
 import { ApplicationGeneratorSchema } from './schema';
 import { generateSecret } from './utils';
 import { normalizeApplicationGeneratorSchema } from './utils/normalize';
-import { dotenvGenerator } from '../../misc/dotenv/dotenv';
 
 
 export async function applicationGenerator(
@@ -77,13 +74,13 @@ export async function applicationGenerator(
 
   writeWildCardPathToTsConfig(tree, importPath, sourceRoot);
 
-  /* layout.tsx always reads NEXT_PUBLIC_ROOT_DOMAIN; keep env.ts in sync regardless of useAuth/env. */
-  await dotenvGenerator(tree, {
-    projectName: normalizedOptions.name,
-    set: [`NEXT_PUBLIC_ROOT_DOMAIN=localhost:4200`],
-    section: 'root',
-    skipFormat: true,
-  })
+  /* layout.tsx always reads NEXT_PUBLIC_ROOT_DOMAIN; keep env.ts in sync regardless of useAuth. */
+  updateDotenv(
+    tree,
+    { projectRoot, section: 'root' },
+    { set: { NEXT_PUBLIC_ROOT_DOMAIN: 'localhost:4200' }, skipExisting: true }
+  );
+  updateEnvConfig(tree, sourceRoot, { set: ['NEXT_PUBLIC_ROOT_DOMAIN'] });
 
   if (normalizedOptions.useAuth) {
     // Route handler + SessionProvider wiring that expects a sibling `@feature/auth` library.
@@ -96,16 +93,12 @@ export async function applicationGenerator(
 
     dependencies['next-auth'] = NEXTAUTH_VERSION;
 
-    await dotenvGenerator(tree, {
-      projectName: normalizedOptions.name,
-      set: [
-        `NEXTAUTH_URL=http://localhost:4200`,
-        `AUTH_SECRET: ${generateSecret()}`
-      ],
-      section: 'auth',
-      skipEnvConfig: true,
-      skipFormat: true,
-    })
+    updateDotenv(tree, { projectRoot, section: 'auth' }, {
+      set: {
+        NEXTAUTH_URL: 'http://localhost:4200',
+        AUTH_SECRET: generateSecret(),
+      },
+    });
 
     try {
       readProjectConfiguration(tree, 'auth');

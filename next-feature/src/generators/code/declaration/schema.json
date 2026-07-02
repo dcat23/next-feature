@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "Declaration",
+  "title": "Declaration Generator",
+  "description": "Generate a TypeScript type definition, utility function, or constant in src/lib/{types,utils,constants}/ with export configuration.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the declaration. Naming convention follows the chosen kind (e.g. PascalCase for a type, camelCase for a utility, UPPER_SNAKE_CASE for a constant).",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What name would you like to use for this declaration?"
+    },
+    "kind": {
+      "type": "string",
+      "description": "What kind of declaration to generate",
+      "enum": ["data-type", "utility", "constant"],
+      "$default": {
+        "$source": "argv",
+        "index": 1
+      },
+      "x-prompt": {
+        "message": "What kind of declaration would you like to generate?",
+        "type": "list",
+        "items": [
+          { "value": "data-type", "label": "Type definition (interface) in src/lib/types/" },
+          { "value": "utility", "label": "Utility function in src/lib/utils/" },
+          { "value": "constant", "label": "Constant in src/lib/constants/" }
+        ]
+      }
+    },
+    "package": {
+      "type": "string",
+      "description": "Subdirectory within src/ where the declaration is created (default: 'lib')",
+      "default": "lib"
+    },
+    "projectName": {
+      "type": "string",
+      "description": "Target project name where the declaration will be generated. Auto-creates feature if not found.",
+      "alias": "p"
+    },
+    "directory": {
+      "type": "string",
+      "description": "Override the entire directory path for declaration creation",
+      "alias": "d"
+    },
+    "file": {
+      "type": "string",
+      "description": "Optional: Create or append the declaration to an existing file instead of creating a separate file",
+      "alias": "f"
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip prettier code formatting (used internally for chained generators)",
+      "default": false
+    },
+    "export": {
+      "type": "boolean",
+      "description": "Export the generated declaration from project root src/index.ts (default: true)",
+      "default": true,
+      "alias": "e"
+    }
+  },
+  "required": ["name", "kind"]
+}

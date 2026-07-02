@@ -9,7 +9,7 @@ import * as path from 'path';
 import { ZUSTAND_VERSION } from '../../../lib/constants/versions';
 import { updateDependencies } from '../../../lib/utils';
 import { exportFile } from '../../../lib/export-file';
-import typesGenerator from '../data-type/data-type';
+import declarationGenerator from '../declaration/declaration';
 import { StoreGeneratorSchema } from './schema';
 import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
 import { normalizeStoreGenerator } from './lib/utils';
@@ -42,7 +42,7 @@ export async function storeGenerator(
   tasks.push(updateDependencies(tree, dependencies, devDependencies))
 
   if (normalizedOptions.useTypes) {
-    tasks.push(await typesGenerator(tree, { ...normalizedOptions, skipFormat: true }))
+    tasks.push(await declarationGenerator(tree, { ...normalizedOptions, kind: 'data-type', skipFormat: true }))
   }
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);

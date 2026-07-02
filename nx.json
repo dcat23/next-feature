@@ -102,15 +102,7 @@
   ],
   "generators": {
     "next-feature": {
-      "utility": {
-        "projectName": "next-feature",
-        "export": false
-      },
-      "constant": {
-        "projectName": "next-feature",
-        "export": false
-      },
-      "data-type": {
+      "declaration": {
         "projectName": "next-feature",
         "export": false
       },
@@ -120,8 +112,6 @@
       "component": {
         "projectName": "test"
       },
-      "auth": {},
-      "axios": {},
       "action": {
         "projectName": "test"
       },
@@ -133,6 +123,9 @@
       },
       "client": {
         "orgName": "next-feature"
+      },
+      "dotenv" : {
+        "skipEnvConfig": true
       }
     },
     "@nx/react": {

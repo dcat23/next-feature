@@ -2,18 +2,19 @@ import {
   formatFiles,
   GeneratorCallback,
   runTasksInSerial,
-  Tree
+  Tree,
 } from '@nx/devkit';
 import * as path from 'path';
 import { exportFile } from '../../../lib/export-file';
 import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
 import { writeFile } from '../../../lib/write-file';
-import { dataTypeContent, normalize } from './lib/utils';
-import { DataTypeGeneratorSchema } from './schema';
+import { DECLARATION_KINDS } from './lib/types';
+import { normalize } from './lib/utils';
+import { DeclarationGeneratorSchema } from './schema';
 
-export async function dataTypeGenerator(
+export async function declarationGenerator(
   tree: Tree,
-  options: DataTypeGeneratorSchema
+  options: DeclarationGeneratorSchema
 ) {
   const tasks: GeneratorCallback[] = [];
 
@@ -21,18 +22,21 @@ export async function dataTypeGenerator(
   const { directory, sourceRoot } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
-    'data-type'
+    'declaration'
   );
+
+  const { subDirectory, content } = DECLARATION_KINDS[normalizedOptions.kind];
+
   await writeFile(
     tree,
-    path.join(directory, 'types'),
-    dataTypeContent,
+    path.join(directory, subDirectory),
+    content,
     normalizedOptions,
     normalizedOptions.outputFileName
   );
 
   if (normalizedOptions.export) {
-    await exportFile(tree, sourceRoot, normalizedOptions.exportPath, "server");
+    await exportFile(tree, sourceRoot, normalizedOptions.exportPath, 'server');
   }
 
   if (!options.skipFormat) await formatFiles(tree);
@@ -40,4 +44,4 @@ export async function dataTypeGenerator(
   return runTasksInSerial(...tasks);
 }
 
-export default dataTypeGenerator;
+export default declarationGenerator;

@@ -3,3 +3,11 @@ packages:
   - 'next-feature'
   - 'create-next-feature'
   - 'features/*'
+allowBuilds:
+  '@parcel/watcher': true
+  '@swc/core': true
+  core-js: true
+  esbuild: true
+  nx: true
+  sharp: true
+  unrs-resolver: true

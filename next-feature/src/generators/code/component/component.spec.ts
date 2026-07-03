@@ -5,25 +5,27 @@ import { ComponentGeneratorSchema } from './schema';
 describe('component generator', () => {
   let tree: Tree;
   const defaultOptions: ComponentGeneratorSchema = {
-    projectName: 'test-component',
+    projectName: 'base',
+    name: 'test-component',
+    componentType: 'component',
   };
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
   });
   it('should run successfully', async () => {
-    await componentGenerator(tree, defaultOptions);
+    await componentGenerator(tree, { ...defaultOptions });
     const config = readProjectConfiguration(tree, 'base');
     expect(config).toBeDefined();
   });
   it('should generate default component file', async () => {
-    await componentGenerator(tree, defaultOptions);
+    await componentGenerator(tree, { ...defaultOptions });
     const file = 'features/base/src/components/test-component.tsx';
     expect(tree.exists(file)).toBeTruthy();
   });
   it('should generate modal component', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
-      name: 'confirm-modal',
+      name: 'confirm',
       componentType: 'modal',
     };
     await componentGenerator(tree, options);
@@ -36,7 +38,7 @@ describe('component generator', () => {
   it('should generate card component', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
-      name: 'info-card',
+      name: 'info',
       componentType: 'card',
     };
     await componentGenerator(tree, options);
@@ -49,7 +51,7 @@ describe('component generator', () => {
   it('should generate form component', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
-      name: 'login-form',
+      name: 'login',
       componentType: 'form',
     };
     await componentGenerator(tree, options);
@@ -67,36 +69,61 @@ describe('component generator', () => {
       componentType: 'provider',
     };
     await componentGenerator(tree, options);
-    const file = 'features/base/src/components/theme.tsx';
+    const file = 'features/base/src/components/theme-provider.tsx';
     expect(tree.exists(file)).toBeTruthy();
     const content = tree.read(file, 'utf-8');
     expect(content).toContain('createContext');
     expect(content).toContain('Provider');
     expect(content).toContain('useTheme');
   });
-  it('should generate page component', async () => {
+  it('should generate page component in the app directory', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
       name: 'dashboard',
       componentType: 'page',
     };
     await componentGenerator(tree, options);
-    const file = 'features/base/src/components/dashboard.tsx';
+    const file = 'features/base/src/app/page.tsx';
     expect(tree.exists(file)).toBeTruthy();
     const content = tree.read(file, 'utf-8');
-    expect(content).toContain('async function Page');
+    expect(content).toContain('async function DashboardPage');
   });
-  it('should generate layout component', async () => {
+  it('should generate layout component in the app directory', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
       name: 'admin-layout',
       componentType: 'layout',
     };
     await componentGenerator(tree, options);
-    const file = 'features/base/src/components/admin-layout.tsx';
+    const file = 'features/base/src/app/layout.tsx';
     expect(tree.exists(file)).toBeTruthy();
     const content = tree.read(file, 'utf-8');
-    expect(content).toContain('function Layout');
+    expect(content).toContain('function AdminLayoutLayout');
     expect(content).toContain('children');
+  });
+
+  it('should generate a hook in the hooks package with a use- prefixed file and export', async () => {
+    const options: ComponentGeneratorSchema = {
+      ...defaultOptions,
+      name: 'toggle',
+      componentType: 'hook',
+    };
+    await componentGenerator(tree, options);
+    const file = 'features/base/src/hooks/use-toggle.ts';
+    expect(tree.exists(file)).toBeTruthy();
+    const content = tree.read(file, 'utf-8');
+    expect(content).toContain('export function useToggle');
+    expect(content).toContain('export default useToggle');
+  });
+
+  it('should not double-prefix a hook name that already starts with use', async () => {
+    const options: ComponentGeneratorSchema = {
+      ...defaultOptions,
+      name: 'use-toggle',
+      componentType: 'hook',
+    };
+    await componentGenerator(tree, options);
+    const file = 'features/base/src/hooks/use-toggle.ts';
+    expect(tree.exists(file)).toBeTruthy();
   });
 });

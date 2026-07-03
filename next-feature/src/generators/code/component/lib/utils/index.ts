@@ -14,6 +14,9 @@ export function handleComponentPackage(options: ComponentGeneratorSchema) {
         ? path.join("app", options.package)
         : "app"
       break;
+    case "hook":
+      options.package ??= "hooks";
+      break;
     default:
       options.package ??= "components"
   }

@@ -9,17 +9,25 @@ import { handleComponentPackage } from './lib/utils';
 function normalize(
   options: ComponentGeneratorSchema
 ): NormalizedComponentGeneratorSchema {
+  options.componentType ??= 'component';
+  // Must run before normalizeCodeGenerator, which unconditionally defaults
+  // `package` to 'lib' and would otherwise make this per-type default a no-op.
+  handleComponentPackage(options)
+
   const normalized = normalizeCodeGenerator(options)
-  normalized.componentType ??= 'component';
   const mutatedNames = names(normalized.name);
-  normalized.outputFileName = mutatedNames.fileName;
+  const isHook = normalized.componentType === 'hook';
+
+  normalized.outputFileName = isHook
+    ? (mutatedNames.fileName.startsWith('use-') ? mutatedNames.fileName : `use-${mutatedNames.fileName}`)
+    : mutatedNames.fileName;
   normalized.exportPath = handleExportPath(normalized)
-  handleComponentPackage(normalized)
 
   return {
     tmpl: '',
     ...normalized,
     names: mutatedNames,
+    hookName: isHook ? `use${mutatedNames.className}` : undefined,
   };
 }
 

@@ -38,6 +38,9 @@ npx nx g next-feature:action --name=getUser --projectName=users
 # React components
 npx nx g next-feature:component --name=UserCard --projectName=users
 
+# TanStack Query hook wrapping an existing server action (useQuery/useMutation)
+npx nx g next-feature:hook --name=getUser --projectName=users
+
 # Zustand state management stores
 npx nx g next-feature:store --name=userStore --projectName=users
 
@@ -83,7 +86,7 @@ Action generator automatically chains related generators:
 
 ```bash
 npx nx g next-feature:action --name=getUser --actionType=api \
-  --useTypes --useConstant --useMapper
+  --useTypes --useConstant --useMapper --useHook
 ```
 
 Generates in sequence:
@@ -91,6 +94,7 @@ Generates in sequence:
 2. TypeScript types (if --useTypes)
 3. Constants (if --useConstant)
 4. Mapper utility (if --useMapper)
+5. TanStack Query hook wrapping the action (if --useHook; ignored for `--actionType=form`) - `useQuery` for GET-derived actions, `useMutation` otherwise
 
 ### ✨ Zod Validation Error Handling
 
@@ -125,7 +129,8 @@ npx nx g next-feature:action --name=getUser --projectName=myapp \
 Generate self-contained pieces of functionality:
 
 - **action** - Server actions (API, form, database operations)
-- **component** - React components with TypeScript
+- **component** - React components with TypeScript; `--componentType=hook` scaffolds a generic reusable hook instead of a component
+- **hook** - TanStack Query hook (`useQuery`/`useMutation`) wrapping an existing server action; auto-invoked by `action` when `--useHook` is set
 - **store** - Zustand state management hooks
 - **types** - TypeScript type definitions
 - **constant** - Constants and enums
@@ -258,6 +263,7 @@ npx nx g next-feature:action --name=getUser [options]
 | --useTypes | boolean | true | Generate type files |
 | --useConstant | boolean | true | Generate constants |
 | --useMapper | boolean | false | Generate mapper utility |
+| --useHook | boolean | false | Generate a TanStack Query hook wrapping this action (ignored for `actionType=form`) |
 | --clientPackage | string | "@next-feature/client" | Client library to import |
 
 ### Component Generator
@@ -268,7 +274,21 @@ npx nx g next-feature:component --name=Button [options]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| --componentType | enum | "component" | Type: component, card, modal, form, etc. |
+| --componentType | enum | "component" | Type: component, card, modal, form, page, layout, provider, or hook (generic reusable hook in `src/hooks/`) |
+
+### Hook Generator
+
+```bash
+npx nx g next-feature:hook --name=getUser --projectName=users [options]
+```
+
+Wraps an existing server action in a `useQuery` (GET-derived actions) or `useMutation` (all others) hook, using the same name-prefix detection as the action generator. `getUsers` produces `hooks/use-get-users.ts` exporting `useGetUsers`.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| --actionPackage | string | "lib/actions" | Subdirectory where the wrapped action lives |
+| --actionFile | string | - | Exact file (without extension) the action was written to, if not the default resource-based name |
+| --clientPackage | string | "@next-feature/client" | Client package to import `ApiError` from |
 
 ### Store Generator
 
@@ -317,6 +337,7 @@ apps/myfeature/
 │   │   │   └── config.ts          (auto-created on first action)
 │   │   ├── actions/               (server actions)
 │   │   ├── components/            (React components)
+│   │   ├── hooks/                 (TanStack Query hooks / generic hooks)
 │   │   ├── stores/                (Zustand stores)
 │   │   ├── types/                 (TypeScript types)
 │   │   ├── constants/             (Constants)

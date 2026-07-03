@@ -1,0 +1,18 @@
+"use client";
+
+import { useState } from 'react';
+
+interface <%= names.className %>Options {
+  initialValue?: unknown;
+}
+
+export function <%= hookName %>(options?: <%= names.className %>Options) {
+  const [value, setValue] = useState(options?.initialValue);
+
+  return {
+    value,
+    setValue,
+  };
+}
+
+export default <%= hookName %>;

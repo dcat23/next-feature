@@ -31,10 +31,10 @@
     },
     "componentType": {
       "type": "string",
-      "description": "Type of component: 'component' for basic React components, 'page' for Next.js pages, 'layout' for Next.js layouts, 'form' for form components, 'modal' for dialogs, 'card' for card containers, 'provider' for context providers",
+      "description": "Type of component: 'component' for basic React components, 'page' for Next.js pages, 'layout' for Next.js layouts, 'form' for form components, 'modal' for dialogs, 'card' for card containers, 'provider' for context providers, 'hook' for a generic reusable hook",
       "alias": "t",
       "default": "component",
-      "enum": ["component", "page", "layout", "modal", "card", "form", "provider"],
+      "enum": ["component", "page", "layout", "modal", "card", "form", "provider", "hook"],
       "x-prompt": {
         "message": "Which component type would you like to generate?",
         "type": "list",
@@ -45,7 +45,8 @@
           { "value": "modal", "label": "Modal - Dialog/modal component for overlays" },
           { "value": "card", "label": "Card - Card container component for content grouping" },
           { "value": "form", "label": "Form - Form component with state management and validation" },
-          { "value": "provider", "label": "Provider - Context provider for state management" }
+          { "value": "provider", "label": "Provider - Context provider for state management" },
+          { "value": "hook", "label": "Hook - Generic reusable hook (use<Name>) in src/hooks/" }
         ]
       }
     },

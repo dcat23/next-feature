@@ -63,7 +63,8 @@ The plugin follows an Nx plugin structure with generators organized by category:
 
 **Code Generators** (`src/generators/code/`)
 - `action` - Generates Next.js server actions (API, form, or database operations) with client integration
-- `component` - Generates React components
+- `component` - Generates React components. `componentType=hook` scaffolds a generic reusable hook (`use<Name>`) in `src/hooks/` instead of a component
+- `hook` - Generates a TanStack Query hook (`useQuery` for GET-derived actions, `useMutation` otherwise) that wraps an existing server action, in `src/hooks/`. Auto-invoked by the `action` generator when `useHook` is set
 - `store` - Generates Zustand stores
 - `data-type` - Generates TypeScript type definitions
 - `constant` - Generates constant definitions
@@ -135,6 +136,13 @@ All generators follow a consistent pattern:
 - `useTypes` - Auto-generate TypeScript types
 - `useConstant` - Auto-generate constants
 - `useMapper` - Auto-generate mapper utility
+- `useHook` - Auto-generate a TanStack Query hook (`hooks/use-<name>.ts`) wrapping this action; ignored when `actionType` is `form`
+
+**Hook Generator Specific:**
+- `name` - Name of the action to wrap (e.g. `getUsers`); determines the hook name (`use<Name>`) and whether `useQuery` or `useMutation` is used, via the same HTTP-method-prefix detection as the action generator
+- `actionPackage` - Subdirectory where the wrapped action lives (default: `lib/actions`, matching the action generator's default)
+- `actionFile` - Exact file (without extension) the wrapped action was written to, if it differs from the default resource-based name
+- `clientPackage` - Client package to import `ApiError` from (default: `@next-feature/client`)
 
 **Project Generators:**
 - `orgName` - Organization name for scoped packages (e.g., '@myorg')
@@ -145,6 +153,7 @@ All generators follow a consistent pattern:
 Generators can invoke other generators via `runTasksInSerial()`:
 - Action generator auto-creates client-config if it doesn't exist
 - Action generator can chain data-type, constant, and utility generators based on options
+- Action generator chains the `hook` generator when `useHook` is set (ignored for `actionType=form`), scaffolding a `useQuery`/`useMutation` hook that wraps the generated action
 - Feature generator adds the axios dependency and registers a `<NAME>_API_URL` var (in `.env`/`.env.example` and `lib/config/env.ts`) when `env` is set
 - Application generator does the same when `env` is set, and creates a sibling `auth`-type feature (if missing) when `useAuth` is set
 - This avoids duplication and ensures consistent setup

@@ -51,6 +51,11 @@
       "schema": "./src/generators/code/action/schema.json",
       "description": "action generator"
     },
+    "hook": {
+      "factory": "./src/generators/code/hook/hook",
+      "schema": "./src/generators/code/hook/schema.json",
+      "description": "hook generator"
+    },
     "client-config": {
       "factory": "./src/generators/misc/client-config/client-config",
       "schema": "./src/generators/misc/client-config/schema.json",

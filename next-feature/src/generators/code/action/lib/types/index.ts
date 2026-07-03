@@ -1,4 +1,4 @@
-import type { HttpMethod } from '../constants';
+import type { HttpMethod } from '../../../../../lib/constants/http-method';
 import {
   CodeGeneratorSchema,
   Names,
@@ -33,6 +33,12 @@ export interface ActionGeneratorSchema extends CodeGeneratorSchema {
    * For API actions: Generate mapper function
    */
   useMapper?: boolean;
+
+  /**
+   * Generate a TanStack Query hook (useQuery/useMutation) wrapping this action.
+   * Ignored when actionType is 'form'.
+   */
+  useHook?: boolean;
 
   /**
    * Client package to import from (e.g., @myfeature/client)

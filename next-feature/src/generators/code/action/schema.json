@@ -81,6 +81,12 @@
       "default": false,
       "alias": "m"
     },
+    "useHook": {
+      "type": "boolean",
+      "description": "Generate a TanStack Query hook (useQuery for GET, useMutation otherwise) wrapping this action in hooks/use-<name>.ts. Ignored when actionType is 'form'.",
+      "default": false,
+      "alias": "h"
+    },
     "skipFormat": {
       "type": "boolean",
       "description": "Skip prettier code formatting (used internally for chained generators)",

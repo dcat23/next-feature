@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "Hook",
+  "title": "Hook Generator",
+  "description": "Generate a TanStack React Query hook (useQuery for GET actions, useMutation otherwise) wrapping an existing server action.",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the action to wrap (e.g., getUsers, createPost). Determines the hook name (use<Name>) and whether useQuery or useMutation is used.",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What action would you like to generate a hook for?"
+    },
+    "package": {
+      "type": "string",
+      "description": "Subdirectory within src/ where hooks are created (default: 'hooks' creates src/hooks/)",
+      "default": "hooks"
+    },
+    "directory": {
+      "type": "string",
+      "description": "Override the entire directory path for hook creation",
+      "alias": "d"
+    },
+    "projectName": {
+      "type": "string",
+      "description": "Target project name where hook will be generated. Auto-creates feature if not found.",
+      "alias": "p"
+    },
+    "actionPackage": {
+      "type": "string",
+      "description": "Subdirectory within src/ where the wrapped action lives (default: 'lib/actions', matching the action generator's default)",
+      "default": "lib/actions"
+    },
+    "actionFile": {
+      "type": "string",
+      "description": "Optional: exact file (without extension) the wrapped action was written to, if it differs from the default resource-based name"
+    },
+    "clientPackage": {
+      "type": "string",
+      "description": "API client package to import ApiError from. Use @next-feature/client (default) or custom package like @myorg/api-client",
+      "alias": "client",
+      "default": "@next-feature/client"
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip prettier code formatting (used internally for chained generators)",
+      "default": false
+    },
+    "export": {
+      "type": "boolean",
+      "description": "Export the generated hook from project root src/index.ts (default: true)",
+      "default": true,
+      "alias": "e"
+    }
+  },
+  "required": ["name"]
+}

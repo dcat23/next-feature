@@ -10,6 +10,7 @@ import * as path from 'path';
 import { exportFile } from '../../../lib/export-file';
 import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
 import declarationGenerator from '../declaration/declaration';
+import hookGenerator from '../hook/hook';
 import clientConfigGenerator from '../../misc/client-config/client-config';
 import { normalize } from './lib/utils';
 import type { ActionGeneratorSchema } from './schema';
@@ -88,6 +89,20 @@ export async function actionGenerator(
         kind: 'data-type',
         name: normalizedOptions.domain.className,
         file: normalizedOptions.outputFileName,
+        skipFormat: true,
+      })
+    );
+  }
+
+  if (normalizedOptions.useHook && normalizedOptions.actionType !== 'form') {
+    tasks.push(
+      await hookGenerator(tree, {
+        name: normalizedOptions.name,
+        projectName,
+        actionPackage: normalizedOptions.package,
+        actionFile: path.parse(normalizedOptions.outputFileName).name,
+        clientPackage: normalizedOptions.clientPackage,
+        export: normalizedOptions.export,
         skipFormat: true,
       })
     );

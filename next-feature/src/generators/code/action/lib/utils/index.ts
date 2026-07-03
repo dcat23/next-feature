@@ -1,82 +1,25 @@
-import { logger, names } from '@nx/devkit';
+import { names } from '@nx/devkit';
 import { asOutputFile } from 'next-feature/src/lib/utils/files';
-import { Names } from '../../../../../lib/types';
 import {
   handleExportPath,
   normalizeCodeGenerator,
 } from '../../../../../lib/utils/code-generator';
-import { pluralize, singularize } from '../../../../../lib/utils/string';
-import type { HttpMethod } from '../constants';
-import { PREFIXES, RESPONSE_TYPES } from '../constants';
+import {
+  extractEndpoint,
+  extractHttpMethod,
+} from '../../../../../lib/utils/http-method';
 import type {
   ActionGeneratorSchema,
-  ActionType,
   NormalizedActionGeneratorSchema,
 } from '../types';
 import { apiContent } from './content';
 
-/**
- * Extract HTTP method from action name
- * Examples:
- *   - "getUsers" -> { method: 'get', noPrefix: 'User' }
- *   - "createProducts" -> { method: 'post', noPrefix: 'Product' }
- *   - "updateStatuses" -> { method: 'put', noPrefix: 'Status' }
- */
-export interface ExtractHttpMethod {
-  method: HttpMethod;
-  noPrefix: string;
-}
-
-export function extractHttpMethod(name: string): ExtractHttpMethod {
-  const prefixesStr = (PREFIXES as readonly string[]).join('|');
-  const pattern = new RegExp(`^(?<prefix>${prefixesStr})?(?<noPrefix>.*)`, 'i');
-
-  const matches = name.match(pattern);
-
-  if (!matches?.groups) {
-    logger.debug(`No prefix match for: ${name}`);
-    const singularized = singularize(names(name).className);
-    return {
-      method: 'post',
-      noPrefix: singularized,
-    };
-  }
-
-  const { prefix, noPrefix: _noPrefix } = matches.groups;
-
-  const method = (RESPONSE_TYPES[prefix as keyof typeof RESPONSE_TYPES] ||
-    'post') as HttpMethod;
-  const className = names(_noPrefix).className;
-  const noPrefix = singularize(className);
-
-  return {
-    method,
-    noPrefix,
-  };
-}
+export { extractEndpoint, extractHttpMethod };
 
 function handleConfigImportPath(options: ActionGeneratorSchema) {
   return ["..","config",
     options.actionType === "db" ? "prisma" : "client"
   ].join("/");
-}
-
-/**
- * @deprecated unified files
- * @returns 
- */
-function handleOutputFileName({ fileName, actionType }: {
-  fileName: Names["fileName"],
-  actionType: ActionType
-}) {
-  switch (actionType) {
-    case "api":
-      return fileName + "-api"
-    case "form":
-      return fileName + "-action"
-    default:
-      return fileName;
-  }
 }
 
 /**
@@ -91,6 +34,7 @@ export function normalize(
   options.useTypes = Boolean(options.useTypes);
   options.useConstant = Boolean(options.useConstant);
   options.useMapper = Boolean(options.useMapper);
+  options.useHook = Boolean(options.useHook);
   options.clientPackage ??= "@next-feature/client";
 
   // normalize general options
@@ -127,17 +71,4 @@ export function normalize(
     configImportPath,
     content
   };
-}
-
-
-/**
- * [extract-endpoint]
- * next-feature@0.0.12
- * November 9th 2025, 1:37:44 pm
- */
-export function extractEndpoint(text: string) {
-  return names(text).fileName.split(/-/)
-    .reverse()
-    .map(pluralize)
-    .join("/")
 }

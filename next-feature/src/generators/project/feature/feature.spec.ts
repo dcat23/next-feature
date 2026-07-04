@@ -147,7 +147,7 @@ describe('feature generator', () => {
       await featureGenerator(tree, options);
       const packageJson = readJson(tree, 'package.json');
       expect(packageJson.dependencies?.pino).toBeDefined();
-      expect(packageJson.devDependencies?.['pino-pretty']).toBeDefined();
+      expect(packageJson.dependencies?.['pino-pretty']).toBeDefined();
     });
 
     it('should generate server logger implementation', async () => {
@@ -155,6 +155,12 @@ describe('feature generator', () => {
       const content = tree.read('features/logger/src/lib/server.ts', 'utf-8');
       expect(content).toContain("from 'pino'");
       expect(content).toContain('pinoOptions');
+    });
+
+    it('should externalize pino packages in the vite build so the wrong browser/node build is not bundled in', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/logger/vite.config.mts', 'utf-8');
+      expect(content).toContain("external: ['react','react-dom','react/jsx-runtime','pino','pino-http','pino-pretty']");
     });
 
     it('should generate browser client logger with use client directive', async () => {
@@ -386,7 +392,7 @@ describe('feature generator', () => {
       await featureGenerator(tree, { name: 'test', type: 'logging', skipFormat: true });
       const packageJson = readJson(tree, 'package.json');
       expect(packageJson.dependencies?.pino).toMatch(/^\^?\d+\.\d+\.\d+/);
-      expect(packageJson.devDependencies?.['pino-pretty']).toMatch(/^\^?\d+\.\d+\.\d+/);
+      expect(packageJson.dependencies?.['pino-pretty']).toMatch(/^\^?\d+\.\d+\.\d+/);
     });
   });
 

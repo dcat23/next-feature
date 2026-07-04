@@ -1,8 +1,11 @@
-// import { registerPino } from '@next-feature/logging';
+<% if (!skipLogging) { %>
+import { registerPino } from '@next-feature/logging/server';
 
-/**
-    
- */
 export function register() {
-  // registerPino();    
+  registerPino();
 }
+<% } else { %>
+export function register() {
+  // Logging was skipped for this app (skipLogging: true).
+}
+<% } %>

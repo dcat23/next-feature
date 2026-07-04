@@ -15,6 +15,7 @@ export function normalizeApplicationGeneratorSchema(
 ): NormalizedApplicationGeneratorSchema {
   const normalized = normalizeProjectGeneratorSchema(options, "app");
   normalized.useSrc = Boolean(options.useSrc);
+  normalized.skipLogging = Boolean(options.skipLogging);
   normalized.sourceRoot = normalized.useSrc 
     ? path.join(normalized.projectRoot, "src")
     : normalized.projectRoot

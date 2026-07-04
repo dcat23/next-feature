@@ -30,7 +30,7 @@ describe('application generator', () => {
     it('should generate the auth route handler when useAuth is true', async () => {
       await applicationGenerator(tree, { name: 'test', useAuth: true });
       const route = tree.read('apps/test/app/api/auth/[...nextauth]/route.ts', 'utf-8');
-      expect(route).toContain("from '@feature/auth'");
+      expect(route).toContain("from '@feature/auth/server'");
     });
 
     it('should wrap providers with SessionProvider when useAuth is true', async () => {
@@ -66,6 +66,37 @@ describe('application generator', () => {
       const dotenv = tree.read('apps/test/.env', 'utf-8');
       expect(dotenv).toContain('AUTH_SECRET');
       expect(dotenv).toContain('NEXTAUTH_URL');
+    });
+  });
+
+  describe('logging', () => {
+    it('should wire registerPino into instrumentation.ts by default', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const instrumentation = tree.read('apps/test/instrumentation.ts', 'utf-8');
+      expect(instrumentation).toContain("import { registerPino } from '@next-feature/logging/server'");
+      expect(instrumentation).toContain('registerPino();');
+    });
+
+    it('should add @next-feature/logging as an installed dependency by default', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.['@next-feature/logging']).toBeDefined();
+    });
+
+    it('should mark pino packages as serverExternalPackages in next.config.js by default', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const nextConfig = tree.read('apps/test/next.config.js', 'utf-8');
+      expect(nextConfig).toContain("serverExternalPackages: ['pino', 'pino-http', 'pino-pretty']");
+    });
+
+    it('should skip logging wiring when skipLogging is true', async () => {
+      await applicationGenerator(tree, { name: 'test', skipLogging: true });
+      const instrumentation = tree.read('apps/test/instrumentation.ts', 'utf-8');
+      expect(instrumentation).not.toContain('@next-feature/logging');
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.['@next-feature/logging']).toBeUndefined();
+      const nextConfig = tree.read('apps/test/next.config.js', 'utf-8');
+      expect(nextConfig).not.toContain('serverExternalPackages');
     });
   });
 });

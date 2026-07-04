@@ -7,6 +7,7 @@ import { updateDotenv } from '../../../lib/dotenv/dot-env';
 import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { initializeProjectGenerator, updateDependencies } from '../../../lib/utils';
+import { addRollupExternalPackages } from '../../../lib/utils/vite-config';
 import { FeatureGeneratorSchema } from './schema';
 import { updatePackageJsonExports } from './utils';
 import { normalizeFeatureGenerator } from './utils/normalize';
@@ -53,7 +54,10 @@ export async function featureGenerator(
       // Handle logging-specific logic
       dependencies['pino'] = PINO_VERSION;
       dependencies['pino-http'] = PINO_HTTP_VERSION;
-      devDependencies['pino-pretty'] = PINO_PRETTY_VERSION;
+      dependencies['pino-pretty'] = PINO_PRETTY_VERSION;
+      // pino ships dual browser/node builds; Vite's default (browser-favoring)
+      // resolve conditions bundle the wrong one in unless excluded entirely.
+      addRollupExternalPackages(tree, projectRoot, ['pino', 'pino-http', 'pino-pretty']);
       break;
     case 'client':
         // Handle client-specific logic

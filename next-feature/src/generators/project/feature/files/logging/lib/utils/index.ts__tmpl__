@@ -31,6 +31,6 @@ export const registerPino = async () => {
       },
     });
 
-    logger.info('Next.js server instrumentation registered');
+    logger.info('Next.js server logging registered');
   }
 }

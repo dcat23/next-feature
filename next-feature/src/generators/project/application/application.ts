@@ -9,6 +9,7 @@ import { applicationGenerator as nextApplicationGenerator } from '@nx/next';
 import * as path from 'path';
 import {
   NEXTAUTH_VERSION,
+  PLUGIN_VERSION,
   SONNER_VERSION,
   TAILWIND_VERSION,
   TANSTACK_VERSION,
@@ -18,6 +19,7 @@ import { updateDotenv } from '../../../lib/dotenv/dot-env';
 import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { updateDependencies } from '../../../lib/utils';
+import { addServerExternalPackages } from '../../../lib/utils/next-config';
 import featureGenerator from '../feature/feature';
 import { ApplicationGeneratorSchema } from './schema';
 import { generateSecret } from './utils';
@@ -78,7 +80,7 @@ export async function applicationGenerator(
   updateDotenv(
     tree,
     { projectRoot, section: 'root' },
-    { set: { NEXT_PUBLIC_ROOT_DOMAIN: 'localhost:4200' }, skipExisting: true }
+    { set: { NEXT_PUBLIC_ROOT_DOMAIN: 'http://localhost:4200' }, skipExisting: true }
   );
   updateEnvConfig(tree, sourceRoot, { set: ['NEXT_PUBLIC_ROOT_DOMAIN'] });
 
@@ -111,6 +113,14 @@ export async function applicationGenerator(
         })
       );
     }
+  }
+
+  if (!normalizedOptions.skipLogging) {
+    // instrumentation.ts (generated above) imports registerPino from the
+    // published @next-feature/logging package unconditionally.
+    dependencies['@next-feature/logging'] = PLUGIN_VERSION;
+
+    addServerExternalPackages(tree, projectRoot, ['pino', 'pino-http', 'pino-pretty']);
   }
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies));

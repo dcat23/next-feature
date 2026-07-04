@@ -53,6 +53,7 @@ export default defineConfig(() => ({
         'pino',
         'pino-http',
         'pino-pretty',
+        'thread-stream',
       ],
     },
   },

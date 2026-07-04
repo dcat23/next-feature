@@ -160,7 +160,7 @@ describe('feature generator', () => {
     it('should externalize pino packages in the vite build so the wrong browser/node build is not bundled in', async () => {
       await featureGenerator(tree, options);
       const content = tree.read('features/logger/vite.config.mts', 'utf-8');
-      expect(content).toContain("external: ['react','react-dom','react/jsx-runtime','pino','pino-http','pino-pretty']");
+      expect(content).toContain("external: ['react','react-dom','react/jsx-runtime','pino','pino-http','pino-pretty','thread-stream']");
     });
 
     it('should generate browser client logger with use client directive', async () => {

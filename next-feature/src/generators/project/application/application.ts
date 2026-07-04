@@ -9,6 +9,9 @@ import { applicationGenerator as nextApplicationGenerator } from '@nx/next';
 import * as path from 'path';
 import {
   NEXTAUTH_VERSION,
+  PINO_VERSION,
+  PINO_HTTP_VERSION,
+  PINO_PRETTY_VERSION,
   PLUGIN_VERSION,
   SONNER_VERSION,
   TAILWIND_VERSION,
@@ -119,8 +122,10 @@ export async function applicationGenerator(
     // instrumentation.ts (generated above) imports registerPino from the
     // published @next-feature/logging package unconditionally.
     dependencies['@next-feature/logging'] = PLUGIN_VERSION;
-
-    addServerExternalPackages(tree, projectRoot, ['pino', 'pino-http', 'pino-pretty']);
+    dependencies['pino'] = PINO_VERSION;
+    dependencies['pino-http'] = PINO_HTTP_VERSION;
+    dependencies['pino-pretty'] = PINO_PRETTY_VERSION;
+    addServerExternalPackages(tree, projectRoot, ['pino', 'pino-http', 'pino-pretty', 'thread-stream']);
   }
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies));

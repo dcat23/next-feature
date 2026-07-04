@@ -58,7 +58,10 @@ export async function featureGenerator(
       dependencies['pino-pretty'] = PINO_PRETTY_VERSION;
       // pino ships dual browser/node builds; Vite's default (browser-favoring)
       // resolve conditions bundle the wrong one in unless excluded entirely.
-      addRollupExternalPackages(tree, projectRoot, ['pino', 'pino-http', 'pino-pretty']);
+      // thread-stream must be external too: pino-pretty's transport spawns it
+      // as a worker thread, which needs the real on-disk worker.js rather than
+      // a bundled copy.
+      addRollupExternalPackages(tree, projectRoot, ['pino', 'pino-http', 'pino-pretty', 'thread-stream']);
       break;
     case 'client':
         // Handle client-specific logic

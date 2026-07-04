@@ -86,7 +86,7 @@ describe('application generator', () => {
     it('should mark pino packages as serverExternalPackages in next.config.js by default', async () => {
       await applicationGenerator(tree, { name: 'test' });
       const nextConfig = tree.read('apps/test/next.config.js', 'utf-8');
-      expect(nextConfig).toContain("serverExternalPackages: ['pino', 'pino-http', 'pino-pretty']");
+      expect(nextConfig).toContain("serverExternalPackages: ['pino', 'pino-http', 'pino-pretty', 'thread-stream']");
     });
 
     it('should skip logging wiring when skipLogging is true', async () => {

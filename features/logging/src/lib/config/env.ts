@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
-/* eslint-disable @typescript-eslint/no-empty-interface */
 import { z } from 'zod';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production']),
-  LOGGING_API_URL: z.string().url(),
+  /* schema start */
+  LOGGING_API_URL: z.string(),
+  /* schema end */
 });
 
 declare global {
@@ -16,4 +15,6 @@ declare global {
 }
 
 export const NODE_ENV = process.env.NODE_ENV;
-export const BACKEND_API_URL = process.env.LOGGING_API_URL;
+/* vars start */
+export const LOGGING_API_URL = process.env.LOGGING_API_URL;
+/* vars end */

@@ -2,7 +2,7 @@
  * [section-name]
  * August 2nd 2025, 4:13:12 pm
  */
-export type SectionName = 'MISC' | string;
+export type SectionName = 'ROOT' | string;
 
 /**
  * [section-line]

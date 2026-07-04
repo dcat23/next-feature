@@ -18,7 +18,7 @@ export const PROPERTY_IDENTIFIER = /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/;
  * [default-section]
  * August 3rd 2025, 4:50:23 am
  */
-export const DEFAULT_SECTION: SectionName = "MISC";
+export const DEFAULT_SECTION: SectionName = "ROOT";
 
 /**
  * [dotenv-file-identifier]

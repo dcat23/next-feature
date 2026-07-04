@@ -22,19 +22,20 @@
     },
     "section": {
       "type": "string",
-      "description": "Grouped section header the variables belong under (default: MISC)",
-      "alias": "s"
+      "description": "Grouped section header the variables belong under (default: ROOT)"
     },
     "set": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "Variables to create or update, as KEY=VALUE pairs"
+      "description": "Variables to create or update, as KEY=VALUE pairs",
+      "alias": "s"
     },
     "unset": {
       "type": "array",
       "items": { "type": "string" },
-      "description": "Variable names to remove"
-    },    
+      "description": "Variable names to remove",
+      "alias": "u"
+    },
     "skipEnvConfig": {
       "type": "boolean",
       "description": "Skip keeping lib/config/env.ts's zod schema and process.env accessors in sync with the same variables being set/unset (as z.string(); edit env.ts directly if a var needs stricter validation)",

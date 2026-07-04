@@ -43,9 +43,9 @@ npx nx g next-feature:dotenv --projectName=users --set=INTERNAL_TOKEN=abc123 --s
 |--------|------|---------|-------|-------------|
 | `--projectName` | string | required | `-p` | Project to update (auto-created via the feature generator if it doesn't exist) |
 | `--projects` | string[] | — | — | Additional project names to apply the same change to. Unknown project names are skipped with a warning rather than failing |
-| `--section` | string | `MISC` | `-s` | Grouped section header the variables belong under |
-| `--set` | string[] | — | — | Variables to create or update, as `KEY=VALUE` pairs |
-| `--unset` | string[] | — | — | Variable names to remove |
+| `--section` | string | `ROOT` | — | Grouped section header the variables belong under |
+| `--set` | string[] | — | `-s` | Variables to create or update, as `KEY=VALUE` pairs |
+| `--unset` | string[] | — | `-u` | Variable names to remove |
 | `--files` | string[] | — | — | Additional `.env.<suffix>` files to target, e.g. `local,prod` |
 | `--all` | boolean | `false` | `-a` | Target every `.env*` file that already exists in the project root instead of a fixed list |
 | `--skipEnvConfig` | boolean | `false` | — | Skip keeping `lib/config/env.ts` in sync with the variables being set/unset |

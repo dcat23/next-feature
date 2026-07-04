@@ -1,6 +1,6 @@
 {
   "name": "create-next-feature",
-  "version": "0.1.4-0",
+  "version": "0.1.4-2",
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",

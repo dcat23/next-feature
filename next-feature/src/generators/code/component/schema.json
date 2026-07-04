@@ -16,7 +16,7 @@
     },
     "package": {
       "type": "string",
-      "description": "Subdirectory within src/ where components are created (default: 'components' creates src/components/)",
+      "description": "Subdirectory within src/ where components are created (default: 'components' creates src/components/). For componentType 'page'/'layout', pass '*' to infer the route path from name instead (e.g. name=UserResourceFiles -> app/user/resource/files)",
       "default": "components"
     },
     "directory": {

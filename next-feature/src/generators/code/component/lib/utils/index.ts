@@ -1,3 +1,4 @@
+import { names } from '@nx/devkit';
 import { ComponentGeneratorSchema } from '../../schema';
 import * as path from 'node:path';
 
@@ -9,11 +10,16 @@ import * as path from 'node:path';
 export function handleComponentPackage(options: ComponentGeneratorSchema) {
   switch (options.componentType) {
     case "page":
-    case "layout":
-      options.package = (options.package && options.package !== "components")
-        ? path.join("app", options.package)
+    case "layout": {
+      // package="*" infers the route path from name, e.g. UserResourceFiles -> user/resource/files
+      const route = options.package === '*'
+        ? names(options.name).fileName.replace(/-/g, '/')
+        : options.package;
+      options.package = (route && route !== "components")
+        ? path.join("app", route)
         : "app"
       break;
+    }
     case "hook":
       options.package ??= "hooks";
       break;

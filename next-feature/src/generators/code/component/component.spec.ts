@@ -102,6 +102,20 @@ describe('component generator', () => {
     expect(content).toContain('children');
   });
 
+  it('should infer nested route path from name when package is "*"', async () => {
+    const options: ComponentGeneratorSchema = {
+      ...defaultOptions,
+      name: 'UserResourceFiles',
+      componentType: 'page',
+      package: '*',
+    };
+    await componentGenerator(tree, options);
+    const file = 'features/base/src/app/user/resource/files/page.tsx';
+    expect(tree.exists(file)).toBeTruthy();
+    const content = tree.read(file, 'utf-8');
+    expect(content).toContain('async function UserResourceFilesPage');
+  });
+
   it('should generate a hook in the hooks package with a use- prefixed file and export', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,

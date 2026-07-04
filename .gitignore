@@ -55,3 +55,4 @@ out
 #features
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
+.env

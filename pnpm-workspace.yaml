@@ -1,5 +1,4 @@
 packages:
-  - 'clients/*'
   - 'next-feature'
   - 'create-next-feature'
   - 'features/*'

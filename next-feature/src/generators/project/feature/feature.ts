@@ -8,7 +8,7 @@ import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { initializeProjectGenerator, updateDependencies } from '../../../lib/utils';
 import { FeatureGeneratorSchema } from './schema';
-import { updatePackageJsonExports } from './utils';
+import { includeSourceInReleaseManifests, updatePackageJsonExports } from './utils';
 import { normalizeFeatureGenerator } from './utils/normalize';
 
 export async function featureGenerator(
@@ -33,6 +33,7 @@ export async function featureGenerator(
   }))
 
   updatePackageJsonExports(tree, normalizedOptions.projectRoot);
+  includeSourceInReleaseManifests(tree, normalizedOptions.projectRoot);
 
   tasks.push(await initializeProjectGenerator(tree, normalizedOptions, "feature"))
 

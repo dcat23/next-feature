@@ -39,3 +39,21 @@ export const updatePackageJsonExports = (tree: Tree, projectRoot: string) => {
         return json;
     });
 }
+
+// The @nx/next libraryGenerator (via @nx/js's addReleaseConfigForNonTsSolution) defaults
+// publishable libraries to only version dist/package.json, since that manifest is
+// overwritten on every build and git-tag resolution is used to find the current version.
+// This workspace also versions the source package.json (to match next-feature and
+// create-next-feature), so extend manifestRootsToUpdate to include the project root too.
+export const includeSourceInReleaseManifests = (tree: Tree, projectRoot: string) => {
+    const projectJsonPath = joinPathFragments(projectRoot, 'project.json');
+    updateJson(tree, projectJsonPath, (json) => {
+        const manifestRoots: string[] = json.release?.version?.manifestRootsToUpdate ?? [];
+        if (!manifestRoots.includes('{projectRoot}')) {
+            json.release ??= {};
+            json.release.version ??= {};
+            json.release.version.manifestRootsToUpdate = ['{projectRoot}', ...manifestRoots];
+        }
+        return json;
+    });
+}

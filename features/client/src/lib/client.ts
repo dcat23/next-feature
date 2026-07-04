@@ -7,7 +7,7 @@ import axios, {
 } from 'axios';
 import type { ApiClientConfig } from './types/client';
 import handleApiError from './utils/error';
-import { BACKEND_API_URL } from './config/env';
+import { CLIENT_API_URL } from './config/env';
 
 /**
  * Pending request queue item
@@ -28,7 +28,7 @@ export class ApiClient {
 
   constructor(config: ApiClientConfig) {
     this.config = {
-      baseURL: BACKEND_API_URL,
+      baseURL: CLIENT_API_URL,
       timeout: 30000,
       enableRefreshToken: false,
       maxRetries: 1,

@@ -8,7 +8,7 @@
   "private": true,
   "dependencies": {
     "@next-feature/client": "workspace:*",
-    "@next-feature/logging": "0.1.4-5",
+    "@next-feature/logging": "workspace:*",
     "@nx/devkit": "22.4.3",
     "@tanstack/react-query": "5.75.7",
     "axios": "1.9.0",

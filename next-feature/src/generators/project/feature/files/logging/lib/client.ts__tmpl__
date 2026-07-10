@@ -2,6 +2,8 @@
 
 import pino from 'pino';
 import { getCorrelationId } from './correlation';
+import { LOGGING_BEACON_PATH } from "./config/env"
+
 
 const browserLogger = pino({
   browser: {
@@ -18,9 +20,9 @@ const browserLogger = pino({
         });
 
         if (typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
-          navigator.sendBeacon('/api/log', body);
+          navigator.sendBeacon(LOGGING_BEACON_PATH, body);
         } else {
-          fetch('/api/log', {
+          fetch(LOGGING_BEACON_PATH, {
             method: 'POST',
             body,
             headers: { 'Content-Type': 'application/json' },

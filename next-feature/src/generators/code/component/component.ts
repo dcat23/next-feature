@@ -24,7 +24,6 @@ function normalize(
   normalized.exportPath = handleExportPath(normalized)
 
   return {
-    tmpl: '',
     ...normalized,
     names: mutatedNames,
     hookName: isHook ? `use${mutatedNames.className}` : undefined,

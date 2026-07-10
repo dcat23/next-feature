@@ -1,11 +1,11 @@
 <% if (!skipLogging) { %>
-import { registerPino } from '@next-feature/logging/server';
+import { registerPino } from './lib/config/logging';
 
-export function register() {
-  registerPino();
+export async function register() {
+  await registerPino();
 }
 <% } else { %>
-export function register() {
+export async function register() {
   // Logging was skipped for this app (skipLogging: true).
 }
 <% } %>

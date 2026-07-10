@@ -62,6 +62,16 @@ export async function featureGenerator(
       // as a worker thread, which needs the real on-disk worker.js rather than
       // a bundled copy.
       addRollupExternalPackages(tree, projectRoot, ['pino', 'pino-http', 'pino-pretty', 'thread-stream']);
+      
+      updateDotenv(tree, { projectRoot, section: 'logging' }, {
+        set: {
+          LOGGING_BEACON_PATH: '/api/log',
+          LOGGING_SERVICE_NAME: normalizedOptions.name,
+        },
+      });
+      updateEnvConfig(tree, sourceRoot, {
+        set: ['LOGGING_BEACON_PATH', 'LOGGING_SERVICE_NAME'] 
+      });
       break;
     case 'client':
         // Handle client-specific logic

@@ -124,8 +124,20 @@ export async function applicationGenerator(
     dependencies['@next-feature/logging'] = PLUGIN_VERSION;
     dependencies['pino'] = PINO_VERSION;
     dependencies['pino-http'] = PINO_HTTP_VERSION;
-    dependencies['pino-pretty'] = PINO_PRETTY_VERSION;
-    addServerExternalPackages(tree, projectRoot, ['pino', 'pino-http', 'pino-pretty', 'thread-stream']);
+    devDependencies['pino-pretty'] = PINO_PRETTY_VERSION;
+
+    addServerExternalPackages(tree, projectRoot, ['pino', 'pino-pretty', 'thread-stream']);
+
+    updateDotenv(tree, { projectRoot, section: 'logging' }, {
+      set: {
+        LOGGING_BEACON_PATH: '/api/log',
+        LOGGING_SERVICE_NAME: normalizedOptions.name,
+      },
+    });
+    updateEnvConfig(tree, sourceRoot, {
+      set: ['LOGGING_BEACON_PATH', 'LOGGING_SERVICE_NAME'] 
+    });
+
   }
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies));

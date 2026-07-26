@@ -111,7 +111,9 @@
         "projectName": "test"
       },
       "component": {
-        "projectName": "test"
+        "projectName": "ui",
+        "infer-path": true,
+        "kind": "generic"
       },
       "action": {
         "projectName": "test"

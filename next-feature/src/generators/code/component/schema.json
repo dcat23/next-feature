@@ -30,10 +30,10 @@
     },
     "componentType": {
       "type": "string",
-      "description": "Bucket of file to generate: 'component' (basic React component) or 'page' (App Router route file). See 'kind' for the specific file.",
+      "description": "Bucket of file to generate: 'component' (basic React component), 'page' (App Router route file), or 'ui' (adds a shadcn component to the target ui-type feature library, via the next-feature:shadcn executor). See 'kind' for the specific file.",
       "alias": "t",
       "default": "component",
-      "enum": ["component", "page"],
+      "enum": ["component", "page", "ui"],
       "$default": {
         "$source": "argv",
         "index": 1
@@ -43,7 +43,8 @@
         "type": "list",
         "items": [
           { "value": "component", "label": "Component - basic React component" },
-          { "value": "page", "label": "Page - App Router route file" }
+          { "value": "page", "label": "Page - App Router route file" },
+          { "value": "ui", "label": "UI - shadcn component (added via shadcn CLI)" }
         ]
       }
     },
@@ -55,24 +56,6 @@
       "$default": {
         "$source": "argv",
         "index": 2
-      },
-      "x-prompt": {
-        "message": "Which kind would you like to generate?",
-        "type": "list",
-        "items": [
-          { "value": "generic", "label": "Generic - plain/default file" },
-          { "value": "modal", "label": "Modal - dialog component" },
-          { "value": "card", "label": "Card - card container" },
-          { "value": "form", "label": "Form - form with validation" },
-          { "value": "layout", "label": "Layout - layout.tsx" },
-          { "value": "loading", "label": "Loading - loading.tsx" },
-          { "value": "error", "label": "Error - error.tsx" },
-          { "value": "not-found", "label": "Not Found - not-found.tsx" },
-          { "value": "template", "label": "Template - template.tsx" },
-          { "value": "default", "label": "Default - default.tsx (parallel routes)" },
-          { "value": "global-error", "label": "Global Error - global-error.tsx" },
-          { "value": "route", "label": "Route - route.ts handler" }
-        ]
       }
     },
     "inferPath": {

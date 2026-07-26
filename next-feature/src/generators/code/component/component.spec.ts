@@ -1,7 +1,14 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { Tree, logger, readProjectConfiguration } from '@nx/devkit';
+import { spawnSync } from 'child_process';
 import { componentGenerator } from './component';
 import { ComponentGeneratorSchema } from './schema';
+
+jest.mock('child_process', () => ({
+  ...jest.requireActual('child_process'),
+  spawnSync: jest.fn(),
+}));
+
 describe('component generator', () => {
   let tree: Tree;
   const defaultOptions: ComponentGeneratorSchema = {
@@ -239,5 +246,62 @@ describe('component generator', () => {
       expect.stringContaining('kind "layout" is not valid for componentType "component"')
     );
     warnSpy.mockRestore();
+  });
+
+  describe('ui componentType', () => {
+    const mockedSpawnSync = spawnSync as jest.Mock;
+
+    beforeEach(() => {
+      mockedSpawnSync.mockReset();
+      mockedSpawnSync.mockReturnValue({ status: 0 });
+    });
+
+    it('does not write a template file, and creates the ui project as type "ui" on demand', async () => {
+      await componentGenerator(tree, { projectName: 'ui', name: 'Button', componentType: 'ui' });
+      const config = readProjectConfiguration(tree, 'ui');
+      expect(config).toBeDefined();
+      expect(tree.exists('features/ui/components.json')).toBeTruthy();
+      expect(tree.exists('features/ui/src/components/common/button.tsx')).toBeFalsy();
+    });
+
+    it('returns a task that runs the shadcn CLI in the project root with the kebab-case slug', async () => {
+      const task = await componentGenerator(tree, { projectName: 'ui', name: 'Button', componentType: 'ui' });
+      await task();
+
+      expect(mockedSpawnSync).toHaveBeenCalledWith(
+        'npx',
+        ['shadcn@latest', 'add', 'button', '--yes'],
+        expect.objectContaining({ cwd: 'features/ui' })
+      );
+    });
+
+    it('kebab-cases multi-word component names to match shadcn slugs', async () => {
+      const task = await componentGenerator(tree, { projectName: 'ui', name: 'AlertDialog', componentType: 'ui' });
+      await task();
+
+      expect(mockedSpawnSync).toHaveBeenCalledWith(
+        'npx',
+        ['shadcn@latest', 'add', 'alert-dialog', '--yes'],
+        expect.anything()
+      );
+    });
+
+    it('skips the shadcn CLI when the component file already exists', async () => {
+      tree.write('features/ui/src/components/common/button.tsx', 'export function Button() { return null; }');
+      const infoSpy = jest.spyOn(logger, 'info').mockImplementation();
+
+      const task = await componentGenerator(tree, { projectName: 'ui', name: 'Button', componentType: 'ui' });
+      await task();
+
+      expect(mockedSpawnSync).not.toHaveBeenCalled();
+      expect(infoSpy).toHaveBeenCalledWith(expect.stringContaining('already exists'));
+      infoSpy.mockRestore();
+    });
+
+    it('adds an export line when export is true, regardless of whether shadcn has run yet', async () => {
+      await componentGenerator(tree, { projectName: 'ui', name: 'Button', componentType: 'ui', export: true });
+      const content = tree.read('features/ui/src/index.ts', 'utf-8');
+      expect(content).toContain("components/common/button");
+    });
   });
 });

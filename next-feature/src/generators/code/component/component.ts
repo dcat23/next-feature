@@ -4,11 +4,13 @@ import type { NormalizedComponentGeneratorSchema } from './schema';
 import { ComponentGeneratorSchema } from './schema';
 import { handleExportPath, initializeCodeGenerator, normalizeCodeGenerator } from '../../../lib/utils/code-generator';
 import { exportFile } from '../../../lib/export-file';
+import { runShadcnCli } from '../../../lib/utils/shadcn';
 import { handleComponentPackage } from './lib/utils';
 
 const KINDS_BY_TYPE: Record<ComponentGeneratorSchema['componentType'], string[]> = {
   component: ['generic', 'modal', 'card', 'form'],
   page: ['generic', 'layout', 'loading', 'error', 'not-found', 'template', 'default', 'global-error', 'route'],
+  ui: ['generic'],
 };
 
 function normalize(
@@ -49,11 +51,35 @@ export async function componentGenerator(
 ) {
 
   const normalizedOptions = normalize(options);
-  const { directory, sourceRoot } = await initializeCodeGenerator(
+  const { directory, sourceRoot, projectRoot, projectName } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'component'
   );
+
+  if (normalizedOptions.componentType === 'ui') {
+    const slug = normalizedOptions.names.fileName;
+    const componentPath = path.join(directory, `${slug}.tsx`);
+
+    if (normalizedOptions.export) {
+      await exportFile(tree, sourceRoot, normalizedOptions.exportPath);
+    }
+
+    if (!normalizedOptions.skipFormat) await formatFiles(tree);
+
+    if (tree.exists(componentPath)) {
+      logger.info(`component: ${slug} already exists in ${projectName}, skipping shadcn add`);
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      return () => {};
+    }
+
+    return () => {
+      const { success } = runShadcnCli(projectRoot, `add ${slug} --yes`);
+      if (!success) {
+        throw new Error(`Failed to add shadcn component "${slug}"`);
+      }
+    };
+  }
 
   generateFiles(tree, path.join(__dirname, 'files', normalizedOptions.componentType, normalizedOptions.kind), directory, normalizedOptions);
 

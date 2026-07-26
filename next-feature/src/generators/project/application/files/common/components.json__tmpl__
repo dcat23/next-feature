@@ -12,8 +12,8 @@
   },
   "aliases": {
     "components": "<%= importPath %>/components",
-    "utils": "@feature/ui/lib/utils",
-    "ui": "@feature/ui/components",
+    "utils": "<%= importPath %>/lib/utils",
+    "ui": "<%= importPath %>/components/ui",
     "lib": "<%= importPath %>/lib",
     "hooks": "<%= importPath %>/hooks"
   },

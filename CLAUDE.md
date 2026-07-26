@@ -63,7 +63,7 @@ The plugin follows an Nx plugin structure with generators organized by category:
 
 **Code Generators** (`src/generators/code/`)
 - `action` - Generates Next.js server actions (API, form, or database operations) with client integration
-- `component` - Generates React components. `componentType=hook` scaffolds a generic reusable hook (`use<Name>`) in `src/hooks/` instead of a component
+- `component` - Generates React components. `componentType=hook` scaffolds a generic reusable hook (`use<Name>`) in `src/hooks/` instead of a component. `componentType=ui` adds a shadcn component to a `ui`-type feature library instead: no template is written, it invokes the shared shadcn CLI helper (`lib/utils/shadcn.ts`, also used by the `shadcn` executor) to run `npx shadcn@latest add <slug>` in the target project's root, skipping if the component file already exists
 - `hook` - Generates a TanStack Query hook (`useQuery` for GET-derived actions, `useMutation` otherwise) that wraps an existing server action, in `src/hooks/`. Auto-invoked by the `action` generator when `useHook` is set
 - `store` - Generates Zustand stores
 - `data-type` - Generates TypeScript type definitions

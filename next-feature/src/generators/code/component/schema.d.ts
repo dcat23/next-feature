@@ -1,7 +1,7 @@
 import { CodeGeneratorSchema, NormalizedCodeGeneratorSchema } from '../../../lib/types';
 
 export interface ComponentGeneratorSchema extends CodeGeneratorSchema {
-  componentType: "component" | "page"
+  componentType: "component" | "page" | "ui"
   kind?: "generic" | "modal" | "card" | "form"
        | "layout" | "loading" | "error" | "not-found"
        | "template" | "default" | "global-error" | "route"

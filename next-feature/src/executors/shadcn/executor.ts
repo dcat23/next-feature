@@ -1,6 +1,6 @@
 import type { ExecutorContext } from '@nx/devkit';
-import { spawnSync } from 'child_process';
 import * as path from 'path';
+import { runShadcnCli } from '../../lib/utils/shadcn';
 import type { ShadcnExecutorSchema } from './schema';
 
 export default async function runExecutor(
@@ -11,13 +11,5 @@ export default async function runExecutor(
   const projectRoot = context.projectsConfigurations.projects[projectName].root;
   const cwd = path.join(context.root, projectRoot);
 
-  const args = (options.args ?? 'add').split(' ').filter(Boolean);
-
-  const result = spawnSync('npx', ['shadcn@latest', ...args], {
-    cwd,
-    stdio: 'inherit',
-    shell: process.platform === 'win32',
-  });
-
-  return { success: result.status === 0 };
+  return runShadcnCli(cwd, options.args ?? 'add');
 }

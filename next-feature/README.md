@@ -291,9 +291,18 @@ npx nx g next-feature:component --name=Button [options]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| --componentType | enum | "component" | Bucket: `component` (basic React component) or `page` (App Router route file) |
-| --kind | enum | "generic" | Specific file within componentType. component: generic, modal, card, form. page: generic (page.tsx), layout, loading, error, not-found, template, default, global-error, route |
+| --componentType | enum | "component" | Bucket: `component` (basic React component), `page` (App Router route file), or `ui` (shadcn component added to a `ui`-type feature library) |
+| --kind | enum | "generic" | Specific file within componentType. component: generic, modal, card, form. page: generic (page.tsx), layout, loading, error, not-found, template, default, global-error, route. Not used for `ui`. |
 | --inferPath | boolean | false | componentType `page`: derive the nested route from `name` instead of `--package` |
+
+`--componentType=ui` doesn't scaffold a template file — it invokes the shadcn CLI (via the same mechanism as the `next-feature:shadcn` executor) to add the component into the target `ui`-type feature, e.g.:
+
+```bash
+npx nx g next-feature:component --name=Button --componentType=ui --projectName=ui
+npx nx g next-feature:component --name=AlertDialog --componentType=ui --projectName=ui
+```
+
+If the component file already exists (`<ui-lib>/src/components/common/<slug>.tsx`), it's skipped rather than re-added.
 
 ### Hook Generator
 

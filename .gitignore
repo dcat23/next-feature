@@ -24,11 +24,12 @@ node_modules
 !.vscode/launch.json
 !.vscode/extensions.json
 
-# Generator output
-/features/*
-!/features/client
-!/features/logging
-/apps/*
+# Generator output - Dog food
+# /features/*
+# !/features/client
+# !/features/logging
+# !/features/test
+# /apps/*
 
 # misc
 /.sass-cache

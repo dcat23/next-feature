@@ -393,13 +393,13 @@ describe('feature generator', () => {
       await featureGenerator(tree, options);
       const componentsJson = readJson(tree, 'features/ui/components.json');
       expect(componentsJson.aliases.utils).toBe('@feature/ui/lib/utils');
-      expect(componentsJson.aliases.ui).toBe('@feature/ui/components');
+      expect(componentsJson.aliases.ui).toBe('@feature/ui/components/common');
       expect(componentsJson.tailwind.css).toBe('src/styles/globals.css');
     });
 
     it('should generate the cn() utility', async () => {
       await featureGenerator(tree, options);
-      const content = tree.read('features/ui/src/lib/utils.ts', 'utf-8');
+      const content = tree.read('features/ui/src/lib/utils/index.ts', 'utf-8');
       expect(content).toContain('export function cn');
       expect(content).toContain("from 'clsx'");
       expect(content).toContain("from 'tailwind-merge'");

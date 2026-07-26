@@ -104,6 +104,7 @@
     "next-feature": {
       "declaration": {
         "projectName": "next-feature",
+        "package": "generators/code/component/lib",
         "export": false
       },
       "store": {

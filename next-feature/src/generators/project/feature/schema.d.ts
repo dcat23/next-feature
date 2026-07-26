@@ -3,7 +3,7 @@ import {
   ProjectGeneratorSchema,
 } from '../../../lib/types';
 
-export type FeatureType = 'base' | 'logging' | 'generic' | 'client' | 'auth';
+export type FeatureType = 'base' | 'logging' | 'generic' | 'client' | 'auth' | 'ui';
 
 export interface FeatureGeneratorSchema extends ProjectGeneratorSchema {
   name: "base" | string;

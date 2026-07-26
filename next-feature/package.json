@@ -11,5 +11,6 @@
     "tslib": "^2.3.0",
     "moment": "^2.30.1"
   },
-  "generators": "./generators.json"
+  "generators": "./generators.json",
+  "executors": "./executors.json"
 }

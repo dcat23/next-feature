@@ -24,6 +24,7 @@ export function normalizeFeatureGenerator(
       case 'auth':
       case 'base':
       case 'logging':
+      case 'ui':
         type = normalized.name;
         break;
     }

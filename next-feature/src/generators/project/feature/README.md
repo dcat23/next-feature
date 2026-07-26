@@ -4,14 +4,16 @@ The Feature generator creates a Next.js feature library in your monorepo with Ty
 
 ## Overview
 
-Feature libraries are domain-scoped code modules (users, products, auth) created under `features/[name]/`. The generator supports four types:
+Feature libraries are domain-scoped code modules (users, products, auth) created under `features/[name]/`. The generator supports these types:
 
 - **`generic`** (default) — Plain feature library with shared utilities only
 - **`logging`** — Adds pino-based server + browser logging with correlation ID support
 - **`base`** — Adds base UI components (error boundary, etc.)
 - **`client`** — Adds a reusable API client (Axios wrapper, `ApiError`, hooks, error boundary)
+- **`auth`** — Adds a NextAuth.js configuration with credential + OAuth providers
+- **`ui`** — Adds a shadcn-ready component library (`components.json`, `cn()` util, Tailwind entry) plus a `shadcn` target for pulling in components
 
-Type is inferred automatically from the feature name: `--name=logging` sets `type=logging`, `--name=base` sets `type=base`, `--name=client` sets `type=client`.
+Type is inferred automatically from the feature name: `--name=logging` sets `type=logging`, `--name=base` sets `type=base`, `--name=client` sets `type=client`, `--name=auth` sets `type=auth`, `--name=ui` sets `type=ui`.
 
 ## Quick Start
 
@@ -28,6 +30,9 @@ npx nx g next-feature:feature --name=logging
 # Create an API client library (explicit type)
 npx nx g next-feature:feature --name=apiClient --type=client
 
+# Create a shadcn-ready ui component library (explicit type)
+npx nx g next-feature:feature --name=ui --type=ui
+
 # Custom directory
 npx nx g next-feature:feature --name=users --directory=libs/users
 ```
@@ -37,7 +42,7 @@ npx nx g next-feature:feature --name=users --directory=libs/users
 | Option | Type | Default | Alias | Description |
 |--------|------|---------|-------|-------------|
 | `--name` | string | required | positional | Name of the feature library |
-| `--type` | `base \| logging \| client \| generic` | `generic` | `-t` | Type of feature library to scaffold |
+| `--type` | `base \| logging \| client \| auth \| ui \| generic` | `generic` | `-t` | Type of feature library to scaffold |
 | `--directory` | string | `features/[name]` | `-d` | Override the output directory |
 | `--orgName` | string | — | `--org` | Organization prefix for import paths (`@myorg/[name]`) |
 | `--env` | boolean | `false` | `-e` | Add the axios dependency and register a `<NAME>_API_URL` variable in this feature's `.env`/`.env.example` |
@@ -56,6 +61,8 @@ The `type` is inferred from `name` when `type` is `generic` or omitted:
 | `base` | `base` |
 | `logging` | `logging` |
 | `client` | `client` |
+| `auth` | `auth` |
+| `ui` | `ui` |
 | anything else | `generic` |
 
 An explicit `--type` always takes precedence over inference.
@@ -146,6 +153,42 @@ features/[name]/src/
 ```
 
 Published package exports are rewritten so `.` and `./server` resolve without a `./dist/` prefix (see [`updatePackageJsonExports`](./utils/index.ts)), matching how the package root looks once built.
+
+### `ui` type — additional files
+
+```
+features/[name]/
+├── components.json              # shadcn config (aliases point at this feature's importPath)
+└── src/
+    ├── lib/
+    │   └── utils.ts              # cn() helper (clsx + tailwind-merge)
+    └── styles/
+        └── globals.css          # Tailwind v4 entry (@import "tailwindcss")
+```
+
+Unlike the other types, `components.json` is generated at the **project root**, not under `src/` — the shadcn CLI expects it next to `package.json`.
+
+**Additional dependencies added:**
+
+```json
+{
+  "dependencies": {
+    "clsx": "^2.x.x",
+    "tailwind-merge": "^3.x.x",
+    "class-variance-authority": "^0.7.x",
+    "lucide-react": "^0.x.x"
+  }
+}
+```
+
+A `shadcn` target is also registered on the project so components can be pulled in later:
+
+```bash
+npx nx run ui:shadcn --args="add button"
+npx nx run ui:shadcn --args="add button card dialog"
+```
+
+This runs `npx shadcn@latest <args>` in the project's root, where `components.json` resolves the `utils`/`ui`/`hooks` aliases to this feature's own `src/`. No components are pre-generated — this type only scaffolds the plumbing.
 
 ### `generic` type
 

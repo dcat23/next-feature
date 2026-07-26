@@ -10,6 +10,7 @@ import { normalize } from './lib/utils';
 import { PLUGIN_VERSION } from '../../../lib/constants/versions';
 import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { updateDependencies } from '../../../lib/utils';
+import { updateDotenv } from 'next-feature/src/lib/dotenv/dot-env';
 
 /**
  * Client config generator
@@ -44,6 +45,11 @@ export async function clientConfigGenerator(
   const dependenciesTask = updateDependencies(tree, dependencies, {});
 
   // Ensure the API URL var this config imports actually exists in env.ts.
+  updateDotenv(
+    tree,
+    { projectRoot: normalizedOptions.projectPath, section: 'axios' },
+    { set: { [normalizedOptions.apiKeyName]: 'http://localhost:8080' }, skipExisting: true }
+  );
   updateEnvConfig(tree, normalizedOptions.sourceRoot, {
     set: [normalizedOptions.apiKeyName],
   });

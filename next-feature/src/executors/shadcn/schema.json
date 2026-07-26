@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "version": 2,
+  "title": "Shadcn",
+  "description": "Runs the shadcn CLI (npx shadcn@latest ...) against this project's root, where components.json lives.",
+  "cli": "nx",
+  "type": "object",
+  "properties": {
+    "args": {
+      "type": "string",
+      "description": "Arguments passed through to `npx shadcn@latest`, e.g. \"add button\", \"add button card dialog\", \"init\", \"diff\".",
+      "default": "add"
+    }
+  }
+}

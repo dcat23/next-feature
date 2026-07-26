@@ -380,6 +380,70 @@ describe('feature generator', () => {
     });
   });
 
+  describe('ui type', () => {
+    const options: FeatureGeneratorSchema = { name: 'ui', type: 'ui', skipFormat: true };
+
+    it('should generate components.json at the project root, not under src/', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/ui/components.json')).toBeTruthy();
+      expect(tree.exists('features/ui/src/components.json')).toBeFalsy();
+    });
+
+    it('should generate components.json aliases pointing at the feature import path', async () => {
+      await featureGenerator(tree, options);
+      const componentsJson = readJson(tree, 'features/ui/components.json');
+      expect(componentsJson.aliases.utils).toBe('@feature/ui/lib/utils');
+      expect(componentsJson.aliases.ui).toBe('@feature/ui/components');
+      expect(componentsJson.tailwind.css).toBe('src/styles/globals.css');
+    });
+
+    it('should generate the cn() utility', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/ui/src/lib/utils.ts', 'utf-8');
+      expect(content).toContain('export function cn');
+      expect(content).toContain("from 'clsx'");
+      expect(content).toContain("from 'tailwind-merge'");
+    });
+
+    it('should generate a tailwind css entry', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/ui/src/styles/globals.css')).toBeTruthy();
+    });
+
+    it('should not generate logging, client, or auth files', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/ui/src/config.ts')).toBeFalsy();
+      expect(tree.exists('features/ui/src/lib/client.ts')).toBeFalsy();
+    });
+
+    it('should add shadcn-related dependencies', async () => {
+      await featureGenerator(tree, options);
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.clsx).toBeDefined();
+      expect(packageJson.dependencies?.['tailwind-merge']).toBeDefined();
+      expect(packageJson.dependencies?.['class-variance-authority']).toBeDefined();
+      expect(packageJson.dependencies?.['lucide-react']).toBeDefined();
+    });
+
+    it('should register a shadcn target on the project', async () => {
+      await featureGenerator(tree, options);
+      const config = readProjectConfiguration(tree, 'ui');
+      expect(config.targets?.shadcn?.executor).toBe('next-feature:shadcn');
+    });
+  });
+
+  describe('ui name inference', () => {
+    it('should infer ui type from name ui', async () => {
+      const normalized = normalizeFeatureGenerator({ name: 'ui' });
+      expect(normalized.type).toBe('ui');
+    });
+
+    it('should generate ui files when name is ui', async () => {
+      await featureGenerator(tree, { name: 'ui', skipFormat: true });
+      expect(tree.exists('features/ui/components.json')).toBeTruthy();
+    });
+  });
+
   describe('dependencies', () => {
     it('should always add sonner and zod', async () => {
       await featureGenerator(tree, { name: 'test', skipFormat: true });
@@ -417,19 +481,25 @@ describe('feature generator', () => {
   });
 
   describe('API URL env var', () => {
-    it('registers the API URL var in .env/.env.example for every feature', async () => {
+    it('does not register the API URL var for generic features', async () => {
       await featureGenerator(tree, { name: 'test', skipFormat: true });
-      const dotenv = tree.read('features/test/.env', 'utf-8');
+      const dotenv = tree.read('features/test/.env', 'utf-8') ?? '';
+      expect(dotenv).not.toContain('API_URL');
+    });
+
+    it('registers the API URL var in .env/.env.example for client-type features', async () => {
+      await featureGenerator(tree, { name: 'apiClient', type: 'client', skipFormat: true });
+      const dotenv = tree.read('features/apiClient/.env', 'utf-8');
       expect(dotenv).toContain('API_URL');
-      const dotenvExample = tree.read('features/test/.env.example', 'utf-8');
+      const dotenvExample = tree.read('features/apiClient/.env.example', 'utf-8');
       expect(dotenvExample).toContain('API_URL');
     });
 
-    it('works alongside a feature type', async () => {
+    it('does not register the API URL var for other feature types', async () => {
       await featureGenerator(tree, { name: 'logger', type: 'logging', skipFormat: true });
       expect(tree.exists('features/logger/src/lib/server.ts')).toBeTruthy();
-      const dotenv = tree.read('features/logger/.env', 'utf-8');
-      expect(dotenv).toContain('API_URL');
+      const dotenv = tree.read('features/logger/.env', 'utf-8') ?? '';
+      expect(dotenv).not.toContain('API_URL');
     });
   });
 });

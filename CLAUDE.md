@@ -58,7 +58,7 @@ The plugin follows an Nx plugin structure with generators organized by category:
 ### Generator Categories
 
 **Project Generators** (`src/generators/project/`)
-- `feature` - Creates a feature project with Next.js library. The `type` option selects scaffolding: `generic` (default), `base`, `logging`, `client` (API client library with error handling), or `auth` (NextAuth.js configuration)
+- `feature` - Creates a feature project with Next.js library. The `type` option selects scaffolding: `generic` (default), `base`, `logging`, `client` (API client library with error handling), `auth` (NextAuth.js configuration), or `ui` (shadcn-ready component library: `components.json` at the project root, `cn()` util, Tailwind v4 entry, plus a `shadcn` target for pulling in components later)
 - `application` - Creates a Next.js application
 
 **Code Generators** (`src/generators/code/`)
@@ -80,6 +80,12 @@ The plugin follows an Nx plugin structure with generators organized by category:
 **Special Generators**
 - `init` - Initializes workspace configuration
 - `preset` - Applies predefined configurations
+
+### Executors (`src/executors/`)
+
+Unlike generators (which scaffold files once), executors run as Nx targets (`nx run <project>:<target>`) against an existing project.
+
+- `shadcn` - Runs `npx shadcn@latest <args>` in a project's root (e.g. `npx nx run ui:shadcn --args="add button"`). Auto-registered as a `shadcn` target on `feature --type=ui` projects, where `components.json` resolves the shadcn aliases.
 
 ### Core Libraries
 
@@ -224,6 +230,8 @@ Generators are registered in `next-feature/generators.json`:
 - Maps generator names to factory functions and schemas
 - Each generator entry includes factory path, schema path, and description
 
+Executors are registered in `next-feature/executors.json` (currently just `shadcn`), following the same implementation/schema/description shape as generator entries.
+
 ## Git Integration
 
 Main branch: `main` (for PRs)
@@ -301,7 +309,7 @@ All actions return `ApiResponse<T>`:
 Built files go to `dist/next-feature/`:
 - Compiled JavaScript in `dist/next-feature/src/`
 - Templates copied to `dist/next-feature/src/generators/[...]/files/`
-- `generators.json` copied to root of dist
+- `generators.json` and `executors.json` copied to root of dist
 - `.md` files included for documentation
 
 Client library output in `dist/clients/client/`:

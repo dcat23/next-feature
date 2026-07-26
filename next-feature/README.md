@@ -27,6 +27,9 @@ npx nx g next-feature:feature --name=apiClient --type=client
 
 # Create a NextAuth.js configuration library
 npx nx g next-feature:feature --name=auth --type=auth
+
+# Create a shadcn-ready ui component library
+npx nx g next-feature:feature --name=ui --type=ui
 ```
 
 ### Code Generators
@@ -62,6 +65,14 @@ npx nx g next-feature:client-config --projectName=users
 
 # Create/update/remove env vars across .env* files (and keep env.ts in sync)
 npx nx g next-feature:dotenv --projectName=users --set=API_URL=http://localhost:8080
+```
+
+### Executors
+
+```bash
+# Pull shadcn components into a ui-type feature (target is auto-registered when the feature is created)
+npx nx run ui:shadcn --args="add button"
+npx nx run ui:shadcn --args="add button card dialog"
 ```
 
 ## Key Features
@@ -140,7 +151,7 @@ Generate self-contained pieces of functionality:
 
 Generate entire project structures:
 
-- **feature** - Feature library; `--type=client` scaffolds an API client library with error handling and utilities
+- **feature** - Feature library; `--type=client` scaffolds an API client library with error handling and utilities, `--type=ui` scaffolds a shadcn-ready component library
 - **application** - Next.js application with layout, providers, routing
 
 ### misc/ - Infrastructure Configuration
@@ -155,6 +166,12 @@ NextAuth.js authentication is a `feature` type (`--type=auth`), not a separate m
 ### tool/ - Workspace Utilities
 
 - **copy-deps** - Copy dependencies between projects
+
+### executors/ - Nx Targets Run Against a Project
+
+Unlike generators, executors run via `nx run <project>:<target>` against a project that already exists:
+
+- **shadcn** - Runs `npx shadcn@latest <args>` in a project's root. Auto-registered as the `shadcn` target when a `feature --type=ui` project is created.
 
 ## Common Workflows
 
@@ -310,9 +327,10 @@ npx nx g next-feature:feature --name=users [options]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| --type | enum | "generic" | Type: generic, base, logging, client, or auth |
+| --type | enum | "generic" | Type: generic, base, logging, client, auth, or ui |
 | --orgName | string | - | Scoped organization name |
-| --env | boolean | false | Add the axios dependency and register a `<NAME>_API_URL` variable in this feature's .env/.env.example |
+
+`--type=client` registers a `<NAME>_API_URL` variable in this feature's `.env`/`.env.example`. `--type=ui` registers a `shadcn` executor target on the project (see [Executors](#executors)).
 
 ### Client-Config Generator
 

@@ -129,7 +129,7 @@ npx nx g next-feature:action --name=getUser --projectName=myapp \
 Generate self-contained pieces of functionality:
 
 - **action** - Server actions (API, form, database operations)
-- **component** - React components with TypeScript; `--componentType=hook` scaffolds a generic reusable hook instead of a component
+- **component** - React components (`--componentType=component`) or Next.js App Router route files (`--componentType=page`), with `--kind` selecting the specific file (modal/card/form, or page/layout/loading/error/route etc.)
 - **hook** - TanStack Query hook (`useQuery`/`useMutation`) wrapping an existing server action; auto-invoked by `action` when `--useHook` is set
 - **store** - Zustand state management hooks
 - **types** - TypeScript type definitions
@@ -274,7 +274,9 @@ npx nx g next-feature:component --name=Button [options]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| --componentType | enum | "component" | Type: component, card, modal, form, page, layout, provider, or hook (generic reusable hook in `src/hooks/`) |
+| --componentType | enum | "component" | Bucket: `component` (basic React component) or `page` (App Router route file) |
+| --kind | enum | "generic" | Specific file within componentType. component: generic, modal, card, form. page: generic (page.tsx), layout, loading, error, not-found, template, default, global-error, route |
+| --inferPath | boolean | false | componentType `page`: derive the nested route from `name` instead of `--package` |
 
 ### Hook Generator
 

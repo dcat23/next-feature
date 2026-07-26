@@ -1,0 +1,15 @@
+import { ReactNode } from 'react';
+
+interface Props {
+  children: ReactNode
+}
+
+function <%= names.className %>Template(props: Props) {
+  return (
+    <>
+      {props.children}
+    </>
+  );
+}
+
+export default <%= names.className %>Template;

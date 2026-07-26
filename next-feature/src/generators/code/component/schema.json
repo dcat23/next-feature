@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/schema",
   "$id": "Component",
   "title": "React Component Generator",
-  "description": "Generate React components with TypeScript support. Supports basic components, pages, layouts, forms, modals, cards, and context providers.",
+  "description": "Generate React components or Next.js App Router route files.",
   "type": "object",
   "properties": {
     "name": {
@@ -16,8 +16,7 @@
     },
     "package": {
       "type": "string",
-      "description": "Subdirectory within src/ where components are created (default: 'components' creates src/components/). For componentType 'page'/'layout', pass '*' to infer the route path from name instead (e.g. name=UserResourceFiles -> app/user/resource/files)",
-      "default": "components"
+      "description": "Subdirectory within src/ (default depends on componentType: 'components', or 'app' for 'page'). For 'page', use inferPath instead to derive the route from name."
     },
     "directory": {
       "type": "string",
@@ -31,24 +30,56 @@
     },
     "componentType": {
       "type": "string",
-      "description": "Type of component: 'component' for basic React components, 'page' for Next.js pages, 'layout' for Next.js layouts, 'form' for form components, 'modal' for dialogs, 'card' for card containers, 'provider' for context providers, 'hook' for a generic reusable hook",
+      "description": "Bucket of file to generate: 'component' (basic React component) or 'page' (App Router route file). See 'kind' for the specific file.",
       "alias": "t",
       "default": "component",
-      "enum": ["component", "page", "layout", "modal", "card", "form", "provider", "hook"],
+      "enum": ["component", "page"],
+      "$default": {
+        "$source": "argv",
+        "index": 1
+      },
       "x-prompt": {
-        "message": "Which component type would you like to generate?",
+        "message": "Which type of file would you like to generate?",
         "type": "list",
         "items": [
-          { "value": "component", "label": "Component - Basic client component with props and state" },
-          { "value": "page", "label": "Page - Next.js page component with routing" },
-          { "value": "layout", "label": "Layout - Next.js layout component for shared structure" },
-          { "value": "modal", "label": "Modal - Dialog/modal component for overlays" },
-          { "value": "card", "label": "Card - Card container component for content grouping" },
-          { "value": "form", "label": "Form - Form component with state management and validation" },
-          { "value": "provider", "label": "Provider - Context provider for state management" },
-          { "value": "hook", "label": "Hook - Generic reusable hook (use<Name>) in src/hooks/" }
+          { "value": "component", "label": "Component - basic React component" },
+          { "value": "page", "label": "Page - App Router route file" }
         ]
       }
+    },
+    "kind": {
+      "type": "string",
+      "description": "Specific file within componentType (default 'generic'). component: generic, modal, card, form. page: generic (page.tsx), layout, loading, error, not-found, template, default, global-error, route. A mismatched kind falls back to 'generic' with a warning.",
+      "alias": "k",
+      "enum": ["generic", "modal", "card", "form", "layout", "loading", "error", "not-found", "template", "default", "global-error", "route"],
+      "$default": {
+        "$source": "argv",
+        "index": 2
+      },
+      "x-prompt": {
+        "message": "Which kind would you like to generate?",
+        "type": "list",
+        "items": [
+          { "value": "generic", "label": "Generic - plain/default file" },
+          { "value": "modal", "label": "Modal - dialog component" },
+          { "value": "card", "label": "Card - card container" },
+          { "value": "form", "label": "Form - form with validation" },
+          { "value": "layout", "label": "Layout - layout.tsx" },
+          { "value": "loading", "label": "Loading - loading.tsx" },
+          { "value": "error", "label": "Error - error.tsx" },
+          { "value": "not-found", "label": "Not Found - not-found.tsx" },
+          { "value": "template", "label": "Template - template.tsx" },
+          { "value": "default", "label": "Default - default.tsx (parallel routes)" },
+          { "value": "global-error", "label": "Global Error - global-error.tsx" },
+          { "value": "route", "label": "Route - route.ts handler" }
+        ]
+      }
+    },
+    "inferPath": {
+      "type": "boolean",
+      "description": "componentType 'page': derive the nested route from name instead of package (e.g. UserResourceFiles -> app/user/resource/files). Does not yet support [slug]/(group) syntax.",
+      "alias": "i",
+      "default": false
     },
     "skipFormat": {
       "type": "boolean",

@@ -26,7 +26,8 @@ describe('component generator', () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
       name: 'confirm',
-      componentType: 'modal',
+      componentType: 'component',
+      kind: 'modal',
     };
     await componentGenerator(tree, options);
     const file = 'features/base/src/components/confirm-modal.tsx';
@@ -39,7 +40,8 @@ describe('component generator', () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
       name: 'info',
-      componentType: 'card',
+      componentType: 'component',
+      kind: 'card',
     };
     await componentGenerator(tree, options);
     const file = 'features/base/src/components/info-card.tsx';
@@ -52,7 +54,8 @@ describe('component generator', () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
       name: 'login',
-      componentType: 'form',
+      componentType: 'component',
+      kind: 'form',
     };
     await componentGenerator(tree, options);
     const file = 'features/base/src/components/login-form.tsx';
@@ -61,20 +64,6 @@ describe('component generator', () => {
     expect(content).toContain('useActionState');
     expect(content).toContain('action');
     expect(content).toContain('initialState');
-  });
-  it('should generate provider component', async () => {
-    const options: ComponentGeneratorSchema = {
-      ...defaultOptions,
-      name: 'theme',
-      componentType: 'provider',
-    };
-    await componentGenerator(tree, options);
-    const file = 'features/base/src/components/theme-provider.tsx';
-    expect(tree.exists(file)).toBeTruthy();
-    const content = tree.read(file, 'utf-8');
-    expect(content).toContain('createContext');
-    expect(content).toContain('Provider');
-    expect(content).toContain('useTheme');
   });
   it('should generate page component in the app directory', async () => {
     const options: ComponentGeneratorSchema = {
@@ -92,7 +81,8 @@ describe('component generator', () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
       name: 'admin-layout',
-      componentType: 'layout',
+      componentType: 'page',
+      kind: 'layout',
     };
     await componentGenerator(tree, options);
     const file = 'features/base/src/app/layout.tsx';
@@ -101,13 +91,109 @@ describe('component generator', () => {
     expect(content).toContain('function AdminLayoutLayout');
     expect(content).toContain('children');
   });
+  it('should generate loading component in the app directory', async () => {
+    const options: ComponentGeneratorSchema = {
+      ...defaultOptions,
+      name: 'dashboard',
+      componentType: 'page',
+      kind: 'loading',
+    };
+    await componentGenerator(tree, options);
+    const file = 'features/base/src/app/loading.tsx';
+    expect(tree.exists(file)).toBeTruthy();
+    const content = tree.read(file, 'utf-8');
+    expect(content).toContain('function DashboardLoading');
+  });
+  it('should generate error component in the app directory', async () => {
+    const options: ComponentGeneratorSchema = {
+      ...defaultOptions,
+      name: 'dashboard',
+      componentType: 'page',
+      kind: 'error',
+    };
+    await componentGenerator(tree, options);
+    const file = 'features/base/src/app/error.tsx';
+    expect(tree.exists(file)).toBeTruthy();
+    const content = tree.read(file, 'utf-8');
+    expect(content).toContain("'use client'");
+    expect(content).toContain('reset');
+  });
+  it('should generate not-found component in the app directory', async () => {
+    const options: ComponentGeneratorSchema = {
+      ...defaultOptions,
+      name: 'dashboard',
+      componentType: 'page',
+      kind: 'not-found',
+    };
+    await componentGenerator(tree, options);
+    const file = 'features/base/src/app/not-found.tsx';
+    expect(tree.exists(file)).toBeTruthy();
+    const content = tree.read(file, 'utf-8');
+    expect(content).toContain('function DashboardNotFound');
+  });
+  it('should generate template component in the app directory', async () => {
+    const options: ComponentGeneratorSchema = {
+      ...defaultOptions,
+      name: 'dashboard',
+      componentType: 'page',
+      kind: 'template',
+    };
+    await componentGenerator(tree, options);
+    const file = 'features/base/src/app/template.tsx';
+    expect(tree.exists(file)).toBeTruthy();
+    const content = tree.read(file, 'utf-8');
+    expect(content).toContain('function DashboardTemplate');
+    expect(content).toContain('children');
+  });
+  it('should generate default component in the app directory', async () => {
+    const options: ComponentGeneratorSchema = {
+      ...defaultOptions,
+      name: 'dashboard',
+      componentType: 'page',
+      kind: 'default',
+    };
+    await componentGenerator(tree, options);
+    const file = 'features/base/src/app/default.tsx';
+    expect(tree.exists(file)).toBeTruthy();
+    const content = tree.read(file, 'utf-8');
+    expect(content).toContain('function DashboardDefault');
+  });
+  it('should generate global-error component in the app directory', async () => {
+    const options: ComponentGeneratorSchema = {
+      ...defaultOptions,
+      name: 'dashboard',
+      componentType: 'page',
+      kind: 'global-error',
+    };
+    await componentGenerator(tree, options);
+    const file = 'features/base/src/app/global-error.tsx';
+    expect(tree.exists(file)).toBeTruthy();
+    const content = tree.read(file, 'utf-8');
+    expect(content).toContain("'use client'");
+    expect(content).toContain('<html>');
+    expect(content).toContain('reset');
+  });
+  it('should generate route handler in the app directory', async () => {
+    const options: ComponentGeneratorSchema = {
+      ...defaultOptions,
+      name: 'health',
+      componentType: 'page',
+      kind: 'route',
+    };
+    await componentGenerator(tree, options);
+    const file = 'features/base/src/app/route.ts';
+    expect(tree.exists(file)).toBeTruthy();
+    const content = tree.read(file, 'utf-8');
+    expect(content).toContain('export async function GET');
+    expect(content).toContain('NextResponse');
+  });
 
-  it('should infer nested route path from name when package is "*"', async () => {
+  it('should infer nested route path from name when inferPath is set', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
       name: 'UserResourceFiles',
       componentType: 'page',
-      package: '*',
+      inferPath: true,
     };
     await componentGenerator(tree, options);
     const file = 'features/base/src/app/user/resource/files/page.tsx';
@@ -116,28 +202,42 @@ describe('component generator', () => {
     expect(content).toContain('async function UserResourceFilesPage');
   });
 
-  it('should generate a hook in the hooks package with a use- prefixed file and export', async () => {
+  it('should default kind to "generic" for componentType "component"', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
-      name: 'toggle',
-      componentType: 'hook',
+      name: 'test-component',
+      componentType: 'component',
     };
     await componentGenerator(tree, options);
-    const file = 'features/base/src/hooks/use-toggle.ts';
+    const file = 'features/base/src/components/test-component.tsx';
     expect(tree.exists(file)).toBeTruthy();
-    const content = tree.read(file, 'utf-8');
-    expect(content).toContain('export function useToggle');
-    expect(content).toContain('export default useToggle');
   });
 
-  it('should not double-prefix a hook name that already starts with use', async () => {
+  it('should default kind to "generic" for componentType "page"', async () => {
     const options: ComponentGeneratorSchema = {
       ...defaultOptions,
-      name: 'use-toggle',
-      componentType: 'hook',
+      name: 'dashboard',
+      componentType: 'page',
     };
     await componentGenerator(tree, options);
-    const file = 'features/base/src/hooks/use-toggle.ts';
+    const file = 'features/base/src/app/page.tsx';
     expect(tree.exists(file)).toBeTruthy();
+  });
+
+  it('should warn and fall back to "generic" when kind does not belong to componentType', async () => {
+    const warnSpy = jest.spyOn(logger, 'warn').mockImplementation();
+    const options: ComponentGeneratorSchema = {
+      ...defaultOptions,
+      name: 'test-component',
+      componentType: 'component',
+      kind: 'layout',
+    };
+    await componentGenerator(tree, options);
+    const file = 'features/base/src/components/test-component.tsx';
+    expect(tree.exists(file)).toBeTruthy();
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('kind "layout" is not valid for componentType "component"')
+    );
+    warnSpy.mockRestore();
   });
 });

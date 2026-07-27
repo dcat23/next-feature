@@ -1,8 +1,21 @@
-import { spawnSync } from 'child_process';
-import { runShadcnCli } from './shadcn';
+import { detectPackageManager, getPackageManagerCommand } from '@nx/devkit';
+import { execSync, spawnSync } from 'child_process';
+import { readFileSync, writeFileSync } from 'fs';
+import { runShadcnCli, syncShadcnDependencies } from './shadcn';
 
 jest.mock('child_process', () => ({
   spawnSync: jest.fn(),
+  execSync: jest.fn(),
+}));
+
+jest.mock('fs', () => ({
+  readFileSync: jest.fn(),
+  writeFileSync: jest.fn(),
+}));
+
+jest.mock('@nx/devkit', () => ({
+  detectPackageManager: jest.fn(),
+  getPackageManagerCommand: jest.fn(),
 }));
 
 describe('runShadcnCli', () => {
@@ -40,5 +53,85 @@ describe('runShadcnCli', () => {
     const result = runShadcnCli('/workspace/features/ui', 'add button');
 
     expect(result.success).toBe(false);
+  });
+});
+
+describe('syncShadcnDependencies', () => {
+  const mockedReadFileSync = readFileSync as jest.Mock;
+  const mockedWriteFileSync = writeFileSync as jest.Mock;
+  const mockedExecSync = execSync as jest.Mock;
+  const mockedDetectPackageManager = detectPackageManager as jest.Mock;
+  const mockedGetPackageManagerCommand = getPackageManagerCommand as jest.Mock;
+
+  const workspaceRoot = '/workspace';
+  const projectRoot = 'features/ui';
+
+  beforeEach(() => {
+    mockedReadFileSync.mockReset();
+    mockedWriteFileSync.mockReset();
+    mockedExecSync.mockReset();
+    mockedDetectPackageManager.mockReset().mockReturnValue('pnpm');
+    mockedGetPackageManagerCommand.mockReset().mockReturnValue({ install: 'pnpm install' });
+  });
+
+  function mockPackageJsons(projectPkgJson: object, rootPkgJson: object) {
+    mockedReadFileSync.mockImplementation((filePath: string) =>
+      filePath === '/workspace/features/ui/package.json'
+        ? JSON.stringify(projectPkgJson)
+        : JSON.stringify(rootPkgJson)
+    );
+  }
+
+  it('mirrors a dependency the root package.json is missing, and reinstalls at the root', () => {
+    mockPackageJsons(
+      { dependencies: { 'class-variance-authority': '^0.7.1' } },
+      { dependencies: {} }
+    );
+
+    syncShadcnDependencies(workspaceRoot, projectRoot);
+
+    expect(mockedWriteFileSync).toHaveBeenCalledWith(
+      '/workspace/package.json',
+      expect.stringContaining('"class-variance-authority": "^0.7.1"')
+    );
+    expect(mockedExecSync).toHaveBeenCalledWith('pnpm install', expect.objectContaining({ cwd: workspaceRoot }));
+  });
+
+  it('does not overwrite a version already pinned at the root', () => {
+    mockPackageJsons(
+      { dependencies: { zod: '^4.0.0' } },
+      { dependencies: { zod: '^3.24.1' } }
+    );
+
+    syncShadcnDependencies(workspaceRoot, projectRoot);
+
+    expect(mockedWriteFileSync).not.toHaveBeenCalled();
+    expect(mockedExecSync).not.toHaveBeenCalled();
+  });
+
+  it('does nothing when there are no new dependencies to mirror', () => {
+    mockPackageJsons(
+      { dependencies: { clsx: '^2.1.1' } },
+      { dependencies: { clsx: '^2.1.1' } }
+    );
+
+    syncShadcnDependencies(workspaceRoot, projectRoot);
+
+    expect(mockedWriteFileSync).not.toHaveBeenCalled();
+    expect(mockedExecSync).not.toHaveBeenCalled();
+  });
+
+  it('mirrors new devDependencies too', () => {
+    mockPackageJsons(
+      { devDependencies: { 'tw-animate-css': '^1.3.0' } },
+      { dependencies: {} }
+    );
+
+    syncShadcnDependencies(workspaceRoot, projectRoot);
+
+    expect(mockedWriteFileSync).toHaveBeenCalledWith(
+      '/workspace/package.json',
+      expect.stringContaining('"tw-animate-css": "^1.3.0"')
+    );
   });
 });

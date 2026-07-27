@@ -3,10 +3,16 @@ import { Tree, logger, readProjectConfiguration } from '@nx/devkit';
 import { spawnSync } from 'child_process';
 import { componentGenerator } from './component';
 import { ComponentGeneratorSchema } from './schema';
+import { syncShadcnDependencies } from '../../../lib/utils/shadcn';
 
 jest.mock('child_process', () => ({
   ...jest.requireActual('child_process'),
   spawnSync: jest.fn(),
+}));
+
+jest.mock('../../../lib/utils/shadcn', () => ({
+  ...jest.requireActual('../../../lib/utils/shadcn'),
+  syncShadcnDependencies: jest.fn(),
 }));
 
 describe('component generator', () => {
@@ -250,10 +256,12 @@ describe('component generator', () => {
 
   describe('ui componentType', () => {
     const mockedSpawnSync = spawnSync as jest.Mock;
+    const mockedSyncShadcnDependencies = syncShadcnDependencies as jest.Mock;
 
     beforeEach(() => {
       mockedSpawnSync.mockReset();
       mockedSpawnSync.mockReturnValue({ status: 0 });
+      mockedSyncShadcnDependencies.mockReset();
     });
 
     it('does not write a template file, and creates the ui project as type "ui" on demand', async () => {
@@ -264,7 +272,7 @@ describe('component generator', () => {
       expect(tree.exists('features/ui/src/components/common/button.tsx')).toBeFalsy();
     });
 
-    it('returns a task that runs the shadcn CLI in the project root with the kebab-case slug', async () => {
+    it('returns a task that runs the shadcn CLI in the project root with the kebab-case slug, then syncs dependencies to the root', async () => {
       const task = await componentGenerator(tree, { projectName: 'ui', name: 'Button', componentType: 'ui' });
       await task();
 
@@ -273,6 +281,16 @@ describe('component generator', () => {
         ['shadcn@latest', 'add', 'button', '--yes'],
         expect.objectContaining({ cwd: 'features/ui' })
       );
+      expect(mockedSyncShadcnDependencies).toHaveBeenCalledWith(tree.root, 'features/ui');
+    });
+
+    it('does not sync dependencies when the shadcn CLI fails', async () => {
+      mockedSpawnSync.mockReturnValue({ status: 1 });
+
+      const task = await componentGenerator(tree, { projectName: 'ui', name: 'Button', componentType: 'ui' });
+      expect(() => task()).toThrow('Failed to add shadcn component "button"');
+
+      expect(mockedSyncShadcnDependencies).not.toHaveBeenCalled();
     });
 
     it('kebab-cases multi-word component names to match shadcn slugs', async () => {

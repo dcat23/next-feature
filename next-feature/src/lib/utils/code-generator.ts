@@ -35,6 +35,7 @@ export async function initializeCodeGenerator(
   nxJson.generators ??= {};
   nxJson.generators[PLUGIN_NAME] ??= {};
   nxJson.generators[PLUGIN_NAME][generatorName] ??= {};
+  nxJson.generators[PLUGIN_NAME][generatorName]["projectName"] ??= projectName;
 
   updateNxJson(tree, nxJson);
 

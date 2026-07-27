@@ -23,6 +23,7 @@ import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { updateDependencies } from '../../../lib/utils';
 import { addServerExternalPackages } from '../../../lib/utils/next-config';
+import { addShadcnTarget } from '../../../lib/utils/shadcn';
 import featureGenerator from '../feature/feature';
 import { ApplicationGeneratorSchema } from './schema';
 import { generateSecret } from './utils';
@@ -67,6 +68,8 @@ export async function applicationGenerator(
     projectRoot,
     normalizedOptions
   );
+
+  addShadcnTarget(tree, projectRoot);
 
   const dependencies: Record<string, string> = {
     '@tanstack/react-query': TANSTACK_VERSION,

@@ -1,7 +1,21 @@
-import { detectPackageManager, getPackageManagerCommand } from '@nx/devkit';
+import { detectPackageManager, getPackageManagerCommand, joinPathFragments, Tree, updateJson } from '@nx/devkit';
 import { execSync, spawnSync } from 'child_process';
 import { readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
+
+// Registers the `shadcn` target (next-feature:shadcn executor) on a project's
+// project.json, so components can be pulled in later via `npx nx run <name>:shadcn`.
+export function addShadcnTarget(tree: Tree, projectRoot: string): void {
+  const projectJsonPath = joinPathFragments(projectRoot, 'project.json');
+  updateJson(tree, projectJsonPath, (json) => {
+    json.targets ??= {};
+    json.targets.shadcn = {
+      executor: 'next-feature:shadcn',
+      options: {},
+    };
+    return json;
+  });
+}
 
 export function runShadcnCli(cwd: string, args: string): { success: boolean } {
   const parsedArgs = args.split(' ').filter(Boolean);

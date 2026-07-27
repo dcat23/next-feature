@@ -40,20 +40,6 @@ export const updatePackageJsonExports = (tree: Tree, projectRoot: string) => {
     });
 }
 
-// Registers the `shadcn` target (next-feature:shadcn executor) on a ui-type feature's
-// project.json, so components can be pulled in later via `npx nx run <name>:shadcn`.
-export const addShadcnTarget = (tree: Tree, projectRoot: string) => {
-    const projectJsonPath = joinPathFragments(projectRoot, 'project.json');
-    updateJson(tree, projectJsonPath, (json) => {
-        json.targets ??= {};
-        json.targets.shadcn = {
-            executor: 'next-feature:shadcn',
-            options: {},
-        };
-        return json;
-    });
-}
-
 // The @nx/next libraryGenerator (via @nx/js's addReleaseConfigForNonTsSolution) defaults
 // publishable libraries to only version dist/package.json, since that manifest is
 // overwritten on every build and git-tag resolution is used to find the current version.

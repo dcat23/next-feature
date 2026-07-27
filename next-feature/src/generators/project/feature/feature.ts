@@ -9,7 +9,8 @@ import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { initializeProjectGenerator, updateDependencies } from '../../../lib/utils';
 import { addRollupExternalPackages } from '../../../lib/utils/vite-config';
 import { FeatureGeneratorSchema } from './schema';
-import { addShadcnTarget, includeSourceInReleaseManifests, updatePackageJsonExports } from './utils';
+import { includeSourceInReleaseManifests, updatePackageJsonExports } from './utils';
+import { addShadcnTarget } from '../../../lib/utils/shadcn';
 import { normalizeFeatureGenerator } from './utils/normalize';
 import { LOGGING } from 'next-feature/src/lib/dotenv/constants/defaults';
 

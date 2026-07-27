@@ -14,6 +14,12 @@ describe('application generator', () => {
     expect(config).toBeDefined();
   });
 
+  it('should register a shadcn target on the project', async () => {
+    await applicationGenerator(tree, options);
+    const config = readProjectConfiguration(tree, 'test');
+    expect(config.targets?.shadcn?.executor).toBe('next-feature:shadcn');
+  });
+
   describe('useAuth option', () => {
     it('should not generate the auth route or feature by default', async () => {
       await applicationGenerator(tree, { name: 'test' });

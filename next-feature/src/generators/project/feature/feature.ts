@@ -11,6 +11,7 @@ import { addRollupExternalPackages } from '../../../lib/utils/vite-config';
 import { FeatureGeneratorSchema } from './schema';
 import { addShadcnTarget, includeSourceInReleaseManifests, updatePackageJsonExports } from './utils';
 import { normalizeFeatureGenerator } from './utils/normalize';
+import { LOGGING } from 'next-feature/src/lib/dotenv/constants/defaults';
 
 export async function featureGenerator(
   tree: Tree,
@@ -65,8 +66,8 @@ export async function featureGenerator(
       // a bundled copy.
       addRollupExternalPackages(tree, projectRoot, ['pino', 'pino-http', 'pino-pretty', 'thread-stream']);
       
-      setDotenv["LOGGING_BEACON_PATH"] = '/api/log';
-      setDotenv["LOGGING_SERVICE_NAME"] = normalizedOptions.name;
+      setDotenv[LOGGING.beaconPathKey] = LOGGING.beaconPathValue;
+      setDotenv[LOGGING.serviceNameKey] = normalizedOptions.name;
 
       break;
     case 'client':

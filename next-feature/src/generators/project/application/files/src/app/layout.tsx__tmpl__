@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
   description: PROJECT_DESCRIPTION,
   keywords: [],
-  authors: [{ name: "", url: "" }],
+  authors: [{ name: "", url: null }],
   creator: "",
   publisher: "",
   generator: "next-feature",
@@ -42,7 +42,6 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [],
-    apple: "",
   },
   manifest: "/site.webmanifest",
 }

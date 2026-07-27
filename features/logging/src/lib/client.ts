@@ -2,7 +2,7 @@
 
 import pino from 'pino';
 import { getCorrelationId } from './correlation';
-import { LOGGING_BEACON_PATH } from './config/env';
+import { NEXT_PUBLIC_LOGGING_BEACON_PATH } from './config/env';
 
 const browserLogger = pino({
   browser: {
@@ -19,9 +19,9 @@ const browserLogger = pino({
         });
 
         if (typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
-          navigator.sendBeacon(LOGGING_BEACON_PATH, body);
+          navigator.sendBeacon(NEXT_PUBLIC_LOGGING_BEACON_PATH, body);
         } else {
-          fetch(LOGGING_BEACON_PATH, {
+          fetch(NEXT_PUBLIC_LOGGING_BEACON_PATH, {
             method: 'POST',
             body,
             headers: { 'Content-Type': 'application/json' },

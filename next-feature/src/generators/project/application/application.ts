@@ -27,6 +27,7 @@ import featureGenerator from '../feature/feature';
 import { ApplicationGeneratorSchema } from './schema';
 import { generateSecret } from './utils';
 import { normalizeApplicationGeneratorSchema } from './utils/normalize';
+import { LOGGING } from 'next-feature/src/lib/dotenv/constants/defaults';
 
 
 export async function applicationGenerator(
@@ -79,13 +80,12 @@ export async function applicationGenerator(
 
   writeWildCardPathToTsConfig(tree, importPath, sourceRoot);
 
-  /* layout.tsx always reads NEXT_PUBLIC_ROOT_DOMAIN; keep env.ts in sync regardless of useAuth. */
-  updateDotenv(
-    tree,
-    { projectRoot, section: 'root' },
-    { set: { NEXT_PUBLIC_ROOT_DOMAIN: 'http://localhost:4200' }, skipExisting: true }
-  );
-  updateEnvConfig(tree, sourceRoot, { set: ['NEXT_PUBLIC_ROOT_DOMAIN'] });
+  const setDotenv: Record<string, string> = {
+    /* layout.tsx always reads NEXT_PUBLIC_ROOT_DOMAIN; keep env.ts in sync regardless of useAuth. */
+    NEXT_PUBLIC_ROOT_DOMAIN: 'http://localhost:4200',
+  };
+
+  
 
   if (normalizedOptions.useAuth) {
     // Route handler + SessionProvider wiring that expects a sibling `@feature/auth` library.
@@ -130,15 +130,21 @@ export async function applicationGenerator(
 
     updateDotenv(tree, { projectRoot, section: 'logging' }, {
       set: {
-        LOGGING_BEACON_PATH: '/api/log',
-        LOGGING_SERVICE_NAME: normalizedOptions.name,
+        [LOGGING.beaconPathKey]: LOGGING.beaconPathValue,
+        [LOGGING.serviceNameKey]: normalizedOptions.name,
       },
     });
     updateEnvConfig(tree, sourceRoot, {
-      set: ['LOGGING_BEACON_PATH', 'LOGGING_SERVICE_NAME'] 
+      set: [LOGGING.beaconPathKey, LOGGING.serviceNameKey], 
     });
 
   }
+
+  updateDotenv(tree,
+    { projectRoot, section: 'app' },
+    { set: setDotenv }
+  );
+  updateEnvConfig(tree, sourceRoot, { set: Object.keys(setDotenv) });
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies));
 

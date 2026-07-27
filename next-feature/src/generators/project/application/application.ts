@@ -9,6 +9,7 @@ import { applicationGenerator as nextApplicationGenerator } from '@nx/next';
 import * as path from 'path';
 import {
   NEXTAUTH_VERSION,
+  NEXT_THEMES_VERSION,
   PINO_VERSION,
   PINO_HTTP_VERSION,
   PINO_PRETTY_VERSION,
@@ -42,7 +43,7 @@ export async function applicationGenerator(
     await nextApplicationGenerator(tree, {
       directory: normalizedOptions.directory,
       name: normalizedOptions.name,
-      style: 'tailwind',
+      style: 'css',
       e2eTestRunner: 'none',
       unitTestRunner: 'jest',
       src: normalizedOptions.useSrc,
@@ -75,10 +76,12 @@ export async function applicationGenerator(
     '@tanstack/react-query': TANSTACK_VERSION,
     sonner: SONNER_VERSION,
     zod: ZOD_VERSION,
+
   };
   const devDependencies: Record<string, string> = {
     '@tailwindcss/postcss': TAILWIND_VERSION,
-    'tailwindcss': TAILWIND_VERSION
+    'tailwindcss': TAILWIND_VERSION,
+    'next-themes': NEXT_THEMES_VERSION
   };
 
   writeWildCardPathToTsConfig(tree, importPath, sourceRoot);

@@ -17,3 +17,4 @@ export const PINO_PRETTY_VERSION = "^13.0.0"
 export const CLSX_VERSION = "^2.1.1"
 export const TAILWIND_MERGE_VERSION = "^3.3.1"
 export const CVA_VERSION = "^0.7.1";
+export const NEXT_THEMES_VERSION = "^0.4.0";

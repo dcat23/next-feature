@@ -1,6 +1,6 @@
 {
   "name": "@next-feature/logging",
-  "version": "0.1.4-4",
+  "version": "0.1.4-5",
   "main": "./index.js",
   "types": "./index.d.ts",
   "exports": {

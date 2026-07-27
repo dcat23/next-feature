@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   },
   description: PROJECT_DESCRIPTION,
   keywords: [],
-  authors: [{ name: "", url: null }],
+  authors: [{ name: "" }],
   creator: "",
   publisher: "",
   generator: "next-feature",
@@ -52,7 +52,7 @@ export default function RootLayout({
   children: ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
         <Providers>
           <Layout>

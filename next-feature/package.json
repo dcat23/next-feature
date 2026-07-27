@@ -1,6 +1,6 @@
 {
   "name": "next-feature",
-  "version": "0.1.4-4",
+  "version": "0.1.4-5",
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",

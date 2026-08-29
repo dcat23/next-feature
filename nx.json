@@ -54,13 +54,6 @@
         }
       }
     },
-    "@nx/vite:test": {
-      "cache": true,
-      "inputs": [
-        "default",
-        "^production"
-      ]
-    },
     "@nx/vite:build": {
       "cache": true,
       "dependsOn": [
@@ -70,11 +63,22 @@
         "production",
         "^production"
       ]
+    },
+    "@nx/vitest:test": {
+      "cache": true,
+      "inputs": [
+        "default",
+        "^production"
+      ]
     }
   },
   "release": {
     "version": {
-      "preVersionCommand": "pnpm dlx nx run-many -t build"
+      "preVersionCommand": "pnpm dlx nx run-many -t build",
+      "manifestRootsToUpdate": [
+        "{projectRoot}",
+        "dist/{projectRoot}"
+      ]
     }
   },
   "plugins": [
@@ -98,26 +102,19 @@
   ],
   "generators": {
     "next-feature": {
-      "utility": {
+      "declaration": {
         "projectName": "next-feature",
-        "export": false
-      },
-      "constant": {
-        "projectName": "next-feature",
-        "export": false
-      },
-      "data-type": {
-        "projectName": "next-feature",
+        "package": "generators/code/component/lib",
         "export": false
       },
       "store": {
         "projectName": "test"
       },
       "component": {
-        "projectName": "test"
+        "projectName": "ui",
+        "infer-path": true,
+        "kind": "generic"
       },
-      "auth": {},
-      "axios": {},
       "action": {
         "projectName": "test"
       },
@@ -129,6 +126,9 @@
       },
       "client": {
         "orgName": "next-feature"
+      },
+      "dotenv": {
+        "skipEnvConfig": true
       }
     },
     "@nx/react": {

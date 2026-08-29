@@ -23,7 +23,7 @@ const initialState: <%= names.className %>State = {
   isLoading: false
 }
 
-export const use<%= names.className %>Store = create<<%= names.className %>State>((set, get) => ({
+export const use<%= names.className %>Store = create<<%= names.className %>Store>((set, get) => ({
   ...initialState,
 
   initialize<%= names.className %>: (<%= names.propertyName %>: <%= names.className %>) => {

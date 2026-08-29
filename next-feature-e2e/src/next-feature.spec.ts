@@ -1,13 +1,10 @@
 import { execSync } from 'child_process';
 import { join, dirname } from 'path';
 import { mkdirSync, rmSync } from 'fs';
-
 describe('next-feature', () => {
   let projectDirectory: string;
-
   beforeAll(() => {
     projectDirectory = createTestProject();
-
     // The plugin has been built and published to a local registry in the jest globalSetup
     // Install the plugin built with the latest source code into the test repo
     execSync(`pnpm add -D next-feature@e2e`, {
@@ -16,7 +13,6 @@ describe('next-feature', () => {
       env: process.env,
     });
   });
-
   afterAll(() => {
     if (projectDirectory) {
       // Cleanup the test project
@@ -26,7 +22,6 @@ describe('next-feature', () => {
       });
     }
   });
-
   it('should be installed', () => {
     // npm ls will fail if the package is not installed properly
     execSync('pnpm ls --depth 100 next-feature', {
@@ -35,7 +30,6 @@ describe('next-feature', () => {
     });
   });
 });
-
 /**
  * Creates a test project with create-nx-workspace and installs the plugin
  * @returns The directory where the test project was created
@@ -43,7 +37,6 @@ describe('next-feature', () => {
 function createTestProject() {
   const projectName = 'test-project';
   const projectDirectory = join(process.cwd(), 'tmp', projectName);
-
   // Ensure projectDirectory is empty
   rmSync(projectDirectory, {
     recursive: true,
@@ -52,7 +45,6 @@ function createTestProject() {
   mkdirSync(dirname(projectDirectory), {
     recursive: true,
   });
-
   execSync(
     `pnpm dlx create-nx-workspace@latest ${projectName} --preset apps --nxCloud=skip --no-interactive`,
     {
@@ -62,6 +54,5 @@ function createTestProject() {
     }
   );
   console.log(`Created test project in "${projectDirectory}"`);
-
   return projectDirectory;
 }

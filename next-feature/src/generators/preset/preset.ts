@@ -1,5 +1,4 @@
-import  { GeneratorCallback, names } from '@nx/devkit';
-import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
+import { formatFiles, generateFiles, GeneratorCallback, names, runTasksInSerial, Tree } from '@nx/devkit';
 import * as path from 'path';
 import { addToGitignore, updateDependencies } from '../../lib/utils';
 import type { NormalizedPresetGeneratorSchema } from './schema';
@@ -43,7 +42,7 @@ export async function presetGenerator(
     projectRoot,
     dotEnvContent,
   )
-
+  
   const dependencies: Record<string, string> = {};
   const devDependencies: Record<string, string> = {};
   tasks.push(updateDependencies(tree, dependencies, devDependencies));

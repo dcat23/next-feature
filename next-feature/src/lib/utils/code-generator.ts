@@ -30,16 +30,17 @@ export async function initializeCodeGenerator(
     projectConfiguration = readProjectConfiguration(tree, projectName);
   }
 
-  const nxJson = readNxJson(tree);
+  const nxJson = readNxJson(tree) || {};
 
   nxJson.generators ??= {};
   nxJson.generators[PLUGIN_NAME] ??= {};
   nxJson.generators[PLUGIN_NAME][generatorName] ??= {};
+  nxJson.generators[PLUGIN_NAME][generatorName]["projectName"] ??= projectName;
 
   updateNxJson(tree, nxJson);
 
   const projectRoot = projectConfiguration.root;
-  const sourceRoot = projectConfiguration.sourceRoot;
+  const sourceRoot = projectConfiguration.sourceRoot || projectRoot;
   const directory = path.join(sourceRoot, options.package ?? '');
 
   return {
@@ -69,7 +70,7 @@ export function normalizeCodeGenerator<T extends CodeGeneratorSchema = CodeGener
 
   const outputFileName = asOutputFile({ file: options.file, fileName: mutatedNames.fileName });
 
-  const exportPath = handleExportPath({ package: options.package, outputFileName: "index" });
+  const exportPath = handleExportPath({ package: options.package, outputFileName });
 
   return {
     tmpl: '',

@@ -10,7 +10,7 @@ NextFeature is an Nx workspace containing a **generator plugin ecosystem** that 
 - **@next-feature/client** - API client library with error handling and utilities
 - **create-next-feature** - CLI tool for creating new NextFeature workspaces
 
-The plugin provides generators for creating projects, server actions (API, form, database), components, stores, and configurations (auth, database, client-config).
+The plugin provides generators for creating projects, server actions (API, form, database), components, stores, and configurations (client-config).
 
 Key technologies:
 - **Nx 22.0.3** - Monorepo framework
@@ -58,13 +58,13 @@ The plugin follows an Nx plugin structure with generators organized by category:
 ### Generator Categories
 
 **Project Generators** (`src/generators/project/`)
-- `feature` - Creates a feature project with Next.js library
+- `feature` - Creates a feature project with Next.js library. The `type` option selects scaffolding: `generic` (default), `base`, `logging`, `client` (API client library with error handling), `auth` (NextAuth.js configuration), or `ui` (shadcn-ready component library: `components.json` at the project root, `cn()` util, Tailwind v4 entry, plus a `shadcn` target for pulling in components later)
 - `application` - Creates a Next.js application
-- `client` - Creates an API client library with error handling
 
 **Code Generators** (`src/generators/code/`)
 - `action` - Generates Next.js server actions (API, form, or database operations) with client integration
-- `component` - Generates React components
+- `component` - Generates React components. `componentType=hook` scaffolds a generic reusable hook (`use<Name>`) in `src/hooks/` instead of a component. `componentType=ui` adds a shadcn component to a `ui`-type feature library instead: no template is written, it invokes the shared shadcn CLI helper (`lib/utils/shadcn.ts`, also used by the `shadcn` executor) to run `npx shadcn@latest add <slug>` in the target project's root, skipping if the component file already exists
+- `hook` - Generates a TanStack Query hook (`useQuery` for GET-derived actions, `useMutation` otherwise) that wraps an existing server action, in `src/hooks/`. Auto-invoked by the `action` generator when `useHook` is set
 - `store` - Generates Zustand stores
 - `data-type` - Generates TypeScript type definitions
 - `constant` - Generates constant definitions
@@ -72,9 +72,7 @@ The plugin follows an Nx plugin structure with generators organized by category:
 
 **Misc Generators** (`src/generators/misc/`)
 - `client-config` - Creates centralized API client configuration (auto-invoked by action generator)
-- `auth` - Adds NextAuth configuration
-- `axios` - Adds axios HTTP client setup
-- `database` - Adds database configuration
+- `dotenv` - Creates, updates, or removes environment variables across a project's `.env*` files, optionally syncing the same change to other projects, and keeps `lib/config/env.ts`'s zod schema/accessors in sync (see `src/lib/dotenv/`)
 
 **Tool Generators** (`src/generators/tool/`)
 - `copy-deps` - Copies dependencies between projects
@@ -82,6 +80,12 @@ The plugin follows an Nx plugin structure with generators organized by category:
 **Special Generators**
 - `init` - Initializes workspace configuration
 - `preset` - Applies predefined configurations
+
+### Executors (`src/executors/`)
+
+Unlike generators (which scaffold files once), executors run as Nx targets (`nx run <project>:<target>`) against an existing project.
+
+- `shadcn` - Runs `npx shadcn@latest <args>` in a project's root (e.g. `npx nx run ui:shadcn --args="add button"`). Auto-registered as a `shadcn` target on `feature --type=ui` projects, where `components.json` resolves the shadcn aliases.
 
 ### Core Libraries
 
@@ -92,7 +96,11 @@ The plugin follows an Nx plugin structure with generators organized by category:
 **Project Generator Utilities** (`src/lib/utils/index.ts`)
 - `initializeProjectGenerator()` - Initializes project generators and updates Nx configuration.
 - `updateDependencies()` - Updates package.json dependencies.
-- `addToGitignore()` - Adds entries to .gitignore files.
+- `addToGitignore()` - Adds entries to .gitignore files (idempotent - safe to call repeatedly).
+
+**Dotenv Utilities** (`src/lib/dotenv/`)
+- `updateDotenv()` / `syncDotenv()` (`dot-env.ts`) - Set/unset vars across a project's (or multiple projects') `.env`/`.env.example`/`.env.<suffix>` files, grouped under `### SECTION ###` headers, preserving comments/blank lines. Non-`.env.example` files touched this way are auto-gitignored.
+- `updateEnvConfig()` (`env-config.ts`) - Keeps a project's `lib/config/env.ts` zod schema and `process.env` accessors in sync with the same key set, via `/* schema start/end */` and `/* vars start/end */` markers. The schema property, exported accessor, and `.env` key are always the same name (e.g. `USERS_API_URL`). Called by `feature`/`application`/`client-config` generators directly, and exposed as a standalone generator via `misc/dotenv`.
 
 **Client Library** (`clients/client/src/`)
 - `ApiError` - Custom error class with status helpers (isUnauthorized, isNotFound, etc.)
@@ -134,6 +142,13 @@ All generators follow a consistent pattern:
 - `useTypes` - Auto-generate TypeScript types
 - `useConstant` - Auto-generate constants
 - `useMapper` - Auto-generate mapper utility
+- `useHook` - Auto-generate a TanStack Query hook (`hooks/use-<name>.ts`) wrapping this action; ignored when `actionType` is `form`
+
+**Hook Generator Specific:**
+- `name` - Name of the action to wrap (e.g. `getUsers`); determines the hook name (`use<Name>`) and whether `useQuery` or `useMutation` is used, via the same HTTP-method-prefix detection as the action generator
+- `actionPackage` - Subdirectory where the wrapped action lives (default: `lib/actions`, matching the action generator's default)
+- `actionFile` - Exact file (without extension) the wrapped action was written to, if it differs from the default resource-based name
+- `clientPackage` - Client package to import `ApiError` from (default: `@next-feature/client`)
 
 **Project Generators:**
 - `orgName` - Organization name for scoped packages (e.g., '@myorg')
@@ -144,7 +159,9 @@ All generators follow a consistent pattern:
 Generators can invoke other generators via `runTasksInSerial()`:
 - Action generator auto-creates client-config if it doesn't exist
 - Action generator can chain data-type, constant, and utility generators based on options
-- Feature generator chains auth and axios setup
+- Action generator chains the `hook` generator when `useHook` is set (ignored for `actionType=form`), scaffolding a `useQuery`/`useMutation` hook that wraps the generated action
+- Feature generator adds the axios dependency and registers a `<NAME>_API_URL` var (in `.env`/`.env.example` and `lib/config/env.ts`) when `env` is set
+- Application generator does the same when `env` is set, and creates a sibling `auth`-type feature (if missing) when `useAuth` is set
 - This avoids duplication and ensures consistent setup
 
 **Important:** When chaining generators, pass `skipFormat: true` to avoid multiple formatting passes.
@@ -213,6 +230,8 @@ Generators are registered in `next-feature/generators.json`:
 - Maps generator names to factory functions and schemas
 - Each generator entry includes factory path, schema path, and description
 
+Executors are registered in `next-feature/executors.json` (currently just `shadcn`), following the same implementation/schema/description shape as generator entries.
+
 ## Git Integration
 
 Main branch: `main` (for PRs)
@@ -238,7 +257,7 @@ Package manager: `pnpm` (use `pnpm install`, not npm or yarn)
 1. Create directory in `src/generators/project/[name]/`
 2. Create `schema.json` with options (extend `ProjectGeneratorSchema`)
 3. Use `initializeProjectGenerator()` to set up Nx configuration
-4. Chain other generators as needed (auth, axios, etc.)
+4. Chain other generators as needed (dotenv, etc.)
 5. Update `nx.json` generators section with default `orgName`
 
 **Updating generated code templates:**
@@ -290,7 +309,7 @@ All actions return `ApiResponse<T>`:
 Built files go to `dist/next-feature/`:
 - Compiled JavaScript in `dist/next-feature/src/`
 - Templates copied to `dist/next-feature/src/generators/[...]/files/`
-- `generators.json` copied to root of dist
+- `generators.json` and `executors.json` copied to root of dist
 - `.md` files included for documentation
 
 Client library output in `dist/clients/client/`:

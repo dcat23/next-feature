@@ -46,7 +46,7 @@
     "package": {
       "type": "string",
       "description": "Subdirectory within src/ where actions are created (default: 'lib' creates src/lib/actions/)",
-      "default": "lib"
+      "default": "lib/actions"
     },
     "directory": {
       "type": "string",
@@ -58,16 +58,21 @@
       "description": "Target project name where action will be generated. Auto-creates feature if not found.",
       "alias": "p"
     },
+    "file": {
+      "type": "string",
+      "description": "Optional: Create or append constants to existing file instead of creating separate file",
+      "alias": "f"
+    },
     "useTypes": {
       "type": "boolean",
       "description": "Generate TypeScript type definitions in src/lib/types/ (default: true for API actions)",
-      "default": true,
+      "default": false,
       "alias": "t"
     },
     "useConstant": {
       "type": "boolean",
       "description": "Generate constants in src/lib/constants/ (endpoints, default values, etc.)",
-      "default": true,
+      "default": false,
       "alias": "c"
     },
     "useMapper": {
@@ -76,11 +81,11 @@
       "default": false,
       "alias": "m"
     },
-    "useInterceptor": {
+    "useHook": {
       "type": "boolean",
-      "description": "Configure request/response interceptors in lib/client/config.ts",
+      "description": "Generate a TanStack Query hook (useQuery for GET, useMutation otherwise) wrapping this action in hooks/use-<name>.ts. Ignored when actionType is 'form'.",
       "default": false,
-      "alias": "i"
+      "alias": "h"
     },
     "skipFormat": {
       "type": "boolean",
@@ -90,11 +95,12 @@
     "clientPackage": {
       "type": "string",
       "description": "API client package to import from. Use @next-feature/client (default) or custom package like @myorg/api-client",
-      "alias": "client"
+      "alias": "client",
+      "default": "@next-feature/client"
     },
     "export": {
       "type": "boolean",
-      "description": "Export the generated action from project root src/index.ts (default: true)",
+      "description": "Export the generated action from project root src/server.ts (default: true)",
       "default": true,
       "alias": "e"
     }

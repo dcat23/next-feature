@@ -1,0 +1,35 @@
+'use client';
+
+import { <%= queryType === 'query' ? 'useQuery' : 'useMutation' %> } from '@tanstack/react-query';
+import { ApiError } from '<%= clientPackage %>';
+import { <%= methodName %>, type <%= requestType %> } from '<%= actionImportPath %>';
+<% if (queryType === 'query') { %>
+export function <%= hookName %>(options?: <%= requestType %>) {
+  return useQuery({
+    queryKey: ['<%= endpoint %>', options],
+    queryFn: async () => {
+      const response = await <%= methodName %>(options);
+
+      if (!response.success) {
+        throw ApiError.of(response.error);
+      }
+
+      return response.data;
+    },
+  });
+}
+<% } else { %>
+export function <%= hookName %>() {
+  return useMutation({
+    mutationFn: async (options: <%= requestType %>) => {
+      const response = await <%= methodName %>(options);
+
+      if (!response.success) {
+        throw ApiError.of(response.error);
+      }
+
+      return response.data;
+    },
+  });
+}
+<% } %>

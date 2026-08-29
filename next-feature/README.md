@@ -1,4 +1,4 @@
-# Next-Feature Plugin v0.1.0
+# Next-Feature Plugin
 
 Comprehensive Nx plugin for scaffolding Next.js applications with generators for projects, APIs, components, state management, and infrastructure setup.
 
@@ -8,7 +8,7 @@ The next-feature plugin provides a complete set of generators organized into cat
 
 - **Project Generators** - Create feature libraries and applications
 - **Code Generators** - Generate individual code elements (APIs, components, stores, etc.)
-- **Configuration Generators** - Setup infrastructure (auth, client config, database, etc.)
+- **Configuration Generators** - Setup infrastructure (client config, dotenv, etc.)
 - **Tool Generators** - Workspace utilities
 
 ## Quick Reference
@@ -16,14 +16,20 @@ The next-feature plugin provides a complete set of generators organized into cat
 ### Project Generators
 
 ```bash
-# Create a feature library with auth and client setup
+# Create a feature library
 npx nx g next-feature:feature --name=users
 
 # Create a Next.js application
 npx nx g next-feature:application --name=myapp
 
 # Create an API client library
-npx nx g next-feature:client --name=apiClient
+npx nx g next-feature:feature --name=apiClient --type=client
+
+# Create a NextAuth.js configuration library
+npx nx g next-feature:feature --name=auth --type=auth
+
+# Create a shadcn-ready ui component library
+npx nx g next-feature:feature --name=ui --type=ui
 ```
 
 ### Code Generators
@@ -34,6 +40,9 @@ npx nx g next-feature:action --name=getUser --projectName=users
 
 # React components
 npx nx g next-feature:component --name=UserCard --projectName=users
+
+# TanStack Query hook wrapping an existing server action (useQuery/useMutation)
+npx nx g next-feature:hook --name=getUser --projectName=users
 
 # Zustand state management stores
 npx nx g next-feature:store --name=userStore --projectName=users
@@ -54,14 +63,16 @@ npx nx g next-feature:utility --name=userHelpers --projectName=users
 # Centralized API client configuration (auto-invoked by action generator)
 npx nx g next-feature:client-config --projectName=users
 
-# NextAuth.js authentication setup
-npx nx g next-feature:auth --projectName=users
+# Create/update/remove env vars across .env* files (and keep env.ts in sync)
+npx nx g next-feature:dotenv --projectName=users --set=API_URL=http://localhost:8080
+```
 
-# Axios HTTP client configuration
-npx nx g next-feature:axios --projectName=users
+### Executors
 
-# Prisma database configuration
-npx nx g next-feature:database --projectName=users
+```bash
+# Pull shadcn components into a ui-type feature (target is auto-registered when the feature is created)
+npx nx run ui:shadcn --args="add button"
+npx nx run ui:shadcn --args="add button card dialog"
 ```
 
 ## Key Features
@@ -86,7 +97,7 @@ Action generator automatically chains related generators:
 
 ```bash
 npx nx g next-feature:action --name=getUser --actionType=api \
-  --useTypes --useConstant --useMapper
+  --useTypes --useConstant --useMapper --useHook
 ```
 
 Generates in sequence:
@@ -94,6 +105,7 @@ Generates in sequence:
 2. TypeScript types (if --useTypes)
 3. Constants (if --useConstant)
 4. Mapper utility (if --useMapper)
+5. TanStack Query hook wrapping the action (if --useHook; ignored for `--actionType=form`) - `useQuery` for GET-derived actions, `useMutation` otherwise
 
 ### ✨ Zod Validation Error Handling
 
@@ -128,7 +140,8 @@ npx nx g next-feature:action --name=getUser --projectName=myapp \
 Generate self-contained pieces of functionality:
 
 - **action** - Server actions (API, form, database operations)
-- **component** - React components with TypeScript
+- **component** - React components (`--componentType=component`) or Next.js App Router route files (`--componentType=page`), with `--kind` selecting the specific file (modal/card/form, or page/layout/loading/error/route etc.)
+- **hook** - TanStack Query hook (`useQuery`/`useMutation`) wrapping an existing server action; auto-invoked by `action` when `--useHook` is set
 - **store** - Zustand state management hooks
 - **types** - TypeScript type definitions
 - **constant** - Constants and enums
@@ -138,22 +151,27 @@ Generate self-contained pieces of functionality:
 
 Generate entire project structures:
 
-- **feature** - Feature library with auth, axios, and client setup
+- **feature** - Feature library; `--type=client` scaffolds an API client library with error handling and utilities, `--type=ui` scaffolds a shadcn-ready component library
 - **application** - Next.js application with layout, providers, routing
-- **client** - API client library with error handling and utilities
 
 ### misc/ - Infrastructure Configuration
 
 Setup project infrastructure:
 
 - **client-config** - Centralized API configuration (auto-invoked by actions)
-- **auth** - NextAuth.js authentication with routes
-- **axios** - Axios HTTP client with interceptors
-- **database** - Prisma database setup with migrations
+- **dotenv** - Create/update/remove `.env*` vars, sync across projects, keep `env.ts` typed
+
+NextAuth.js authentication is a `feature` type (`--type=auth`), not a separate misc generator.
 
 ### tool/ - Workspace Utilities
 
 - **copy-deps** - Copy dependencies between projects
+
+### executors/ - Nx Targets Run Against a Project
+
+Unlike generators, executors run via `nx run <project>:<target>` against a project that already exists:
+
+- **shadcn** - Runs `npx shadcn@latest <args>` in a project's root. Auto-registered as the `shadcn` target when a `feature --type=ui` project is created.
 
 ## Common Workflows
 
@@ -182,11 +200,8 @@ editor apps/products/src/lib/client/config.ts
 ### Workflow: Setup Authentication
 
 ```bash
-# Create auth feature
+# Create the auth feature library (type is inferred from the name)
 npx nx g next-feature:feature --name=auth
-
-# Add NextAuth setup
-npx nx g next-feature:auth --projectName=auth
 
 # Create login action
 npx nx g next-feature:action --name=login --actionType=form --projectName=auth
@@ -201,10 +216,7 @@ npx nx g next-feature:store --name=userStore --projectName=auth
 # Create data feature
 npx nx g next-feature:feature --name=data
 
-# Setup database
-npx nx g next-feature:database --projectName=data
-
-# Create database action
+# Create database action (expects Prisma configured in the project)
 npx nx g next-feature:action --name=getUserFromDb --actionType=db --projectName=data
 
 # Create database utilities
@@ -268,6 +280,7 @@ npx nx g next-feature:action --name=getUser [options]
 | --useTypes | boolean | true | Generate type files |
 | --useConstant | boolean | true | Generate constants |
 | --useMapper | boolean | false | Generate mapper utility |
+| --useHook | boolean | false | Generate a TanStack Query hook wrapping this action (ignored for `actionType=form`) |
 | --clientPackage | string | "@next-feature/client" | Client library to import |
 
 ### Component Generator
@@ -278,7 +291,32 @@ npx nx g next-feature:component --name=Button [options]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| --componentType | enum | "component" | Type: component, card, modal, form, etc. |
+| --componentType | enum | "component" | Bucket: `component` (basic React component), `page` (App Router route file), or `ui` (shadcn component added to a `ui`-type feature library) |
+| --kind | enum | "generic" | Specific file within componentType. component: generic, modal, card, form. page: generic (page.tsx), layout, loading, error, not-found, template, default, global-error, route. Not used for `ui`. |
+| --inferPath | boolean | false | componentType `page`: derive the nested route from `name` instead of `--package` |
+
+`--componentType=ui` doesn't scaffold a template file — it invokes the shadcn CLI (via the same mechanism as the `next-feature:shadcn` executor) to add the component into the target `ui`-type feature, e.g.:
+
+```bash
+npx nx g next-feature:component --name=Button --componentType=ui --projectName=ui
+npx nx g next-feature:component --name=AlertDialog --componentType=ui --projectName=ui
+```
+
+If the component file already exists (`<ui-lib>/src/components/common/<slug>.tsx`), it's skipped rather than re-added.
+
+### Hook Generator
+
+```bash
+npx nx g next-feature:hook --name=getUser --projectName=users [options]
+```
+
+Wraps an existing server action in a `useQuery` (GET-derived actions) or `useMutation` (all others) hook, using the same name-prefix detection as the action generator. `getUsers` produces `hooks/use-get-users.ts` exporting `useGetUsers`.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| --actionPackage | string | "lib/actions" | Subdirectory where the wrapped action lives |
+| --actionFile | string | - | Exact file (without extension) the action was written to, if not the default resource-based name |
+| --clientPackage | string | "@next-feature/client" | Client package to import `ApiError` from |
 
 ### Store Generator
 
@@ -298,18 +336,10 @@ npx nx g next-feature:feature --name=users [options]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
+| --type | enum | "generic" | Type: generic, base, logging, client, auth, or ui |
 | --orgName | string | - | Scoped organization name |
 
-### Client Generator
-
-```bash
-npx nx g next-feature:client --name=apiClient [options]
-```
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| --orgName | string | - | Scoped organization name |
-| --directory | string | "clients" | Base directory for clients |
+`--type=client` registers a `<NAME>_API_URL` variable in this feature's `.env`/`.env.example`. `--type=ui` registers a `shadcn` executor target on the project (see [Executors](#executors)).
 
 ### Client-Config Generator
 
@@ -336,6 +366,7 @@ apps/myfeature/
 │   │   │   └── config.ts          (auto-created on first action)
 │   │   ├── actions/               (server actions)
 │   │   ├── components/            (React components)
+│   │   ├── hooks/                 (TanStack Query hooks / generic hooks)
 │   │   ├── stores/                (Zustand stores)
 │   │   ├── types/                 (TypeScript types)
 │   │   ├── constants/             (Constants)

@@ -1,0 +1,9 @@
+{
+  "executors": {
+    "shadcn": {
+      "implementation": "./src/executors/shadcn/executor",
+      "schema": "./src/executors/shadcn/schema.json",
+      "description": "Runs the shadcn CLI (npx shadcn@latest) against this project"
+    }
+  }
+}

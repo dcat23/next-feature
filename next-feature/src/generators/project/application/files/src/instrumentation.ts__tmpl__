@@ -1,0 +1,11 @@
+<% if (!skipLogging) { %>
+import { registerPino } from './lib/config/logging';
+
+export async function register() {
+  await registerPino();
+}
+<% } else { %>
+export async function register() {
+  // Logging was skipped for this app (skipLogging: true).
+}
+<% } %>

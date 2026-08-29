@@ -235,15 +235,14 @@ npx nx g next-feature:store --name=productStore --projectName=products
 ### Workflow 2: Setup Authentication
 
 ```bash
-# Generate feature with auth
+# Generate the auth feature library (type is inferred from the name)
 npx nx g next-feature:feature --name=auth
-
-# Add NextAuth configuration
-npx nx g next-feature:auth --projectName=auth
 
 # Create login server action
 npx nx g next-feature:action --name=login --actionType=form --projectName=auth
 ```
+
+> `next-feature:application --useAuth=true` also creates this `auth` library automatically (if it doesn't already exist) and wires up the app's route handler and session provider.
 
 ### Workflow 3: Customize Client Configuration
 

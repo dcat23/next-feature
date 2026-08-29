@@ -218,7 +218,7 @@ The created workspace includes all next-feature generators:
 ```bash
 npm run nx -- g next-feature:feature --name=users
 npm run nx -- g next-feature:application --name=myapp
-npm run nx -- g next-feature:client --name=apiClient
+npm run nx -- g next-feature:feature --name=apiClient --type=client
 ```
 
 ### Code Generators
@@ -236,9 +236,7 @@ npm run nx -- g next-feature:utility --name=userHelpers --projectName=users
 
 ```bash
 npm run nx -- g next-feature:client-config --projectName=users
-npm run nx -- g next-feature:auth --projectName=users
 npm run nx -- g next-feature:axios --projectName=users
-npm run nx -- g next-feature:database --projectName=users
 ```
 
 ## Full Documentation
@@ -318,14 +316,11 @@ Override with `--package-manager` flag.
 # 1. Create feature
 npm run nx -- g next-feature:feature --name=api
 
-# 2. Setup database
-npm run nx -- g next-feature:database --projectName=api
-
-# 3. Create API actions
+# 2. Create API actions
 npm run nx -- g next-feature:action --name=getUsers --actionType=api --projectName=api
 npm run nx -- g next-feature:action --name=createUser --actionType=api --projectName=api
 
-# 4. Create types and constants
+# 3. Create types and constants
 npm run nx -- g next-feature:types --name=user --projectName=api
 npm run nx -- g next-feature:constant --name=userEndpoints --projectName=api
 ```
@@ -333,16 +328,13 @@ npm run nx -- g next-feature:constant --name=userEndpoints --projectName=api
 ### Workflow 2: Full-Stack with Auth
 
 ```bash
-# 1. Create auth feature
+# 1. Create the auth feature library (type is inferred from the name)
 npm run nx -- g next-feature:feature --name=auth
 
-# 2. Add NextAuth setup
-npm run nx -- g next-feature:auth --projectName=auth
-
-# 3. Create login action
+# 2. Create login action
 npm run nx -- g next-feature:action --name=login --actionType=form --projectName=auth
 
-# 4. Create user store
+# 3. Create user store
 npm run nx -- g next-feature:store --name=authStore --projectName=auth
 
 # 5. Create protected pages

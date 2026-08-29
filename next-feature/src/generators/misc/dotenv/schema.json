@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "Dotenv",
+  "title": "Dotenv Generator",
+  "description": "Create, update, or remove environment variables across a project's .env* files, optionally syncing the same change to other projects.",
+  "type": "object",
+  "properties": {
+    "projectName": {
+      "type": "string",
+      "description": "Project to update",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "What project should be updated?",
+      "alias": "p"
+    },
+    "projects": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Additional project names to apply the same change to, e.g. an app that consumes this feature"
+    },
+    "section": {
+      "type": "string",
+      "description": "Grouped section header the variables belong under (default: ROOT)"
+    },
+    "set": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Variables to create or update, as KEY=VALUE pairs",
+      "alias": "s"
+    },
+    "unset": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Variable names to remove",
+      "alias": "u"
+    },
+    "skipEnvConfig": {
+      "type": "boolean",
+      "description": "Skip keeping lib/config/env.ts's zod schema and process.env accessors in sync with the same variables being set/unset (as z.string(); edit env.ts directly if a var needs stricter validation)",
+      "default": false
+    },
+    "files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Additional .env.<suffix> files to target, e.g. ['local', 'prod']. .env and .env.example are always included."
+    },
+    "all": {
+      "type": "boolean",
+      "description": "Target every .env* file that already exists in the project root instead of a fixed list",
+      "default": false,
+      "alias": "a"
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip prettier code formatting (used internally for chained generators)",
+      "default": false
+    }
+  },
+  "required": ["projectName"]
+}

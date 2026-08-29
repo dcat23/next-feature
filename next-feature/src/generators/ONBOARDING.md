@@ -69,7 +69,7 @@ npx nx g next-feature:preset --name=web
 #### Option B: Full Application Control
 
 ```bash
-npx nx g next-feature:application --name=web --useAuth=true --useAxios=true
+npx nx g next-feature:application --name=web --useAuth=true --env=true
 ```
 
 **Creates:**
@@ -191,10 +191,13 @@ Setup infrastructure for applications.
 ```
 misc/
 ├── client-config/  # API client configuration (auto-invoked)
-├── auth/          # NextAuth.js setup
-├── axios/         # Axios HTTP client
-└── database/      # Prisma database setup
+└── dotenv/         # .env / .env.example var management (multi-file, cross-project sync)
 ```
+
+#### [Dotenv Generator](./misc/dotenv/README.md)
+- **Purpose:** Create/update/remove vars across a project's `.env*` files, sync across projects, keep `lib/config/env.ts` typed
+- **When:** Adding a new env var by hand, or syncing one to another project
+- **Creates/updates:** `.env`, `.env.example`, any `.env.<suffix>` you target, `.gitignore`, and `lib/config/env.ts`
 
 ## Common Patterns
 
@@ -220,7 +223,7 @@ Create app with auth, add features:
 
 ```bash
 # Setup
-npx nx g next-feature:application --name=web --useAuth=true --useAxios=true
+npx nx g next-feature:application --name=web --useAuth=true --env=true
 
 # Create auth feature
 npx nx g next-feature:feature --name=auth
@@ -262,7 +265,7 @@ Create admin app with protected access:
 
 ```bash
 # Setup admin app with auth
-npx nx g next-feature:application --name=admin --useAuth=true --useAxios=true
+npx nx g next-feature:application --name=admin --useAuth=true --env=true
 
 # Create dashboard feature
 npx nx g next-feature:feature --name=dashboard
@@ -418,9 +421,7 @@ generators/
 │   └── utility/               # Utilities
 ├── misc/
 │   ├── client-config/         # API client config
-│   ├── auth/                  # NextAuth setup
-│   ├── axios/                 # Axios HTTP client
-│   └── database/              # Prisma setup
+│   └── dotenv/                 # .env / .env.example var management
 └── tool/
     └── copy-deps/             # Dependency management
 ```

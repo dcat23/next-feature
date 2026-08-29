@@ -23,14 +23,14 @@
       },
       "alias": "d"
     },
-    "useAxios": {
-      "type": "boolean",
-      "description": "Setup Axios HTTP client with interceptors in lib/axios/ for API requests",
-      "default": false
-    },
     "useAuth": {
       "type": "boolean",
-      "description": "Setup NextAuth.js authentication with route handlers and providers in lib/auth/",
+      "description": "Setup NextAuth.js authentication: adds the route handler and SessionProvider to this app, and creates a sibling '@feature/auth' library (via next-feature:feature --type=auth) if one doesn't already exist",
+      "default": false
+    },
+    "skipLogging": {
+      "type": "boolean",
+      "description": "Skip Pino logging setup: by default, every app gets registerPino() wired into instrumentation.ts, a sibling '@next-feature/logging' library (via next-feature:feature --type=logging) created if missing, and pino/pino-http/pino-pretty marked as serverExternalPackages in next.config.js. Set this to opt out.",
       "default": false
     },
     "orgName": {

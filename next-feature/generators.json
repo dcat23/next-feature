@@ -5,25 +5,15 @@
       "schema": "./src/generators/init/schema.json",
       "description": "init generator"
     },
-    "axios": {
-      "factory": "./src/generators/misc/axios/axios",
-      "schema": "./src/generators/misc/axios/schema.json",
-      "description": "axios generator"
+    "dotenv": {
+      "factory": "./src/generators/misc/dotenv/dotenv",
+      "schema": "./src/generators/misc/dotenv/schema.json",
+      "description": "dotenv generator"
     },
     "feature": {
       "factory": "./src/generators/project/feature/feature",
       "schema": "./src/generators/project/feature/schema.json",
       "description": "feature generator"
-    },
-    "auth": {
-      "factory": "./src/generators/misc/auth/auth",
-      "schema": "./src/generators/misc/auth/schema.json",
-      "description": "auth generator"
-    },
-    "database": {
-      "factory": "./src/generators/misc/database/database",
-      "schema": "./src/generators/misc/database/schema.json",
-      "description": "database generator"
     },
     "preset": {
       "factory": "./src/generators/preset/preset",
@@ -46,35 +36,25 @@
       "schema": "./src/generators/tool/copy-deps/schema.json",
       "description": "copy-deps generator"
     },
-    "constant": {
-      "factory": "./src/generators/code/constant/constant",
-      "schema": "./src/generators/code/constant/schema.json",
-      "description": "constant generator"
-    },
     "application": {
       "factory": "./src/generators/project/application/application",
       "schema": "./src/generators/project/application/schema.json",
       "description": "application generator"
     },
-    "client": {
-      "factory": "./src/generators/project/client/client",
-      "schema": "./src/generators/project/client/schema.json",
-      "description": "client generator"
-    },
-    "utility": {
-      "factory": "./src/generators/code/utility/utility",
-      "schema": "./src/generators/code/utility/schema.json",
-      "description": "utility generator"
-    },
-    "data-type": {
-      "factory": "./src/generators/code/data-type/data-type",
-      "schema": "./src/generators/code/data-type/schema.json",
-      "description": "data type generator"
+    "declaration": {
+      "factory": "./src/generators/code/declaration/declaration",
+      "schema": "./src/generators/code/declaration/schema.json",
+      "description": "declaration generator"
     },
     "action": {
       "factory": "./src/generators/code/action/action",
       "schema": "./src/generators/code/action/schema.json",
       "description": "action generator"
+    },
+    "hook": {
+      "factory": "./src/generators/code/hook/hook",
+      "schema": "./src/generators/code/hook/schema.json",
+      "description": "hook generator"
     },
     "client-config": {
       "factory": "./src/generators/misc/client-config/client-config",

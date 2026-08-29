@@ -6,8 +6,7 @@
 export function dotEnvContent() {
   return `
 # Environment variables
-.env
-.env.local
-.env.prod
+.env*
+!.env.example
 `;
 }

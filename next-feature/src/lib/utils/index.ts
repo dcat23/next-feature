@@ -37,9 +37,20 @@ export function addToGitignore(
   content: () => string
 ) {
   const filePath = path.join(directory, '.gitignore');
-  let buffer = tree.read(filePath, 'utf-8') ?? '';
-  buffer += content();
-  tree.write(filePath, buffer);
+  const buffer = tree.read(filePath, 'utf-8') ?? '';
+  const existingLines = new Set(
+    buffer.split('\n').map((line) => line.trim()).filter(Boolean)
+  );
+
+  const newLines = content()
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line && !existingLines.has(line));
+
+  if (newLines.length === 0) return;
+
+  const separator = buffer && !buffer.endsWith('\n') ? '\n' : '';
+  tree.write(filePath, `${buffer}${separator}${newLines.join('\n')}\n`);
 }
 
 /**
@@ -52,7 +63,7 @@ export async function initializeProjectGenerator(
   options: NormalizedProjectGeneratorSchema,
   generatorName: string
 ) {
-  const nxJson = readNxJson(tree);
+  const nxJson = readNxJson(tree) || {};
 
   nxJson.generators ??= {};
   nxJson.generators[PLUGIN_NAME] ??= {};

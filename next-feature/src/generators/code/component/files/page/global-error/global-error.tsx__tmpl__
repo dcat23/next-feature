@@ -1,0 +1,19 @@
+'use client';
+
+interface Props {
+  error: Error & { digest?: string };
+  reset: () => void;
+}
+
+function <%= names.className %>GlobalError(props: Props) {
+  return (
+    <html>
+      <body>
+        <h2>Something went wrong!</h2>
+        <button onClick={() => props.reset()}>Try again</button>
+      </body>
+    </html>
+  );
+}
+
+export default <%= names.className %>GlobalError;

@@ -1,3 +1,4 @@
+import { names } from '@nx/devkit';
 import { ComponentGeneratorSchema } from '../../schema';
 import * as path from 'node:path';
 
@@ -7,14 +8,21 @@ import * as path from 'node:path';
  * November 10th 2025, 10:19:51 am
  */
 export function handleComponentPackage(options: ComponentGeneratorSchema) {
-  switch (options.componentType) {
-    case "page":
-    case "layout":
-      options.package = (options.package && options.package !== "components")
-        ? path.join("app", options.package)
-        : "app"
-      break;
-    default:
-      options.package ??= "components"
+  if (options.componentType === 'page') {
+    // inferPath splits `name` into nested route segments, e.g. UserResourceFiles -> user/resource/files
+    const route = options.inferPath
+      ? names(options.name).fileName.replace(/-/g, '/')
+      : options.package;
+    options.package = (route && route !== 'components')
+      ? path.join('app', route)
+      : 'app';
+    return;
   }
+  if (options.componentType === 'ui') {
+    // Matches components.json's `ui` alias for `feature --type=ui` projects, kept separate
+    // from hand-written components so shadcn-vendored files don't collide with them.
+    options.package ??= 'components/common';
+    return;
+  }
+  options.package ??= 'components';
 }

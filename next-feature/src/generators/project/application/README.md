@@ -32,10 +32,10 @@ npx nx g next-feature:application --name=web
 npx nx g next-feature:application --name=web --useAuth=true
 
 # Create with HTTP client
-npx nx g next-feature:application --name=web --useAxios=true
+npx nx g next-feature:application --name=web --env=true
 
 # Both authentication and HTTP client
-npx nx g next-feature:application --name=web --useAuth=true --useAxios=true
+npx nx g next-feature:application --name=web --useAuth=true --env=true
 
 # Custom directory
 npx nx g next-feature:application --name=admin --directory=apps
@@ -55,7 +55,7 @@ npx nx g next-feature:application --name=web --orgName=mycompany
 |--------|------|---------|-------------|
 | `--name` | string | required | Name of the application (e.g., web, admin, dashboard) |
 | `--directory` | string | "apps" | Directory where application is created |
-| `--useAxios` | boolean | false | Setup Axios HTTP client with interceptors |
+| `--env` | boolean | false | Add the axios dependency and register a `<NAME>_API_URL` variable in this app's `.env`/`.env.example` |
 | `--useAuth` | boolean | false | Setup NextAuth.js authentication |
 | `--orgName` | string | - | Organization name for scoped imports (@myorg/[name]) |
 | `--skipFormat` | boolean | false | Skip prettier code formatting |
@@ -84,19 +84,17 @@ npx nx g next-feature:application --name=web
 npx nx g next-feature:application --name=web --directory=projects
 ```
 
-#### `useAxios`
+#### `env`
 
-Include Axios HTTP client setup for API calls.
+Add the axios dependency and register a `<NAME>_API_URL` variable in this app's `.env`/`.env.example`.
 
 ```bash
-npx nx g next-feature:application --name=web --useAxios=true
+npx nx g next-feature:application --name=web --env=true
 ```
 
-This creates `src/lib/axios/` with:
-- Configured Axios instance with base URL
-- Request/response interceptors
-- API key environment variables
-- Error handling setup
+This:
+- Adds the `axios` dependency
+- Writes a `<NAME>_API_URL` entry (grouped under an `axios` section) to `.env` and `.env.example`
 - Ready to use in server actions
 
 #### `useAuth`
@@ -151,9 +149,6 @@ apps/[name]/
 │   │   ├── types/                 # TypeScript types
 │   │   ├── constants/             # Constants and enums
 │   │   ├── utils/                 # Utility functions
-│   │   ├── axios/                 # HTTP client (if --useAxios)
-│   │   │   ├── instance.ts
-│   │   │   └── interceptors.ts
 │   │   └── auth/                  # Auth setup (if --useAuth)
 │   │       ├── authOptions.ts
 │   │       └── routes.ts
@@ -211,7 +206,7 @@ All applications include:
 
 ### Optional Dependencies
 
-#### With `--useAxios`
+#### With `--env`
 
 ```json
 {
@@ -255,6 +250,8 @@ AUTH_SECRET=your-secret-here
 NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
+`lib/config/env.ts` is generated alongside these files with a typed `NEXT_PUBLIC_ROOT_DOMAIN` accessor (and a `<NAME>_API_URL` one when `--env` is set), kept in sync by the [dotenv generator](../../misc/dotenv/README.md)'s marker-based sync. Add further vars later with `npx nx g next-feature:dotenv --projectName=[name] --set=KEY=VALUE`.
+
 ## Common Workflows
 
 ### Workflow 1: Simple Web Application
@@ -278,7 +275,7 @@ npx nx g next-feature:utility --name=helpers --projectName=web
 
 ```bash
 # 1. Create app with authentication
-npx nx g next-feature:application --name=web --useAuth=true --useAxios=true
+npx nx g next-feature:application --name=web --useAuth=true --env=true
 
 # 2. Create feature for users
 npx nx g next-feature:feature --name=users --projectName=web
@@ -300,7 +297,7 @@ npx nx g next-feature:store --name=userStore --projectName=web
 
 ```bash
 # 1. Create admin app
-npx nx g next-feature:application --name=admin --useAuth=true --useAxios=true
+npx nx g next-feature:application --name=admin --useAuth=true --env=true
 
 # 2. Create dashboard feature
 npx nx g next-feature:feature --name=dashboard --projectName=admin
@@ -593,5 +590,6 @@ cat apps/[name]/.env.local
 - [Feature Generator](../feature/README.md) - Create feature libraries
 - [Preset Generator](../preset/README.md) - Quick initial setup
 - [Action Generator](../../code/action/README.md) - Server actions
+- [Dotenv Generator](../../misc/dotenv/README.md) - Manage .env* vars and env.ts
 - [next-feature Plugin](../../README.md) - All generators
 - [NextFeature](../../../README.md) - Main documentation

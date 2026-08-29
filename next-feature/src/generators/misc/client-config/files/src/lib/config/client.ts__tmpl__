@@ -1,6 +1,10 @@
 import { ApiClient, type ApiResponse, ApiError } from '<%= clientImportPath %>';
-import type { InternalAxiosRequestConfig } from 'axios';
-import { BACKEND_API_URL } from "."
+import { <%= apiKeyName %> } from "./env"
+// import { logger } from '@next-feature/logging/server';
+
+// const log = logger.child({ module: '<%= projectName %>-client' });
+
+
 /**
  * Centralized API client configuration
  *
@@ -10,47 +14,17 @@ import { BACKEND_API_URL } from "."
  * - Default headers
  * - Authentication handling
  */
-
-
 const apiClient = new ApiClient({
-  enableRefreshToken: false,
-  onUnauthorized: async () => {
-    console.log("[<%= projectName %>-client] Unauthorized")
-  },
-  onRefreshTokenExpired: async () => {
-    console.log("[<%= projectName %>-client] Refresh token expired")
-  },
+  baseURL: <%= apiKeyName %>,
   onAuthenticated: async (config) => {
-    console.log("[<%= projectName %>-client]", config.method.toUpperCase(), config.url, config.data ?? "")
-  },
-  onRefreshToken: async () => {
-    return '';
-  },
-  // timeout: 30000,
-  // maxRetries: 3,
-  // retryDelay: 1000
-  // baseUrl: process.env.BACKEND_API_URL
+    // log.info(`${config.method.toUpperCase()} ${config.url} ${config.data ?? ""}`)
+  }
 });
 
+const { name, version } = require("../../../package.json");
 
-/**
- * Example: Override request interceptor
- */
-// apiClient.interceptors.request.use((config) => {
-//   // Add custom headers, auth tokens, etc.
-//   return config;
-// });
-
-/**
- * Example: Override response interceptor
- */
-// apiClient.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     // Handle errors globally
-//     return Promise.reject(error);
-//   }
-// );
+apiClient.axios.defaults.headers.common['User-Agent'] = `${name}:${version}`;
+apiClient.axios.defaults.headers.common['Content-Type'] = "application/json";
 
 // Re-export commonly used utilities
 export { ApiError, type ApiResponse };

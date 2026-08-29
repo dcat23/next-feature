@@ -1,0 +1,9 @@
+function <%= names.className %>Loading() {
+  return (
+    <>
+      Loading <%= names.className %>...
+    </>
+  );
+}
+
+export default <%= names.className %>Loading;

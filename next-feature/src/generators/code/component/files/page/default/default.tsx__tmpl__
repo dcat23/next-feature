@@ -1,0 +1,5 @@
+function <%= names.className %>Default() {
+  return null;
+}
+
+export default <%= names.className %>Default;

@@ -3,17 +3,17 @@ import {
   generateFiles,
   type GeneratorCallback,
   runTasksInSerial,
-  Tree,
+  Tree
 } from '@nx/devkit';
+import { writeCodeFile } from 'next-feature/src/lib/write-file';
 import * as path from 'path';
-import type { ActionGeneratorSchema } from './schema';
-import { getActionTemplatePath, normalize } from './lib/utils';
-import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
 import { exportFile } from '../../../lib/export-file';
-import constantGenerator from '../constant/constant';
-import utilsGenerator from '../utility/utility';
-import dataTypeGenerator from '../data-type/data-type';
+import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
+import declarationGenerator from '../declaration/declaration';
+import hookGenerator from '../hook/hook';
 import clientConfigGenerator from '../../misc/client-config/client-config';
+import { normalize } from './lib/utils';
+import type { ActionGeneratorSchema } from './schema';
 
 export async function actionGenerator(
   tree: Tree,
@@ -41,20 +41,30 @@ export async function actionGenerator(
   }
 
   // Generate main action file based on type
-  const templatePath = getActionTemplatePath(normalizedOptions.actionType);
-  generateFiles(
-    tree,
-    path.join(__dirname, 'files', 'src', templatePath),
-    directory,
-    normalizedOptions
-  );
+  const outputFile = path.join(directory, normalizedOptions.outputFileName);
+  if (!tree.exists(outputFile)) {
+    generateFiles(
+      tree,
+      path.join(__dirname, 'files/src', normalizedOptions.actionType),
+      directory,
+      normalizedOptions
+    );
+  }
+
+  await writeCodeFile(
+      tree,
+      outputFile,
+      normalizedOptions,
+      normalizedOptions.content,
+    )
 
   if (normalizedOptions.useConstant) {
     tasks.push(
-      await constantGenerator(tree, {
+      await declarationGenerator(tree, {
         ...normalizedOptions,
+        kind: 'constant',
         name: normalizedOptions.name,
-        file: normalizedOptions.domain.fileName,
+        file: normalizedOptions.outputFileName,
         skipFormat: true,
       })
     );
@@ -62,10 +72,11 @@ export async function actionGenerator(
 
   if (normalizedOptions.useMapper) {
     tasks.push(
-      await utilsGenerator(tree, {
+      await declarationGenerator(tree, {
         ...normalizedOptions,
+        kind: 'utility',
         name: normalizedOptions.mapperName,
-        file: normalizedOptions.domain.fileName,
+        file: normalizedOptions.outputFileName,
         skipFormat: true,
       })
     );
@@ -73,10 +84,25 @@ export async function actionGenerator(
 
   if (normalizedOptions.useTypes) {
     tasks.push(
-      await dataTypeGenerator(tree, {
+      await declarationGenerator(tree, {
         ...normalizedOptions,
+        kind: 'data-type',
         name: normalizedOptions.domain.className,
-        file: normalizedOptions.domain.fileName,
+        file: normalizedOptions.outputFileName,
+        skipFormat: true,
+      })
+    );
+  }
+
+  if (normalizedOptions.useHook && normalizedOptions.actionType !== 'form') {
+    tasks.push(
+      await hookGenerator(tree, {
+        name: normalizedOptions.name,
+        projectName,
+        actionPackage: normalizedOptions.package,
+        actionFile: path.parse(normalizedOptions.outputFileName).name,
+        clientPackage: normalizedOptions.clientPackage,
+        export: normalizedOptions.export,
         skipFormat: true,
       })
     );
@@ -96,3 +122,4 @@ export async function actionGenerator(
 }
 
 export default actionGenerator;
+

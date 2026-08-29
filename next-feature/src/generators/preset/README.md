@@ -225,19 +225,23 @@ This automatically creates `src/lib/client/config.ts` for centralized API config
 
 ### 2. Setup Authentication
 
-For apps requiring authentication:
+For apps requiring authentication, either create the `auth` library directly:
 
 ```bash
-npx nx g next-feature:feature --name=auth --useAuth=true
-npx nx g next-feature:auth --projectName=auth
+npx nx g next-feature:feature --name=auth --type=auth
 ```
 
-### 3. Setup Database
-
-For database-driven features:
+or enable it on an application, which creates the `auth` library automatically if it doesn't already exist and wires up the app's route handler and session provider:
 
 ```bash
-npx nx g next-feature:database --projectName=[name]
+npx nx g next-feature:application --name=web --useAuth=true
+```
+
+### 3. Add Database Operations
+
+For database-driven features (expects Prisma configured in the project):
+
+```bash
 npx nx g next-feature:action --name=getUsers --actionType=db --projectName=[name]
 ```
 

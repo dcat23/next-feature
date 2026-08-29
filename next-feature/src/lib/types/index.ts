@@ -15,7 +15,7 @@ export interface ProjectGeneratorSchema
 }
 
 export interface CodeGeneratorSchema extends GeneratorSchema {
-  name: string;
+  name: NonNullable<GeneratorSchema['name']>;
   projectName: ProjectGeneratorSchema['name'];
   file?: string | boolean; // will create in an associated file
   export?: boolean; // export from project index
@@ -32,6 +32,7 @@ export type NormalizedProjectGeneratorSchema<
   projectRoot: string;
   sourceRoot: string;
   importPath: string;
+  directory: string;
 };
 
 export type NormalizedCodeGeneratorSchema<

@@ -1,0 +1,36 @@
+'use client';
+
+import pino from 'pino';
+import { getCorrelationId } from './correlation';
+import { NEXT_PUBLIC_LOGGING_BEACON_PATH } from './config/env';
+
+const browserLogger = pino({
+  browser: {
+    asObject: true,
+    transmit: {
+      level: 'info',
+      send(level, logEvent) {
+        const body = JSON.stringify({
+          level,
+          ts: logEvent.ts,
+          messages: logEvent.messages,
+          bindings: logEvent.bindings,
+          correlationId: getCorrelationId(),
+        });
+
+        if (typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
+          navigator.sendBeacon(NEXT_PUBLIC_LOGGING_BEACON_PATH, body);
+        } else {
+          fetch(NEXT_PUBLIC_LOGGING_BEACON_PATH, {
+            method: 'POST',
+            body,
+            headers: { 'Content-Type': 'application/json' },
+            keepalive: true,
+          }).catch(() => {});
+        }
+      },
+    },
+  },
+});
+
+export default browserLogger;

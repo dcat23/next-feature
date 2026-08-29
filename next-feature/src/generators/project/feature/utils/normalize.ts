@@ -1,9 +1,10 @@
 import {
   FeatureGeneratorSchema,
+  FeatureType,
   type NormalizedFeatureGeneratorSchema,
 } from '../schema';
 import { normalizeProjectGeneratorSchema } from '../../../../lib/utils/project-generator';
-import { asApiKeyName } from '../../../misc/axios/utils';
+import { asApiKeyName } from './index';
 
 /**
  * [normalize-feature-generator]
@@ -16,8 +17,22 @@ export function normalizeFeatureGenerator(
   const normalized = normalizeProjectGeneratorSchema(options, "feature");
   const apiKeyName = asApiKeyName(options.name)
 
+  let type: FeatureType = normalized.type ?? 'generic';
+  if (type === 'generic') {
+    switch (normalized.name) {
+      case 'client':
+      case 'auth':
+      case 'base':
+      case 'logging':
+      case 'ui':
+        type = normalized.name;
+        break;
+    }
+  }
+
   return {
     ...normalized,
-    apiKeyName
+    apiKeyName,
+    type,
   };
 }

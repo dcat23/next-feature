@@ -112,7 +112,6 @@ This creates `src/lib/auth/` with:
 - .env configuration for:
   - NEXTAUTH_URL
   - NEXTAUTH_SECRET
-  - NEXT_PUBLIC_ROOT_DOMAIN
 
 #### `orgName`
 
@@ -232,7 +231,6 @@ A `.env.local` file is created with initial configuration:
 
 ```env
 NEXTAUTH_URL=http://localhost:4200
-NEXT_PUBLIC_ROOT_DOMAIN=localhost:4200
 AUTH_SECRET=[generated-secret]
 ```
 
@@ -241,7 +239,6 @@ And `.env.example` for documentation:
 ```env
 # Application URL
 NEXTAUTH_URL=http://localhost:4200
-NEXT_PUBLIC_ROOT_DOMAIN=localhost:4200
 
 # NextAuth configuration
 AUTH_SECRET=your-secret-here
@@ -250,7 +247,7 @@ AUTH_SECRET=your-secret-here
 NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
-`lib/config/env.ts` is generated alongside these files with a typed `NEXT_PUBLIC_ROOT_DOMAIN` accessor (and a `<NAME>_API_URL` one when `--env` is set), kept in sync by the [dotenv generator](../../misc/dotenv/README.md)'s marker-based sync. Add further vars later with `npx nx g next-feature:dotenv --projectName=[name] --set=KEY=VALUE`.
+`lib/config/env.ts` is generated alongside these files with a typed `<NAME>_API_URL` accessor when `--env` is set, kept in sync by the [dotenv generator](../../misc/dotenv/README.md)'s marker-based sync. Add further vars later with `npx nx g next-feature:dotenv --projectName=[name] --set=KEY=VALUE`.
 
 ## Common Workflows
 

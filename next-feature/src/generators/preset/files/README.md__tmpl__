@@ -282,7 +282,6 @@ NEXT_PUBLIC_API_TIMEOUT=30000
 # Authentication (if using NextAuth)
 NEXTAUTH_URL=http://localhost:4200
 NEXTAUTH_SECRET=your-secret-here
-NEXT_PUBLIC_ROOT_DOMAIN=localhost:4200
 
 # Database (if using Prisma)
 DATABASE_URL=postgresql://user:password@localhost:5432/dbname

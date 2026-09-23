@@ -87,8 +87,6 @@ export async function applicationGenerator(
   writeWildCardPathToTsConfig(tree, importPath, sourceRoot);
 
   const setDotenv: Record<string, string> = {
-    /* layout.tsx always reads NEXT_PUBLIC_ROOT_DOMAIN; keep env.ts in sync regardless of useAuth. */
-    NEXT_PUBLIC_ROOT_DOMAIN: 'http://localhost:4200',
   };
 
   

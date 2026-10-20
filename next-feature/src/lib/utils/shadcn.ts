@@ -17,6 +17,44 @@ export function addShadcnTarget(tree: Tree, projectRoot: string): void {
   });
 }
 
+export type ShadcnAction = 'add' | 'init' | 'apply';
+
+// Top-level shadcn CLI commands. Used to detect `args` that already carry a
+// command (the pre-`action` form, e.g. args="add button"), so it isn't
+// prefixed with the default action a second time.
+const SHADCN_COMMANDS = [
+  'init', 'create', 'apply', 'add', 'diff', 'docs', 'view', 'search', 'list',
+  'migrate', 'eject', 'info', 'build', 'mcp', 'preset', 'registry', 'help',
+];
+
+export interface ShadcnArgsOptions {
+  action?: ShadcnAction;
+  preset?: string;
+  args?: string;
+}
+
+// Builds the argument string for `npx shadcn@latest`: `<action> [--preset=<preset>] [args]`.
+// `preset` only applies to `init`/`apply`; passing it with `add` throws rather than
+// being silently dropped.
+export function buildShadcnArgs({ action, preset, args }: ShadcnArgsOptions): string {
+  const extra = (args ?? '').trim();
+  const [first] = extra.split(' ');
+
+  if (!action && SHADCN_COMMANDS.includes(first)) {
+    if (preset) {
+      throw new Error('shadcn: use "action" instead of a command in "args" when passing "preset"');
+    }
+    return extra;
+  }
+
+  const command = action ?? 'add';
+  if (preset && command === 'add') {
+    throw new Error('shadcn: "preset" is only supported with the "init" or "apply" action');
+  }
+
+  return [command, preset ? `--preset=${preset}` : '', extra].filter(Boolean).join(' ');
+}
+
 export function runShadcnCli(cwd: string, args: string): { success: boolean } {
   const parsedArgs = args.split(' ').filter(Boolean);
 

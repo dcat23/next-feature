@@ -1,6 +1,6 @@
-import type { ExecutorContext } from '@nx/devkit';
+import { logger, type ExecutorContext } from '@nx/devkit';
 import * as path from 'path';
-import { runShadcnCli, syncShadcnDependencies } from '../../lib/utils/shadcn';
+import { buildShadcnArgs, runShadcnCli, syncShadcnDependencies } from '../../lib/utils/shadcn';
 import type { ShadcnExecutorSchema } from './schema';
 
 export default async function runExecutor(
@@ -11,7 +11,15 @@ export default async function runExecutor(
   const projectRoot = context.projectsConfigurations.projects[projectName].root;
   const cwd = path.join(context.root, projectRoot);
 
-  const result = runShadcnCli(cwd, options.args ?? 'add');
+  let args: string;
+  try {
+    args = buildShadcnArgs(options);
+  } catch (error) {
+    logger.error((error as Error).message);
+    return { success: false };
+  }
+
+  const result = runShadcnCli(cwd, args);
   if (result.success) {
     syncShadcnDependencies(context.root, projectRoot);
   }

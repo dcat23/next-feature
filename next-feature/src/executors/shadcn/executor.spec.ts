@@ -68,4 +68,68 @@ describe('shadcn executor', () => {
     expect(result.success).toBe(false);
     expect(mockedSyncShadcnDependencies).not.toHaveBeenCalled();
   });
+
+  it('passes args after the action', async () => {
+    await runExecutor({ action: 'add', args: 'button card' }, context);
+
+    expect(mockedSpawnSync).toHaveBeenCalledWith(
+      'npx',
+      ['shadcn@latest', 'add', 'button', 'card'],
+      expect.anything()
+    );
+  });
+
+  it('defaults the action to "add" when args has no command', async () => {
+    await runExecutor({ args: 'button' }, context);
+
+    expect(mockedSpawnSync).toHaveBeenCalledWith(
+      'npx',
+      ['shadcn@latest', 'add', 'button'],
+      expect.anything()
+    );
+  });
+
+  it('passes legacy args that start with a shadcn command through unchanged', async () => {
+    await runExecutor({ args: 'diff' }, context);
+
+    expect(mockedSpawnSync).toHaveBeenCalledWith(
+      'npx',
+      ['shadcn@latest', 'diff'],
+      expect.anything()
+    );
+  });
+
+  it.each(['init', 'apply'] as const)('appends --preset to the %s action', async (action) => {
+    await runExecutor({ action, preset: 'nova', args: '--yes' }, context);
+
+    expect(mockedSpawnSync).toHaveBeenCalledWith(
+      'npx',
+      ['shadcn@latest', action, '--preset=nova', '--yes'],
+      expect.anything()
+    );
+  });
+
+  it('omits --preset when preset is empty', async () => {
+    await runExecutor({ action: 'init', preset: '' }, context);
+
+    expect(mockedSpawnSync).toHaveBeenCalledWith(
+      'npx',
+      ['shadcn@latest', 'init'],
+      expect.anything()
+    );
+  });
+
+  it('fails without running the CLI when preset is given with the add action', async () => {
+    const result = await runExecutor({ action: 'add', preset: 'nova' }, context);
+
+    expect(result.success).toBe(false);
+    expect(mockedSpawnSync).not.toHaveBeenCalled();
+  });
+
+  it('fails without running the CLI when preset is given with a legacy command in args', async () => {
+    const result = await runExecutor({ args: 'add button', preset: 'nova' }, context);
+
+    expect(result.success).toBe(false);
+    expect(mockedSpawnSync).not.toHaveBeenCalled();
+  });
 });

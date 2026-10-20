@@ -73,6 +73,8 @@ npx nx g next-feature:dotenv --projectName=users --set=API_URL=http://localhost:
 # Pull shadcn components into a ui-type feature (target is auto-registered when the feature is created)
 npx nx run ui:shadcn --args="add button"
 npx nx run ui:shadcn --args="add button card dialog"
+npx nx run ui:shadcn --action=init --preset=nova
+npx nx run ui:shadcn --action=apply --preset=nova
 ```
 
 ## Key Features
@@ -171,7 +173,7 @@ NextAuth.js authentication is a `feature` type (`--type=auth`), not a separate m
 
 Unlike generators, executors run via `nx run <project>:<target>` against a project that already exists:
 
-- **shadcn** - Runs `npx shadcn@latest <args>` in a project's root. Auto-registered as the `shadcn` target when a `feature --type=ui` project is created.
+- **shadcn** - Runs `npx shadcn@latest <action> [--preset=<preset>] [args]` in a project's root. `--action` is `add` (default), `init`, or `apply`; `--preset` is only allowed with `init`/`apply`. Legacy `--args` that start with a shadcn command (e.g. `--args="add button"`) are passed through unchanged. Auto-registered as the `shadcn` target when a `feature --type=ui` project is created.
 
 ## Common Workflows
 

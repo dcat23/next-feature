@@ -85,7 +85,7 @@ The plugin follows an Nx plugin structure with generators organized by category:
 
 Unlike generators (which scaffold files once), executors run as Nx targets (`nx run <project>:<target>`) against an existing project.
 
-- `shadcn` - Runs `npx shadcn@latest <args>` in a project's root (e.g. `npx nx run ui:shadcn --args="add button"`). Auto-registered as a `shadcn` target on `feature --type=ui` projects, where `components.json` resolves the shadcn aliases.
+- `shadcn` - Runs `npx shadcn@latest <action> [--preset=<preset>] [args]` in a project's root (e.g. `npx nx run ui:shadcn --args="button"`, `--action=init --preset=nova`). `action` is `add` (default, applied in code, not as a schema default), `init`, or `apply`; `preset` is only valid with `init`/`apply` (truthy check). Argument building lives in `buildShadcnArgs()` (`lib/utils/shadcn.ts`); `args` beginning with a shadcn command and no `action` are passed through as-is for backwards compatibility. Auto-registered as a `shadcn` target on `feature --type=ui` projects, where `components.json` resolves the shadcn aliases.
 
 ### Core Libraries
 

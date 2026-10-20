@@ -73,12 +73,29 @@
     }
   },
   "release": {
+    "projectsRelationship": "fixed",
+    "releaseTag": {
+      "pattern": "v{version}",
+      "strictPreid": false
+    },
     "version": {
-      "preVersionCommand": "pnpm dlx nx run-many -t build",
+      "conventionalCommits": true,
+      "adjustSemverBumpsForZeroMajorVersion": true,
+      "preVersionCommand": "pnpm exec nx run-many -t build",
       "manifestRootsToUpdate": [
         "{projectRoot}",
         "dist/{projectRoot}"
       ]
+    },
+    "changelog": {
+      "workspaceChangelog": {
+        "file": "{workspaceRoot}/CHANGELOG.md",
+        "createRelease": "github"
+      },
+      "projectChangelogs": false
+    },
+    "git": {
+      "commitMessage": "chore(release): publish {version}"
     }
   },
   "plugins": [

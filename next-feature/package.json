@@ -1,6 +1,11 @@
 {
   "name": "next-feature",
   "version": "0.1.4-3",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dcat23/next-feature.git",
+    "directory": "next-feature"
+  },
   "type": "commonjs",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",

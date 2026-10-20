@@ -1,0 +1,96 @@
+name: Release
+
+# Actions → Release → Run workflow. Versions come from conventional commits
+# since the last v* tag unless a specifier is forced. Publishes with npm trusted
+# publishing (OIDC), so no npm token is stored anywhere.
+on:
+  workflow_dispatch:
+    inputs:
+      specifier:
+        description: 'auto = derive from conventional commits; otherwise force the bump (patch also graduates a prerelease)'
+        type: choice
+        options: [auto, prerelease, patch, minor, major]
+        default: auto
+      prerelease:
+        description: 'Release as a beta prerelease (applies to auto; implied by prerelease)'
+        type: boolean
+        default: false
+      dry-run:
+        description: 'Preview version and changelog without committing, tagging or publishing'
+        type: boolean
+        default: false
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write # version commit, tag and GitHub release
+  id-token: write # npm trusted publishing
+
+env:
+  NX_NO_CLOUD: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history and tags for conventional commits
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # Builds (preVersionCommand), versions, writes CHANGELOG.md, then commits,
+      # tags, pushes and creates the GitHub release
+      - name: Version and changelog
+        id: version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SPECIFIER: ${{ inputs.specifier }}
+          PRERELEASE: ${{ inputs.prerelease }}
+          DRY_RUN: ${{ inputs.dry-run }}
+        run: |
+          before=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo none)
+
+          args=(--skip-publish)
+          [ "$SPECIFIER" != auto ] && args=("$SPECIFIER" "${args[@]}")
+          if [ "$SPECIFIER" = prerelease ] || { [ "$SPECIFIER" = auto ] && [ "$PRERELEASE" = true ]; }; then
+            args+=(--preid beta)
+          fi
+          [ "$DRY_RUN" = true ] && args+=(--dry-run)
+
+          pnpm exec nx release "${args[@]}"
+
+          after=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo none)
+          if [ "$DRY_RUN" = true ] || [ "$before" = "$after" ]; then
+            echo "No new release tag created; skipping publish"
+            echo "released=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          version=${after#v}
+          # Prereleases go to "next" so `npm i` keeps resolving the latest stable
+          case "$version" in *-*) tag=next ;; *) tag=latest ;; esac
+          echo "released=true" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Released $version (npm dist-tag: $tag)" >> "$GITHUB_STEP_SUMMARY"
+
+      # pnpm exchanges the GitHub OIDC token with npm (trusted publishing)
+      - name: Publish
+        if: steps.version.outputs.released == 'true'
+        run: pnpm exec nx release publish --tag ${{ steps.version.outputs.tag }}

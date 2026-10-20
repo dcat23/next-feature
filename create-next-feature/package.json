@@ -1,6 +1,6 @@
 {
   "name": "create-next-feature",
-  "version": "0.1.4-3",
+  "version": "0.1.4-beta.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dcat23/next-feature.git",

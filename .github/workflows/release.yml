@@ -2,7 +2,8 @@ name: Release
 
 # Actions → Release → Run workflow. Versions come from conventional commits
 # since the last v* tag unless a specifier is forced. Publishes with npm trusted
-# publishing (OIDC), so no npm token is stored anywhere.
+# publishing (OIDC), so no npm token is stored anywhere. Use publish-only to
+# retry publishing the latest tag after a failed publish.
 on:
   workflow_dispatch:
     inputs:
@@ -17,6 +18,10 @@ on:
         default: false
       dry-run:
         description: 'Preview version and changelog without committing, tagging or publishing'
+        type: boolean
+        default: false
+      publish-only:
+        description: 'Skip versioning; rebuild and publish the latest v* tag (retry a failed publish). Ignores specifier/prerelease; dry-run previews the publish'
         type: boolean
         default: false
 
@@ -56,7 +61,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       # Builds (preVersionCommand), versions, writes CHANGELOG.md, then commits,
-      # tags, pushes and creates the GitHub release
+      # tags, pushes and creates the GitHub release. With publish-only, checks
+      # out the latest v* tag and rebuilds dist instead, so a failed publish can
+      # be retried (a plain re-run creates no new tag and would skip publishing)
       - name: Version and changelog
         id: version
         env:
@@ -64,8 +71,25 @@ jobs:
           SPECIFIER: ${{ inputs.specifier }}
           PRERELEASE: ${{ inputs.prerelease }}
           DRY_RUN: ${{ inputs.dry-run }}
+          PUBLISH_ONLY: ${{ inputs.publish-only }}
         run: |
           before=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo none)
+
+          if [ "$PUBLISH_ONLY" = true ]; then
+            if [ "$before" = none ]; then
+              echo "No v* tag to publish"
+              exit 1
+            fi
+            git checkout "$before"
+            pnpm exec nx run-many -t build
+
+            version=${before#v}
+            case "$version" in *-*) tag=next ;; *) tag=latest ;; esac
+            echo "released=true" >> "$GITHUB_OUTPUT"
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
+            echo "Publishing existing $before (npm dist-tag: $tag)" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
 
           args=(--skip-publish)
           [ "$SPECIFIER" != auto ] && args=("$SPECIFIER" "${args[@]}")
@@ -93,4 +117,10 @@ jobs:
       # pnpm exchanges the GitHub OIDC token with npm (trusted publishing)
       - name: Publish
         if: steps.version.outputs.released == 'true'
-        run: pnpm exec nx release publish --tag ${{ steps.version.outputs.tag }}
+        env:
+          # only reachable with dry-run in publish-only mode
+          DRY_RUN: ${{ inputs.dry-run }}
+        run: |
+          args=(--tag "${{ steps.version.outputs.tag }}")
+          [ "$DRY_RUN" = true ] && args+=(--dry-run)
+          pnpm exec nx release publish "${args[@]}"

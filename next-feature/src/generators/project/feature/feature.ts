@@ -2,7 +2,7 @@ import type { GeneratorCallback } from '@nx/devkit';
 import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
 import { libraryGenerator } from '@nx/next';
 import * as path from 'path';
-import { AXIOS_VERSION, CLSX_VERSION, CVA_VERSION, LUCIDE_VERSION, NEXTAUTH_VERSION, PINO_HTTP_VERSION, PINO_PRETTY_VERSION, PINO_VERSION, SERVER_ONLY_VERSION, SONNER_VERSION, TAILWIND_MERGE_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
+import { AXIOS_VERSION, NEXTAUTH_VERSION, PINO_HTTP_VERSION, PINO_PRETTY_VERSION, PINO_VERSION, SERVER_ONLY_VERSION, SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
 import { updateDotenv } from '../../../lib/dotenv/dot-env';
 import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
@@ -12,7 +12,7 @@ import { FeatureGeneratorSchema } from './schema';
 import { includeSourceInReleaseManifests, updatePackageJsonExports } from './utils';
 import { addShadcnTarget } from '../../../lib/utils/shadcn';
 import { normalizeFeatureGenerator } from './utils/normalize';
-import { LOGGING } from 'next-feature/src/lib/dotenv/constants/defaults';
+import { LOGGING } from '../../../lib/dotenv/constants/defaults';
 
 export async function featureGenerator(
   tree: Tree,
@@ -87,12 +87,7 @@ export async function featureGenerator(
       dependencies['next-auth'] = NEXTAUTH_VERSION;
       break;
     case 'ui':
-      // Handle ui-specific logic
-      dependencies['clsx'] = CLSX_VERSION;
-      dependencies['tailwind-merge'] = TAILWIND_MERGE_VERSION;
-      dependencies['class-variance-authority'] = CVA_VERSION;
-      dependencies['lucide-react'] = LUCIDE_VERSION;
-
+      // shadcn init/add installs the packages its components need
       addShadcnTarget(tree, projectRoot);
       break;
   }

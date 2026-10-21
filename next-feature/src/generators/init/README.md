@@ -8,7 +8,7 @@ The Init generator is an **automatic setup generator** that runs when you first 
 
 - **Plugin Registration** - Registers next-feature in `nx.json` generators section
 - **Configuration Setup** - Initializes Nx workspace configuration for generators
-- **Dependency Installation** - Adds `lucide-react` icons and dev dependency for next-feature plugin
+- **Dependency Installation** - Adds `@next-feature/client`, `@next-feature/logging` and the next-feature plugin (dev dependency)
 
 This generator ensures your workspace is properly configured before running other generators.
 
@@ -56,7 +56,8 @@ After running init, your `package.json` will include:
 ```json
 {
   "dependencies": {
-    "lucide-react": "^0.x.x"
+    "@next-feature/client": "^0.1.0",
+    "@next-feature/logging": "^0.1.0"
   },
   "devDependencies": {
     "next-feature": "^0.1.0"
@@ -66,7 +67,8 @@ After running init, your `package.json` will include:
 
 #### What's Installed
 
-- **lucide-react** - Icon library used throughout generated components
+- **@next-feature/client** - API client used by generated actions
+- **@next-feature/logging** - Pino logging used by generated applications
 - **next-feature** - The generator plugin itself (dev dependency)
 
 ### 3. Workspace Configuration
@@ -173,7 +175,7 @@ cat nx.json | grep -A 2 '"plugins"'
 
 ```bash
 npm install --save-dev next-feature
-npm install lucide-react
+npm install @next-feature/client @next-feature/logging
 ```
 
 ### Issue: Generator still not available

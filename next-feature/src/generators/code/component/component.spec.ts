@@ -269,7 +269,7 @@ describe('component generator', () => {
       const config = readProjectConfiguration(tree, 'ui');
       expect(config).toBeDefined();
       expect(tree.exists('features/ui/components.json')).toBeTruthy();
-      expect(tree.exists('features/ui/src/components/common/button.tsx')).toBeFalsy();
+      expect(tree.exists('features/ui/src/components/ui/common/button.tsx')).toBeFalsy();
     });
 
     it('returns a task that runs the shadcn CLI in the project root with the kebab-case slug, then syncs dependencies to the root', async () => {
@@ -305,7 +305,7 @@ describe('component generator', () => {
     });
 
     it('skips the shadcn CLI when the component file already exists', async () => {
-      tree.write('features/ui/src/components/common/button.tsx', 'export function Button() { return null; }');
+      tree.write('features/ui/src/components/ui/common/button.tsx', 'export function Button() { return null; }');
       const infoSpy = jest.spyOn(logger, 'info').mockImplementation();
 
       const task = await componentGenerator(tree, { projectName: 'ui', name: 'Button', componentType: 'ui' });
@@ -319,7 +319,7 @@ describe('component generator', () => {
     it('adds an export line when export is true, regardless of whether shadcn has run yet', async () => {
       await componentGenerator(tree, { projectName: 'ui', name: 'Button', componentType: 'ui', export: true });
       const content = tree.read('features/ui/src/index.ts', 'utf-8');
-      expect(content).toContain("components/common/button");
+      expect(content).toContain("components/ui/common/button");
     });
   });
 });

@@ -9,7 +9,6 @@ import {
   updateNxJson,
 } from '@nx/devkit';
 import {
-  LUCIDE_VERSION,
   PLUGIN_NAME,
   PLUGIN_VERSION,
 } from '../../lib/constants/versions';

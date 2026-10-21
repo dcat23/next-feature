@@ -160,26 +160,13 @@ Published package exports are rewritten so `.` and `./server` resolve without a 
 features/[name]/
 ├── components.json              # shadcn config (aliases point at this feature's importPath)
 └── src/
-    ├── lib/
-    │   └── utils.ts              # cn() helper (clsx + tailwind-merge)
     └── styles/
         └── globals.css          # Tailwind v4 entry (@import "tailwindcss")
 ```
 
 Unlike the other types, `components.json` is generated at the **project root**, not under `src/` — the shadcn CLI expects it next to `package.json`.
 
-**Additional dependencies added:**
-
-```json
-{
-  "dependencies": {
-    "clsx": "^2.x.x",
-    "tailwind-merge": "^3.x.x",
-    "class-variance-authority": "^0.7.x",
-    "lucide-react": "^0.x.x"
-  }
-}
-```
+No component dependencies are added up front: `shadcn init` writes the `cn()` helper and installs `clsx`/`tailwind-merge`, and `shadcn add` installs whatever each component needs (e.g. `class-variance-authority`, `lucide-react`).
 
 A `shadcn` target is also registered on the project so components can be pulled in later:
 

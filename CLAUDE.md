@@ -58,7 +58,7 @@ The plugin follows an Nx plugin structure with generators organized by category:
 ### Generator Categories
 
 **Project Generators** (`src/generators/project/`)
-- `feature` - Creates a feature project with Next.js library. The `type` option selects scaffolding: `generic` (default), `base`, `logging`, `client` (API client library with error handling), `auth` (NextAuth.js configuration), or `ui` (shadcn-ready component library: `components.json` at the project root, `cn()` util, Tailwind v4 entry, plus a `shadcn` target for pulling in components later)
+- `feature` - Creates a feature project with Next.js library. The `type` option selects scaffolding: `generic` (default), `base`, `logging`, `client` (API client library with error handling), `auth` (NextAuth.js configuration), or `ui` (shadcn-ready component library: `components.json` at the project root whose aliases keep shadcn files under `components/ui`, `lib/ui` and `hooks/ui`, Tailwind v4 entry, plus a `shadcn` target for pulling in components later; `shadcn init` writes the `cn()` util)
 - `application` - Creates a Next.js application
 
 **Code Generators** (`src/generators/code/`)

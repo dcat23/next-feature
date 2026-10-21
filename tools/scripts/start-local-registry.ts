@@ -18,7 +18,12 @@ export default async () => {
     localRegistryTarget,
     storage,
     verbose: false,
+    // must match the local-registry target's listenAddress, or startLocalRegistry
+    // never sees verdaccio's startup line and waits forever
+    listenAddress: '0.0.0.0',
   });
+  // startLocalRegistry only sets npm_config_registry, which pnpm 11 ignores
+  process.env.pnpm_config_registry = process.env.npm_config_registry;
 
   await releaseVersion({
     specifier: '0.0.0-e2e',
@@ -26,7 +31,7 @@ export default async () => {
     gitCommit: false,
     gitTag: false,
     firstRelease: true,
-    generatorOptionsOverrides: {
+    versionActionsOptionsOverrides: {
       skipLockFileUpdate: true,
     },
   });

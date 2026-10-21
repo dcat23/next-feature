@@ -82,7 +82,7 @@ npx nx g next-feature:feature --name=myfeature
 
 ### 🔄 Centralized Client Configuration
 
-**Client-Config Generator** automatically creates `lib/client/config.ts` on first action:
+**Client-Config Generator** automatically creates `lib/config/client.ts` on first action:
 
 ```typescript
 // Auto-generated and ready to customize
@@ -95,22 +95,22 @@ const apiClient = new ApiClient({
 export default apiClient;
 ```
 
-Then use in actions:
+Then use in actions. Generated actions are server-only; their request/response contract lives in a client-safe types file:
 
 ```typescript
-import api from '../client/config';
-import { ApiError, type ApiResponse } from '@next-feature/client';
+// lib/actions/user.ts
+import 'server-only';
 
-export async function getUser(id: string): Promise<ApiResponse<User>> {
-  try {
-    const user = await api.get<User>(`/users/${id}`);
-    return { success: true, data: user };
-  } catch (error) {
-    const apiError = ApiError.of(error);
-    return { success: false, message: apiError.message, error: apiError.problemDetail };
-  }
-}
+import { withApi } from '@next-feature/client/server';
+import api from '../config/client';
+import { type GetUserRequest, type GetUserResponse } from '../types/user';
+
+export const getUser = withApi(async (options?: GetUserRequest) => {
+  return api.get<GetUserResponse>('/users');
+}, {});
 ```
+
+Client components never import this file directly. `--useHook` adds a `'use server'` wrapper (`lib/actions/user.action.ts`) and a TanStack Query hook that calls it, and `--actionType=form` adds `lib/actions/user.form.ts` for `useActionState`.
 
 ### 🎯 Built-in Error Handling
 
@@ -139,10 +139,10 @@ npx nx g next-feature:action --name=getUser --actionType=api \
 ```
 
 Generates:
-- ✓ Server action
-- ✓ TypeScript types
+- ✓ Server-only action (`lib/actions/<file>.ts`, exported from `server.ts`)
+- ✓ Request/response contract and TypeScript types (`lib/types/<file>.ts`, exported from `index.ts`)
 - ✓ Constants
-- ✓ Mapper utility
+- ✓ Mapper utility, imported by the action
 
 ### 🎨 Flexible Client Setup
 
@@ -253,7 +253,7 @@ npx nx g next-feature:feature --name=api
 # Create custom client config
 npx nx g next-feature:client-config --projectName=api --includeInterceptors=true
 
-# Edit lib/client/config.ts to add:
+# Edit lib/config/client.ts to add:
 # - Authentication interceptors
 # - Custom error handling
 # - Request/response logging

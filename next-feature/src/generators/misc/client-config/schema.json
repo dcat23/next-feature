@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/schema",
   "$id": "ClientConfig",
   "title": "API Client Configuration Generator",
-  "description": "Generate a centralized API client configuration at lib/client/config.ts with ApiClient initialization, interceptor examples, and utility re-exports. Auto-invoked by action generator on first use.",
+  "description": "Generate a centralized API client configuration at lib/config/client.ts with ApiClient initialization, interceptor examples, and utility re-exports. Auto-invoked by action generator on first use.",
   "type": "object",
   "properties": {
     "projectName": {
       "type": "string",
-      "description": "Target project name where config will be generated at src/lib/client/config.ts. Auto-creates feature if not found.",
+      "description": "Target project name where config will be generated at src/lib/config/client.ts. Auto-creates feature if not found.",
       "alias": "p"
     },
     "clientPackage": {

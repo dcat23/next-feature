@@ -221,7 +221,7 @@ If you plan to make API calls:
 npx nx g next-feature:action --name=getUser --actionType=api --projectName=[name]
 ```
 
-This automatically creates `src/lib/client/config.ts` for centralized API configuration.
+This automatically creates `src/lib/config/client.ts` for centralized API configuration.
 
 ### 2. Setup Authentication
 

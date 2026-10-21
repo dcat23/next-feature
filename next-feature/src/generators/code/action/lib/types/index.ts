@@ -58,6 +58,7 @@ export interface NormalizedActionGeneratorSchema extends NormalizedCodeGenerator
   methodName: string;
   hasRequestBody: boolean;
   mapperName?: string;
+  mapperImportPath: string; // relative to the action package
   configImportPath: string
 
   // Request/Response contract, written to the data-type location

@@ -15,7 +15,7 @@ import { updateDotenv } from 'next-feature/src/lib/dotenv/dot-env';
 /**
  * Client config generator
  *
- * Creates a centralized client configuration file (lib/client/config.ts)
+ * Creates a centralized client configuration file (lib/config/client.ts)
  * that sets up the ApiClient with defaults and re-exports utilities.
  *
  * This is typically auto-invoked by action generators to ensure a config exists.

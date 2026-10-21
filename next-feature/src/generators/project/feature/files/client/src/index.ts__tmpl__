@@ -9,7 +9,7 @@
  *
  * 1. For custom ApiClient/ApiError logic with interceptors:
  *    - Run: npx nx g next-feature:client-config --projectName=<your-project>
- *    - This creates lib/client/config.ts for centralized setup
+ *    - This creates lib/config/client.ts for centralized setup
  *
  * 2. For full custom implementations:
  *    - Edit src/lib/client.ts to customize ApiClient behavior

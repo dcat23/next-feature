@@ -19,6 +19,8 @@ export { extractEndpoint, extractHttpMethod };
 
 /** Contract types live in the data-type declaration location */
 export const TYPES_PACKAGE = path.posix.join('lib', DECLARATION_KINDS['data-type'].subDirectory);
+/** Mappers live in the utility declaration location */
+export const UTILS_PACKAGE = path.posix.join('lib', DECLARATION_KINDS.utility.subDirectory);
 
 function relativeImport(fromPackage: string, toPackage: string, fileName: string) {
   const relative = path.posix.relative(fromPackage, toPackage) || '.';
@@ -77,6 +79,7 @@ export function normalize(
   const baseFileName = path.parse(normalized.outputFileName).name;
   const typesOutputFile = path.posix.join(TYPES_PACKAGE, normalized.outputFileName);
   const typesImportPath = relativeImport(normalized.package, TYPES_PACKAGE, baseFileName);
+  const mapperImportPath = relativeImport(normalized.package, UTILS_PACKAGE, baseFileName);
   const typesExportPath = handleExportPath({ package: TYPES_PACKAGE, outputFileName: normalized.outputFileName });
   const actionOutputFileName = `${baseFileName}.action.ts`;
   const formOutputFileName = `${baseFileName}.form.ts`;
@@ -97,6 +100,7 @@ export function normalize(
     typesOutputFile,
     typesImportPath,
     typesExportPath,
+    mapperImportPath,
     actionName,
     formActionName,
     actionOutputFileName,

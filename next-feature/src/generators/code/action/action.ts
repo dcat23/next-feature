@@ -85,6 +85,11 @@ export async function actionGenerator(
     `type ${requestType}`,
     `type ${responseType}`,
   ]);
+  if (normalizedOptions.useMapper) {
+    addNamedImports(tree, outputFile, normalizedOptions.mapperImportPath, [
+      normalizedOptions.mapperName,
+    ]);
+  }
   await writeCodeFile(tree, outputFile, normalizedOptions, apiContent);
 
   // declarations append their own extension
@@ -126,6 +131,8 @@ export async function actionGenerator(
       await declarationGenerator(tree, {
         ...normalizedOptions,
         kind: 'utility',
+        // lib/utils/<file>.ts, imported by the action
+        package: 'lib',
         name: normalizedOptions.mapperName,
         file: baseFileName,
         skipFormat: true,

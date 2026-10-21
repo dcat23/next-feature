@@ -87,7 +87,7 @@ When you create your first action, the **client-config generator** automatically
 npx nx g next-feature:action --name=getUser --actionType=api --projectName=users
 ```
 
-This automatically creates `lib/client/config.ts` with:
+This automatically creates `lib/config/client.ts` with:
 - API base URL configuration
 - Interceptor examples
 - Error handling setup
@@ -103,11 +103,37 @@ npx nx g next-feature:action --name=getUser --actionType=api \
 ```
 
 Generates in sequence:
-1. Server action file
-2. TypeScript types (if --useTypes)
-3. Constants (if --useConstant)
-4. Mapper utility (if --useMapper)
-5. TanStack Query hook wrapping the action (if --useHook; ignored for `--actionType=form`) - `useQuery` for GET-derived actions, `useMutation` otherwise
+1. Request/Response contract in `lib/types/<file>.ts`
+2. Server-only action in `lib/actions/<file>.ts`
+3. TypeScript types, appended to the contract file (if --useTypes)
+4. Constants (if --useConstant)
+5. Mapper utility in `lib/utils/<file>.ts`, imported by the action (if --useMapper)
+6. TanStack Query hook plus its `'use server'` wrapper (if --useHook; ignored for `--actionType=form`) - `useQuery` for GET-derived actions, `useMutation` otherwise
+
+### 🔒 Server/Client Boundaries
+
+Actions are split so server code never ends up in a client bundle and only calls that start in client components become server action endpoints:
+
+| File | Directive | Contents | Exported from |
+|------|-----------|----------|---------------|
+| `lib/types/<file>.ts` | none | Zod request schema, `<Name>Request` / `<Name>Response` types | `index.ts` |
+| `lib/actions/<file>.ts` | `import 'server-only'` | `withApi`-wrapped action, for RSC, route handlers and other server code | `server.ts` |
+| `lib/actions/<file>.action.ts` | `'use server'` | `<name>Action` wrapper, only with `--useHook` | - |
+| `lib/actions/<file>.form.ts` | `'use server'` | `<name>FormAction` (`withForm`, for `useActionState`), only with `--actionType=form` | - |
+
+```bash
+npx nx g next-feature:action --name=getUsers --file=user --useHook --export --projectName=users
+```
+
+```typescript
+// Server component: call the server-only action directly
+import { getUsers } from '@feature/users/server';
+
+// Client component: use the hook (calls getUsersAction) and the client-safe contract
+import { useGetUsers, type GetUsersRequest } from '@feature/users';
+```
+
+`server.ts` always starts with `import 'server-only'`, so importing it from a client component fails the build. In applications the same files are generated, but nothing is exported since apps have no `index.ts`/`server.ts` entrypoints.
 
 ### ✨ Zod Validation Error Handling
 
@@ -196,7 +222,7 @@ npx nx g next-feature:component --name=ProductCard --projectName=products
 npx nx g next-feature:store --name=productStore --projectName=products
 
 # 6. Customize client config
-editor apps/products/src/lib/client/config.ts
+editor apps/products/src/lib/config/client.ts
 ```
 
 ### Workflow: Setup Authentication
@@ -278,11 +304,13 @@ npx nx g next-feature:action --name=getUser [options]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| --actionType | enum | "api" | Type: api, db, or form |
-| --useTypes | boolean | true | Generate type files |
-| --useConstant | boolean | true | Generate constants |
-| --useMapper | boolean | false | Generate mapper utility |
-| --useHook | boolean | false | Generate a TanStack Query hook wrapping this action (ignored for `actionType=form`) |
+| --actionType | enum | "api" | Type: api, db, or form. `form` also generates `<file>.form.ts` |
+| --file | string | - | Base file name for the action, contract (`lib/types/`) and wrappers. Defaults to the singular resource name (`getUsers` → `user`) |
+| --export | boolean | false | Export the contract from `index.ts` and the action from `server.ts` (libraries only) |
+| --useTypes | boolean | false | Append a data-type interface to the contract file |
+| --useConstant | boolean | false | Generate constants |
+| --useMapper | boolean | false | Generate a mapper utility in `lib/utils/` and import it in the action |
+| --useHook | boolean | false | Generate a TanStack Query hook and the `<file>.action.ts` wrapper it calls (ignored for `actionType=form`) |
 | --clientPackage | string | "@next-feature/client" | Client library to import |
 
 ### Component Generator
@@ -312,7 +340,7 @@ If the component file already exists (`<ui-lib>/src/components/common/<slug>.tsx
 npx nx g next-feature:hook --name=getUser --projectName=users [options]
 ```
 
-Wraps an existing server action in a `useQuery` (GET-derived actions) or `useMutation` (all others) hook, using the same name-prefix detection as the action generator. `getUsers` produces `hooks/use-get-users.ts` exporting `useGetUsers`.
+Wraps an existing server action in a `useQuery` (GET-derived actions) or `useMutation` (all others) hook, using the same name-prefix detection as the action generator. `getUsers` produces `hooks/use-get-users.ts` exporting `useGetUsers`, which calls `getUsersAction` from `<actionPackage>/<actionFile>.action` and imports `GetUsersRequest` from `lib/types/<actionFile>`. The action generator creates both when `--useHook` is set.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
@@ -364,13 +392,13 @@ npx nx g next-feature:client-config --projectName=users [options]
 apps/myfeature/
 ├── src/
 │   ├── lib/
-│   │   ├── client/
-│   │   │   └── config.ts          (auto-created on first action)
-│   │   ├── actions/               (server actions)
+│   │   ├── config/
+│   │   │   └── client.ts          (auto-created on first action)
+│   │   ├── actions/               (server-only actions + 'use server' .action/.form wrappers)
 │   │   ├── components/            (React components)
 │   │   ├── hooks/                 (TanStack Query hooks / generic hooks)
 │   │   ├── stores/                (Zustand stores)
-│   │   ├── types/                 (TypeScript types)
+│   │   ├── types/                 (request/response contracts, TypeScript types)
 │   │   ├── constants/             (Constants)
 │   │   └── utils/                 (Utility functions)
 │   └── ...

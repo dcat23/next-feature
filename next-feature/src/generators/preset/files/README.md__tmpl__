@@ -171,15 +171,15 @@ When you create your first action with `--actionType=api`, the client-config gen
 npx nx g next-feature:action --name=getUser --actionType=api --projectName=<%= name %>
 ```
 
-This creates `src/lib/client/config.ts` with the ApiClient setup. Here's how to use it:
+This creates `src/lib/config/client.ts` with the ApiClient setup. Here's how to use it:
 
 ### In Server Actions
 
 ```typescript
-// src/lib/actions/get-user.ts
-'use server'
+// src/lib/actions/user.ts
+import 'server-only'
 
-import apiClient from '../client/config'
+import apiClient from '../config/client'
 import { ApiError, type ApiResponse } from '@next-feature/client'
 
 export async function getUser(id: string): Promise<ApiResponse<User>> {
@@ -196,6 +196,8 @@ export async function getUser(id: string): Promise<ApiResponse<User>> {
   }
 }
 ```
+
+> Actions are `server-only`: call them from server components, route handlers or other server code. Client components go through a `'use server'` wrapper (`<file>.action.ts`, generated with `--useHook`) or a form action (`<file>.form.ts`, generated with `--actionType=form`).
 
 ### Error Handling with Validation
 

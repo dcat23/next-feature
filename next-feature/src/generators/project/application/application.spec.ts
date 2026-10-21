@@ -79,8 +79,8 @@ describe('application generator', () => {
     it('should wire registerPino into instrumentation.ts by default', async () => {
       await applicationGenerator(tree, { name: 'test' });
       const instrumentation = tree.read('apps/test/instrumentation.ts', 'utf-8');
-      expect(instrumentation).toContain("import { registerPino } from '@next-feature/logging/server'");
-      expect(instrumentation).toContain('registerPino();');
+      expect(instrumentation).toContain("import { registerPino } from './lib/config/logging'");
+      expect(instrumentation).toContain('await registerPino();');
     });
 
     it('should add @next-feature/logging as an installed dependency by default', async () => {

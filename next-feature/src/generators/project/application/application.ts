@@ -29,7 +29,7 @@ import featureGenerator from '../feature/feature';
 import { ApplicationGeneratorSchema } from './schema';
 import { generateSecret } from './utils';
 import { normalizeApplicationGeneratorSchema } from './utils/normalize';
-import { LOGGING } from 'next-feature/src/lib/dotenv/constants/defaults';
+import { LOGGING } from '../../../lib/dotenv/constants/defaults';
 
 
 export async function applicationGenerator(
@@ -123,14 +123,14 @@ export async function applicationGenerator(
   }
 
   if (!normalizedOptions.skipLogging) {
-    // instrumentation.ts (generated above) imports registerPino from the
-    // published @next-feature/logging package unconditionally.
+    // lib/config/logging.ts (generated above, called from instrumentation.ts)
+    // imports pinoOptions from the published @next-feature/logging package.
     dependencies['@next-feature/logging'] = PLUGIN_VERSION;
     dependencies['pino'] = PINO_VERSION;
     dependencies['pino-http'] = PINO_HTTP_VERSION;
     devDependencies['pino-pretty'] = PINO_PRETTY_VERSION;
 
-    addServerExternalPackages(tree, projectRoot, ['pino', 'pino-pretty', 'thread-stream']);
+    addServerExternalPackages(tree, projectRoot, ['pino', 'pino-http', 'pino-pretty', 'thread-stream']);
 
     updateDotenv(tree, { projectRoot, section: 'logging' }, {
       set: {

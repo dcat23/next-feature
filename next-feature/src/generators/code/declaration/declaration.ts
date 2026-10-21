@@ -19,13 +19,14 @@ export async function declarationGenerator(
   const tasks: GeneratorCallback[] = [];
 
   const normalizedOptions = normalize(options);
-  const { directory, sourceRoot } = await initializeCodeGenerator(
+  const { directory, sourceRoot, projectType } = await initializeCodeGenerator(
     tree,
     normalizedOptions,
     'declaration'
   );
 
-  const { subDirectory, content } = DECLARATION_KINDS[normalizedOptions.kind];
+  const { subDirectory, content, exportFile: exportTo } =
+    DECLARATION_KINDS[normalizedOptions.kind];
 
   await writeFile(
     tree,
@@ -35,8 +36,9 @@ export async function declarationGenerator(
     normalizedOptions.outputFileName
   );
 
-  if (normalizedOptions.export) {
-    await exportFile(tree, sourceRoot, normalizedOptions.exportPath, 'server');
+  // Applications have no index/server entrypoints to export from
+  if (normalizedOptions.export && projectType === 'library') {
+    await exportFile(tree, sourceRoot, normalizedOptions.exportPath, exportTo);
   }
 
   if (!options.skipFormat) await formatFiles(tree);

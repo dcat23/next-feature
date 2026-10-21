@@ -12,8 +12,7 @@ import yargs, { Argv } from 'yargs';
 const presetVersion = require('../package.json').version;
 
 
-export interface WorkspaceOptions extends CreateWorkspaceOptions {
-}
+export type WorkspaceOptions = CreateWorkspaceOptions;
 
 export async function promptWorkspaceOptions(args: string[]) {
   const argv =  yargs(args) as unknown as Argv<WorkspaceOptions>

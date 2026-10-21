@@ -21,7 +21,7 @@ export async function exportFile(
   const rootIndexPath = path.join(sourceRoot, exportFile + '.ts');
   const normalizedPath = './' + exportPath.split(path.sep).join('/');
 
-  let buffer = tree.read(rootIndexPath, 'utf-8') ?? '';
+  const buffer = tree.read(rootIndexPath, 'utf-8') ?? '';
 
   // Parse existing exports into a set
   const exportSet = new Set<string>();
@@ -62,5 +62,7 @@ export async function exportFile(
 
   tree.write(rootIndexPath, newBuffer);
 
-  return () => {};
+  return () => {
+    // nothing to install
+  };
 }

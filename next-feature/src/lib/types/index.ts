@@ -53,4 +53,4 @@ export type WithNames<T extends GeneratorSchema> = Names & T;
  * next-feature@0.1.0
  * November 9th 2025, 3:13:42 pm
  */
-export interface ConfigGeneratorSchema extends CodeGeneratorSchema {}
+export type ConfigGeneratorSchema = CodeGeneratorSchema;

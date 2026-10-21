@@ -34,9 +34,15 @@ export class ApiClient {
       maxRetries: 1,
       retryDelay: 1000,
       skipRefreshPaths: [],
-      onUnauthorized: async () => {},
-      onRefreshTokenExpired: async () => {},
-      onAuthenticated: async (config) => {},
+      onUnauthorized: async () => {
+        // no-op by default
+      },
+      onRefreshTokenExpired: async () => {
+        // no-op by default
+      },
+      onAuthenticated: async (config) => {
+        // no-op by default
+      },
       onRefreshToken: async (originalRequest) => {
         return '';
       },

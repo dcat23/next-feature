@@ -26,7 +26,9 @@ const browserLogger = pino({
             body,
             headers: { 'Content-Type': 'application/json' },
             keepalive: true,
-          }).catch(() => {});
+          }).catch(() => {
+            // best-effort: dropping a log beacon must not throw
+          });
         }
       },
     },

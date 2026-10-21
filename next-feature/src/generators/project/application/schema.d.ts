@@ -6,5 +6,4 @@ export interface ApplicationGeneratorSchema extends ProjectGeneratorSchema {
   skipLogging?: boolean;
 }
 
-export interface NormalizedApplicationGeneratorSchema extends NormalizedProjectGeneratorSchema<ApplicationGeneratorSchema> {
-}
+export type NormalizedApplicationGeneratorSchema = NormalizedProjectGeneratorSchema<ApplicationGeneratorSchema>;

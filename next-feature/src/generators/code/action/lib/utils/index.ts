@@ -1,6 +1,6 @@
 import { names } from '@nx/devkit';
 import * as path from 'path';
-import { asOutputFile } from 'next-feature/src/lib/utils/files';
+import { asOutputFile } from '../../../../../lib/utils/files';
 import {
   handleExportPath,
   normalizeCodeGenerator,

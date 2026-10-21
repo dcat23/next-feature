@@ -1,5 +1,0 @@
-'use server';
-
-import { withApi, withForm } from '@next-feature/client/server';
-import { z } from "zod";
-import api from '<%= configImportPath %>';

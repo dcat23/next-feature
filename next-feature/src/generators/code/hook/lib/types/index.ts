@@ -40,5 +40,7 @@ export interface NormalizedHookGeneratorSchema
   methodName: string;
   hookName: string;
   requestType: string;
+  actionName: string; // 'use server' wrapper around the server-only action
   actionImportPath: string;
+  typesImportPath: string;
 }

@@ -24,7 +24,9 @@ describe('hook generator', () => {
     expect(tree.exists(file)).toBeTruthy();
     expect(buffer.includes('useQuery')).toBeTruthy();
     expect(buffer.includes('export function useGetUsers')).toBeTruthy();
-    expect(buffer.includes(`from '../lib/actions/user'`)).toBeTruthy();
+    expect(buffer.includes(`import { getUsersAction } from '../lib/actions/user.action'`)).toBeTruthy();
+    expect(buffer.includes(`import type { GetUsersRequest } from '../lib/types/user'`)).toBeTruthy();
+    expect(buffer.includes('await getUsersAction(options)')).toBeTruthy();
   });
 
   it('should generate a useMutation hook for a non-GET-prefixed name', async () => {
@@ -51,6 +53,7 @@ describe('hook generator', () => {
     });
     const file = 'features/test/src/hooks/use-get-users.ts';
     const buffer = tree.read(file, 'utf-8') ?? '';
-    expect(buffer.includes(`from '../lib/api/users'`)).toBeTruthy();
+    expect(buffer.includes(`from '../lib/api/users.action'`)).toBeTruthy();
+    expect(buffer.includes(`from '../lib/types/users'`)).toBeTruthy();
   });
 });

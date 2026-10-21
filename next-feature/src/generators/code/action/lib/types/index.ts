@@ -60,5 +60,18 @@ export interface NormalizedActionGeneratorSchema extends NormalizedCodeGenerator
   mapperName?: string;
   configImportPath: string
 
-  content: (options: NormalizedCodeGeneratorSchema) => string;
+  // Request/Response contract, written to the data-type location
+  schemaName: string;
+  requestType: string;
+  responseType: string;
+  typesOutputFile: string; // relative to sourceRoot
+  typesImportPath: string; // relative to the action package
+  typesExportPath: string;
+
+  // 'use server' wrappers for client-originated calls
+  actionName: string;
+  formActionName: string;
+  actionOutputFileName: string;
+  formOutputFileName: string;
+  serverImportPath: string; // wrapper -> server-only action
 }

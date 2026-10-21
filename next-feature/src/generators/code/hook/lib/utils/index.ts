@@ -8,6 +8,7 @@ import {
   extractEndpoint,
   extractHttpMethod,
 } from '../../../../../lib/utils/http-method';
+import { TYPES_PACKAGE } from '../../../action/lib/utils';
 import type {
   HookGeneratorSchema,
   NormalizedHookGeneratorSchema,
@@ -58,10 +59,17 @@ export function normalize(
   normalized.outputFileName = `${hookFileName}.ts`;
   normalized.exportPath = handleExportPath(normalized);
 
+  // client components call the action's 'use server' wrapper, never the server-only action
+  const actionName = methodName + 'Action';
   const actionFileName = options.actionFile ?? domain.fileName;
   const actionImportPath = resolveActionImportPath(
     normalized.package,
     options.actionPackage,
+    `${actionFileName}.action`
+  );
+  const typesImportPath = resolveActionImportPath(
+    normalized.package,
+    TYPES_PACKAGE,
     actionFileName
   );
 
@@ -74,6 +82,8 @@ export function normalize(
     methodName,
     hookName,
     requestType,
+    actionName,
     actionImportPath,
+    typesImportPath,
   };
 }

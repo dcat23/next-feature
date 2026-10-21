@@ -1,5 +1,5 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
-import { Tree, readProjectConfiguration } from '@nx/devkit';
+import { Tree, addProjectConfiguration, readProjectConfiguration } from '@nx/devkit';
 import { declarationGenerator } from './declaration';
 import { DeclarationGeneratorSchema } from './schema';
 
@@ -81,6 +81,28 @@ describe('declaration generator', () => {
       const buffer = tree.read(file, 'utf-8') ?? '';
       expect(tree.exists(file)).toBeTruthy();
       expect(buffer.includes('function test')).toBeTruthy();
+    });
+  });
+
+  describe('export', () => {
+    const read = (file: string) => tree.read(file, 'utf-8') ?? '';
+
+    it.each([
+      ['data-type', 'index', './lib/types/index'],
+      ['constant', 'index', './lib/constants/index'],
+      ['utility', 'server', './lib/utils/index'],
+    ] as const)('should export %s declarations from %s.ts', async (kind, target, exportPath) => {
+      await declarationGenerator(tree, { projectName: 'test', name: 'test', kind, export: true, skipFormat: true });
+      const other = target === 'index' ? 'server' : 'index';
+      expect(read(`features/test/src/${target}.ts`)).toContain(`export * from '${exportPath}';`);
+      expect(read(`features/test/src/${other}.ts`)).not.toContain(exportPath);
+    });
+
+    it('should not export from an application', async () => {
+      addProjectConfiguration(tree, 'web', { root: 'apps/web', sourceRoot: 'apps/web/src', projectType: 'application' });
+      await declarationGenerator(tree, { projectName: 'web', name: 'test', kind: 'data-type', export: true, skipFormat: true });
+      expect(tree.exists('apps/web/src/lib/types/index.ts')).toBeTruthy();
+      expect(tree.exists('apps/web/src/index.ts')).toBeFalsy();
     });
   });
 });

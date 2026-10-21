@@ -1,4 +1,5 @@
 import { names } from '@nx/devkit';
+import * as path from 'path';
 import { asOutputFile } from 'next-feature/src/lib/utils/files';
 import {
   handleExportPath,
@@ -12,9 +13,20 @@ import type {
   ActionGeneratorSchema,
   NormalizedActionGeneratorSchema,
 } from '../types';
-import { apiContent } from './content';
+import { DECLARATION_KINDS } from '../../../declaration/lib/types';
 
 export { extractEndpoint, extractHttpMethod };
+
+/** Contract types live in the data-type declaration location */
+export const TYPES_PACKAGE = path.posix.join('lib', DECLARATION_KINDS['data-type'].subDirectory);
+/** Mappers live in the utility declaration location */
+export const UTILS_PACKAGE = path.posix.join('lib', DECLARATION_KINDS.utility.subDirectory);
+
+function relativeImport(fromPackage: string, toPackage: string, fileName: string) {
+  const relative = path.posix.relative(fromPackage, toPackage) || '.';
+  const importPath = path.posix.join(relative, fileName);
+  return importPath.startsWith('.') ? importPath : `./${importPath}`;
+}
 
 function handleConfigImportPath(options: ActionGeneratorSchema) {
   return ["..","config",
@@ -50,7 +62,13 @@ export function normalize(
   const hasRequestBody = /(post|put|patch)/.test(httpMethod);
   const mapperName = 'mapTo'.concat(normalized.names.className);
   const configImportPath = handleConfigImportPath(normalized)
-  const content = apiContent;
+  // db/none actions return their result directly instead of wrapping it in withApi
+  const useApi = /(api|form)/.test(normalized.actionType);
+  const schemaName = methodName + 'Schema';
+  const requestType = normalized.names.className + 'Request';
+  const responseType = normalized.names.className + 'Response';
+  const actionName = methodName + 'Action';
+  const formActionName = methodName + 'FormAction';
 
   // finalize
   if (!options.file) {
@@ -59,6 +77,15 @@ export function normalize(
     // export path needs to be overidden with new ouputFileName
     normalized.exportPath = handleExportPath(normalized);
   }
+
+  const baseFileName = path.parse(normalized.outputFileName).name;
+  const typesOutputFile = path.posix.join(TYPES_PACKAGE, normalized.outputFileName);
+  const typesImportPath = relativeImport(normalized.package, TYPES_PACKAGE, baseFileName);
+  const mapperImportPath = relativeImport(normalized.package, UTILS_PACKAGE, baseFileName);
+  const typesExportPath = handleExportPath({ package: TYPES_PACKAGE, outputFileName: normalized.outputFileName });
+  const actionOutputFileName = `${baseFileName}.action.ts`;
+  const formOutputFileName = `${baseFileName}.form.ts`;
+  const serverImportPath = `./${baseFileName}`;
 
   return {
     ...normalized,
@@ -69,6 +96,18 @@ export function normalize(
     mapperName,
     domain,
     configImportPath,
-    content
+    useApi,
+    schemaName,
+    requestType,
+    responseType,
+    typesOutputFile,
+    typesImportPath,
+    typesExportPath,
+    mapperImportPath,
+    actionName,
+    formActionName,
+    actionOutputFileName,
+    formOutputFileName,
+    serverImportPath,
   };
 }

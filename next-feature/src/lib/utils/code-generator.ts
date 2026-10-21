@@ -2,6 +2,7 @@ import { CodeGeneratorSchema, NormalizedCodeGeneratorSchema } from '../types';
 import {
   names,
   type ProjectConfiguration,
+  type ProjectType,
   readNxJson,
   readProjectConfiguration,
   Tree,
@@ -42,13 +43,35 @@ export async function initializeCodeGenerator(
   const projectRoot = projectConfiguration.root;
   const sourceRoot = projectConfiguration.sourceRoot || projectRoot;
   const directory = path.join(sourceRoot, options.package ?? '');
+  const projectType = resolveProjectType(tree, projectConfiguration);
 
   return {
     projectRoot,
     sourceRoot,
     directory,
     projectName,
+    projectType,
   };
+}
+
+const NEXT_CONFIG_FILES = ['next.config.js', 'next.config.mjs', 'next.config.ts'];
+
+/**
+ * Resolves whether the target project is an application or library.
+ * Falls back to detecting a next.config file when `projectType` isn't set
+ * (e.g. package.json-only projects).
+ */
+export function resolveProjectType(
+  tree: Tree,
+  projectConfiguration: ProjectConfiguration
+): ProjectType {
+  if (projectConfiguration.projectType) return projectConfiguration.projectType;
+
+  return NEXT_CONFIG_FILES.some((file) =>
+    tree.exists(path.join(projectConfiguration.root, file))
+  )
+    ? 'application'
+    : 'library';
 }
 
 export function handleExportPath(

@@ -1,0 +1,4 @@
+import 'server-only';
+<% if (useApi) { %>
+import { withApi } from '<%= clientPackage %>/server';<% } %>
+import api from '<%= configImportPath %>';

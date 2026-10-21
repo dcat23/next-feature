@@ -1,6 +1,8 @@
 import { logger, Tree } from '@nx/devkit';
 import * as path from 'path';
 
+const SERVER_ONLY_IMPORT = /^import\s+['"]server-only['"]\s*;?$/m;
+
 /**
  * Adds an export statement to the root src/index.ts file
  * Maintains a sorted, deduplicated set of exports
@@ -30,11 +32,15 @@ export async function exportFile(
     exportSet.add(match[1]);
   }
 
+  // Server entrypoints must never be pulled into a client bundle
+  const missingServerOnly =
+    exportFile === 'server' && !SERVER_ONLY_IMPORT.test(buffer);
+
   // Add new export if it doesn't exist
   if (!exportSet.has(normalizedPath)) {
     exportSet.add(normalizedPath);
     logger.info(`Added export: ${normalizedPath}`);
-  } else {
+  } else if (!missingServerOnly) {
     logger.debug(`Export already exists: ${normalizedPath}`);
     return;
   }
@@ -46,7 +52,10 @@ export async function exportFile(
     .join('\n');
 
   // Remove all old export statements and rebuild
-  const bufferWithoutExports = buffer.replace(exportRegex, '').trim();
+  let bufferWithoutExports = buffer.replace(exportRegex, '').trim();
+  if (missingServerOnly) {
+    bufferWithoutExports = `import 'server-only';\n\n${bufferWithoutExports}`.trim();
+  }
   const newBuffer = bufferWithoutExports
     ? `${bufferWithoutExports}\n\n${exportLines}\n`
     : `${exportLines}\n`;

@@ -62,9 +62,9 @@ The plugin follows an Nx plugin structure with generators organized by category:
 - `application` - Creates a Next.js application
 
 **Code Generators** (`src/generators/code/`)
-- `action` - Generates Next.js server actions (API, form, or database operations) with client integration
+- `action` - Generates server-only actions (API, form, or database operations) plus a client-safe request/response contract, and `'use server'` wrappers only for calls that originate in client components (see Server Actions Architecture)
 - `component` - Generates React components. `componentType=hook` scaffolds a generic reusable hook (`use<Name>`) in `src/hooks/` instead of a component. `componentType=ui` adds a shadcn component to a `ui`-type feature library instead: no template is written, it invokes the shared shadcn CLI helper (`lib/utils/shadcn.ts`, also used by the `shadcn` executor) to run `npx shadcn@latest add <slug>` in the target project's root, skipping if the component file already exists
-- `hook` - Generates a TanStack Query hook (`useQuery` for GET-derived actions, `useMutation` otherwise) that wraps an existing server action, in `src/hooks/`. Auto-invoked by the `action` generator when `useHook` is set
+- `hook` - Generates a TanStack Query hook (`useQuery` for GET-derived actions, `useMutation` otherwise) that calls an action's `'use server'` wrapper (`<actionFile>.action.ts`) and imports its request type from `lib/types/<actionFile>`, in `src/hooks/`. Auto-invoked by the `action` generator when `useHook` is set
 - `store` - Generates Zustand stores
 - `data-type` - Generates TypeScript type definitions
 - `constant` - Generates constant definitions
@@ -90,13 +90,15 @@ Unlike generators (which scaffold files once), executors run as Nx targets (`nx 
 ### Core Libraries
 
 **Code Generator Utilities** (`src/lib/utils/code-generator.ts`)
-- `initializeCodeGenerator()` - Initializes code generators. Auto-creates feature project if needed. Returns project paths and configuration.
+- `initializeCodeGenerator()` - Initializes code generators. Auto-creates feature project if needed. Returns project paths, `projectName`, and `projectType` (`application` | `library`, via `resolveProjectType()`, which falls back to detecting `next.config.*`). Code generators skip `index.ts`/`server.ts` exports for applications.
 - `normalizeCodeGenerator()` - Normalizes code generator options, handles name transformations and export paths.
 
 **Project Generator Utilities** (`src/lib/utils/index.ts`)
 - `initializeProjectGenerator()` - Initializes project generators and updates Nx configuration.
 - `updateDependencies()` - Updates package.json dependencies.
 - `addToGitignore()` - Adds entries to .gitignore files (idempotent - safe to call repeatedly).
+- `addNamedImports()` (`lib/utils/imports.ts`) - Adds named specifiers to a file, merging into an existing import from the same module. Used to accumulate per-action imports when several actions share one file.
+- `exportFile()` (`lib/export-file.ts`) - Adds a sorted `export *` to `index.ts` or `server.ts`; for `server.ts` it also ensures `import 'server-only'` at the top.
 
 **Dotenv Utilities** (`src/lib/dotenv/`)
 - `updateDotenv()` / `syncDotenv()` (`dot-env.ts`) - Set/unset vars across a project's (or multiple projects') `.env`/`.env.example`/`.env.<suffix>` files, grouped under `### SECTION ###` headers, preserving comments/blank lines. Non-`.env.example` files touched this way are auto-gitignored.
@@ -137,17 +139,17 @@ All generators follow a consistent pattern:
 - `skipFormat` - Skip prettier formatting (used for chained generators)
 
 **Action Generator Specific:**
-- `actionType` - Type of action: 'api', 'form', or 'database'
-- `clientPackage` - Custom API client package (default: '@next-feature/client')
-- `useTypes` - Auto-generate TypeScript types
+- `actionType` - Type of action: 'api', 'form', or 'db'. `form` also writes a `<file>.form.ts` `'use server'` form action
+- `clientPackage` - Custom API client package (default: '@next-feature/client'); `withApi`/`withForm` are imported from `<clientPackage>/server`
+- `useTypes` - Auto-generate a data-type interface, appended to the contract file `lib/types/<file>.ts`
 - `useConstant` - Auto-generate constants
-- `useMapper` - Auto-generate mapper utility
-- `useHook` - Auto-generate a TanStack Query hook (`hooks/use-<name>.ts`) wrapping this action; ignored when `actionType` is `form`
+- `useMapper` - Auto-generate a mapper in `lib/utils/<file>.ts`, imported and applied by the action
+- `useHook` - Auto-generate a TanStack Query hook (`hooks/use-<name>.ts`) and the `<file>.action.ts` `'use server'` wrapper it calls; ignored when `actionType` is `form`
 
 **Hook Generator Specific:**
 - `name` - Name of the action to wrap (e.g. `getUsers`); determines the hook name (`use<Name>`) and whether `useQuery` or `useMutation` is used, via the same HTTP-method-prefix detection as the action generator
 - `actionPackage` - Subdirectory where the wrapped action lives (default: `lib/actions`, matching the action generator's default)
-- `actionFile` - Exact file (without extension) the wrapped action was written to, if it differs from the default resource-based name
+- `actionFile` - Exact file (without extension) the wrapped action was written to, if it differs from the default resource-based name. The hook imports `<actionPackage>/<actionFile>.action` and `lib/types/<actionFile>`
 - `clientPackage` - Client package to import `ApiError` from (default: `@next-feature/client`)
 
 **Project Generators:**
@@ -158,7 +160,8 @@ All generators follow a consistent pattern:
 
 Generators can invoke other generators via `runTasksInSerial()`:
 - Action generator auto-creates client-config if it doesn't exist
-- Action generator can chain data-type, constant, and utility generators based on options
+- Action generator can chain data-type, constant, and utility declarations based on options. It passes the bare file name (declarations add `.ts`) and `package: 'lib'` for data-type/utility so they land in `lib/types/<file>.ts` / `lib/utils/<file>.ts`
+- Declaration exports follow `DECLARATION_KINDS[kind].exportFile`: data-type and constant go to `index.ts`, utility to `server.ts`
 - Action generator chains the `hook` generator when `useHook` is set (ignored for `actionType=form`), scaffolding a `useQuery`/`useMutation` hook that wraps the generated action
 - Feature generator adds the axios dependency and registers a `<NAME>_API_URL` var (in `.env`/`.env.example` and `lib/config/env.ts`) when `env` is set
 - Application generator does the same when `env` is set, and creates a sibling `auth`-type feature (if missing) when `useAuth` is set
@@ -184,6 +187,11 @@ npx nx test next-feature -- --watch
 npx nx test client
 ```
 
+Generator specs that call `formatFiles()` need prettier's dynamic import, and the full suite can run out of memory on all cores. If tests fail with "A dynamic import callback was invoked without --experimental-vm-modules" or get OOM-killed, run jest from `next-feature/` with:
+```bash
+NODE_OPTIONS=--experimental-vm-modules npx jest --testTimeout=60000 -w 2
+```
+
 Test files typically:
 - Mock the Nx Tree filesystem using `createTree()` or `createTreeWithEmptyWorkspace()`
 - Create test schemas with required options
@@ -198,7 +206,7 @@ Generated files use EJS template syntax:
 - Variables replaced: `<%= fileName %>`, `<%= className %>`, `<%= names.propertyName %>`, etc.
 - Special handling for TypeScript imports and exports
 - Non-TS files (JSON, env templates) also processed
-- Action generator has multiple template variants in `files/src/` based on `actionType`
+- Action generator templates are header-only (directive + imports): `files/server` (server-only action), `files/action` (`'use server'` wrapper), `files/form` (`'use server'` form action). Bodies come from content functions in `action/lib/utils/content.ts`
 - Template naming: `__outputFileName__.__extension__.ejs__tmpl__` gets processed to remove `__tmpl__` suffix
 
 ## Managing Dependencies
@@ -274,29 +282,43 @@ Package manager: `pnpm` (use `pnpm install`, not npm or yarn)
 
 ## Server Actions Architecture
 
-The action generator creates Next.js server actions with built-in error handling:
+The action generator separates server and client code so server modules never reach a client bundle, and only calls that originate in client components become server action endpoints.
+
+**Generated files** (`getUsers --file=user`; without `--file` the singular resource name is used):
+
+| File | Header | Contents | Export (libraries, with `export`) |
+|------|--------|----------|------------------|
+| `lib/types/user.ts` | none | `getUsersSchema` (only when the method has a body), `GetUsersRequest`, `GetUsersResponse` | `index.ts` |
+| `lib/actions/user.ts` | `import 'server-only'` | `getUsers = withApi(...)`, for RSC, route handlers and server code | `server.ts` |
+| `lib/actions/user.action.ts` | `'use server'` | `getUsersAction`, only with `useHook` | none |
+| `lib/actions/user.form.ts` | `'use server'` | `getUsersFormAction = withForm(...)` plus a FormData parser, only for `actionType=form` | none |
+
+Rules:
+- Request/response schemas and types go in the contract file so client components can import them for forms and typing
+- Action files never carry `'use server'`; they import `'server-only'`
+- `'use server'` wrappers exist only for client-originated calls and use the `Action` suffix (`<name>Action`, `<name>FormAction`), distinct from the `form` action type
+- Every feature `server.ts` and `lib/config/client.ts` starts with `import 'server-only'`; `server-only` is a feature dependency and a vite `external`
+- Applications get the same files but no `index.ts`/`server.ts` exports
 
 **Action Types:**
 - `api` - HTTP API calls using configured client (default: @next-feature/client)
-- `form` - Form submission handlers with Zod validation
-- `database` - Database operations (typically with Prisma)
+- `form` - Same server-only action, plus a `<file>.form.ts` form action for `useActionState`
+- `db` - Database operations (typically with Prisma)
 
 **Client Configuration Pattern:**
-- First action in a project auto-creates `lib/client/config.ts`
+- First action in a project auto-creates `lib/config/client.ts`
 - Centralizes API client setup (base URL, interceptors, etc.)
-- Actions import from `../client/config` for consistent configuration
+- Actions import from `../config/client` for consistent configuration
 - Customizable per-project (auth headers, retry logic, etc.)
 
 **Error Handling Pattern:**
-Generated actions follow this pattern:
+Generated actions are wrapped in `withApi`, which catches errors and converts them with `ApiError.of()`:
 ```typescript
-try {
-  const result = await api.get<User>(`/users/${id}`);
-  return { success: true, data: result };
-} catch (error) {
-  const apiError = ApiError.of(error);
-  return { success: false, message: apiError.message, error: apiError.problemDetail };
-}
+export const getUsers = withApi(async (options?: GetUsersRequest) => {
+  const response = await api.get<GetUsersResponse>(endpoint);
+  return response;
+}, {});
+// => { success: true, data } | { success: false, message, error: ApiError }
 ```
 
 **Response Types:**

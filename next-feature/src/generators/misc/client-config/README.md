@@ -1,6 +1,6 @@
 # Client Config Generator
 
-Generates a centralized client configuration file (`lib/client/config.ts`) for your project.
+Generates a centralized client configuration file (`lib/config/client.ts`) for your project.
 
 ## Purpose
 
@@ -22,7 +22,7 @@ npx nx g next-feature:action --name=getUsers --projectName=myfeature
 ```
 
 This will:
-1. Create `lib/client/config.ts` with default setup
+1. Create `lib/config/client.ts` with default setup
 2. Generate your action file that imports from this config
 3. Allow you to customize the config later
 
@@ -76,7 +76,7 @@ npx nx g next-feature:client-config --projectName=myfeature --includeInterceptor
 
 ## Generated Config File
 
-The generated `lib/client/config.ts` looks like:
+The generated `lib/config/client.ts` looks like:
 
 ```typescript
 import { ApiClient, type ApiResponse, ApiError } from '@next-feature/client';
@@ -100,11 +100,11 @@ export default apiClient;
 Once generated, import the config in your server actions:
 
 ```typescript
-// src/lib/actions/get-users-api.ts
-'use server';
+// src/lib/actions/user.ts
+import 'server-only';
 
 import { type ApiResponse, ApiError } from "@next-feature/client"
-import api from '../client/config';  // Import from your config
+import api from '../config/client';  // Import from your config
 
 export async function getUsers(): Promise<ApiResponse<User[]>> {
   try {
@@ -117,12 +117,14 @@ export async function getUsers(): Promise<ApiResponse<User[]>> {
 }
 ```
 
+> Actions are `server-only`: call them from server components, route handlers or other server code. Client components go through a `'use server'` wrapper (`<file>.action.ts`, generated with `--useHook`) or a form action (`<file>.form.ts`, generated with `--actionType=form`).
+
 ## Customizing the Config
 
 ### Add Request Interceptor
 
 ```typescript
-// src/lib/client/config.ts
+// src/lib/config/client.ts
 apiClient.getAxiosInstance().interceptors.request.use((config) => {
   // Add auth token
   const token = getToken();
@@ -136,7 +138,7 @@ apiClient.getAxiosInstance().interceptors.request.use((config) => {
 ### Add Response Interceptor
 
 ```typescript
-// src/lib/client/config.ts
+// src/lib/config/client.ts
 apiClient.getAxiosInstance().interceptors.response.use(
   (response) => response,
   (error) => {
@@ -152,7 +154,7 @@ apiClient.getAxiosInstance().interceptors.response.use(
 ### Custom Error Handling
 
 ```typescript
-// src/lib/client/config.ts
+// src/lib/config/client.ts
 apiClient.getAxiosInstance().interceptors.response.use(
   (response) => response,
   (error) => {
@@ -174,7 +176,7 @@ apiClient.getAxiosInstance().interceptors.response.use(
 ## Integration with Action Generator
 
 When you create an action, it automatically:
-1. Checks if `lib/client/config.ts` exists
+1. Checks if `lib/config/client.ts` exists
 2. Creates it if missing (using default settings)
 3. Imports the config in your action file
 4. Uses the configured API client
@@ -186,8 +188,9 @@ Example:
 npx nx g next-feature:action --name=fetchUserProfile --projectName=myfeature
 
 # Output:
-# CREATE apps/myfeature/src/lib/client/config.ts (with defaults)
-# CREATE apps/myfeature/src/lib/actions/fetch-user-profile-api.ts
+# CREATE apps/myfeature/src/lib/config/client.ts (with defaults)
+# CREATE apps/myfeature/src/lib/types/user-profile.ts
+# CREATE apps/myfeature/src/lib/actions/user-profile.ts
 ```
 
 ## When to Use Client Config vs Custom Client Package
@@ -203,7 +206,7 @@ npx nx g next-feature:action --name=fetchUserProfile --projectName=myfeature
 ## Files Modified
 
 The generator only creates:
-- `src/lib/client/config.ts`
+- `src/lib/config/client.ts`
 
 It does not modify:
 - Your action files

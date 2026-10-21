@@ -2,13 +2,14 @@
 
 import { <%= queryType === 'query' ? 'useQuery' : 'useMutation' %> } from '@tanstack/react-query';
 import { ApiError } from '<%= clientPackage %>';
-import { <%= methodName %>, type <%= requestType %> } from '<%= actionImportPath %>';
+import { <%= actionName %> } from '<%= actionImportPath %>';
+import type { <%= requestType %> } from '<%= typesImportPath %>';
 <% if (queryType === 'query') { %>
 export function <%= hookName %>(options?: <%= requestType %>) {
   return useQuery({
     queryKey: ['<%= endpoint %>', options],
     queryFn: async () => {
-      const response = await <%= methodName %>(options);
+      const response = await <%= actionName %>(options);
 
       if (!response.success) {
         throw ApiError.of(response.error);
@@ -22,7 +23,7 @@ export function <%= hookName %>(options?: <%= requestType %>) {
 export function <%= hookName %>() {
   return useMutation({
     mutationFn: async (options: <%= requestType %>) => {
-      const response = await <%= methodName %>(options);
+      const response = await <%= actionName %>(options);
 
       if (!response.success) {
         throw ApiError.of(response.error);

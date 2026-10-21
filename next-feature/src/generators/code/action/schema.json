@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/schema",
   "$id": "Action",
   "title": "Action Generator",
-  "description": "Generate Next.js server actions with automatic error handling, validation, and API integration. Automatically creates lib/client/config.ts on first use.",
+  "description": "Generate Next.js server actions with automatic error handling, validation, and API integration. Automatically creates lib/config/client.ts on first use.",
   "type": "object",
   "properties": {
     "name": {

@@ -416,8 +416,8 @@ npx prisma migrate dev --name init
 ### Use with Server Actions
 
 ```typescript
-// apps/[name]/src/lib/actions/get-users.ts
-'use server'
+// apps/[name]/src/lib/actions/user.ts
+import 'server-only'
 
 import { prisma } from '@/lib/prisma'
 
@@ -430,6 +430,8 @@ export async function getUsers() {
   }
 }
 ```
+
+> Actions are `server-only`: call them from server components, route handlers or other server code. Client components go through a `'use server'` wrapper (`<file>.action.ts`, generated with `--useHook`) or a form action (`<file>.form.ts`, generated with `--actionType=form`).
 
 ## Deployment
 
@@ -521,8 +523,8 @@ NEXT_PUBLIC_API_URL=https://api.example.com
 Create centralized error handling:
 
 ```typescript
-// lib/actions/get-user.ts
-'use server'
+// lib/actions/user.ts
+import 'server-only'
 
 import { ApiError } from '@next-feature/client'
 
@@ -535,6 +537,8 @@ export async function getUser(id: string) {
   }
 }
 ```
+
+> Actions are `server-only`: call them from server components, route handlers or other server code. Client components go through a `'use server'` wrapper (`<file>.action.ts`, generated with `--useHook`) or a form action (`<file>.form.ts`, generated with `--actionType=form`).
 
 ## Troubleshooting
 

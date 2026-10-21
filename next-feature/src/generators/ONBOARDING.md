@@ -124,7 +124,7 @@ npx nx g next-feature:action --name=getUser --actionType=api --projectName=web
 ```
 
 **Creates:**
-- Centralized API client at `lib/client/config.ts`
+- Centralized API client at `lib/config/client.ts`
 - ApiClient with error handling
 - Interceptor examples
 
@@ -309,14 +309,21 @@ import { useUserStore } from '@feature/users'
 
 ### 3. Use Public API Pattern
 
-Export public APIs from feature index.ts:
+Export client-safe APIs from `index.ts` and server-only code from `server.ts`:
 
 ```typescript
 // libs/[feature]/src/index.ts
-export * from './lib/actions'
 export { useStore } from './lib/stores/my-store'
-export type * from './lib/types'
+export * from './lib/types/user'      // request/response contracts
+export * from './hooks/use-get-users'
+
+// libs/[feature]/src/server.ts
+import 'server-only'
+
+export * from './lib/actions/user'    // server-only actions
 ```
+
+`--export` on the action generator does this for you.
 
 ### 4. Consistent Naming
 

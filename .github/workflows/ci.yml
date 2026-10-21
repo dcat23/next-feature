@@ -1,0 +1,100 @@
+name: CI
+
+# Lint, test and build the projects affected by a PR (or by commits since the
+# last successful run on main). E2E publishes to a local verdaccio registry and
+# scaffolds a real workspace, so it only runs on main and on demand.
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      all:
+        description: 'Run every project instead of only affected ones'
+        type: boolean
+        default: false
+      e2e:
+        description: 'Also run the e2e suite'
+        type: boolean
+        default: false
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read # nx-set-shas looks up the last successful run
+
+env:
+  NX_NO_CLOUD: true
+  NX_DAEMON: false
+  NX_TUI: false
+
+jobs:
+  checks:
+    name: ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: lint
+            command: -t eslint:lint
+          # Generator specs call formatFiles(), which needs prettier's dynamic
+          # import, and are slow enough to exceed jest's 5s default timeout
+          - target: test
+            command: -t test --testTimeout=60000 --maxWorkers=2
+          - target: build
+            command: -t build
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # nx affected compares against the base commit
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: nrwl/nx-set-shas@v4
+
+      - name: nx ${{ matrix.target }}
+        env:
+          NODE_OPTIONS: --experimental-vm-modules
+          RUN_ALL: ${{ inputs.all }}
+        run: |
+          if [ "$RUN_ALL" = true ]; then
+            pnpm exec nx run-many ${{ matrix.command }} --parallel=2
+          else
+            pnpm exec nx affected ${{ matrix.command }} --parallel=2
+          fi
+
+  e2e:
+    if: github.event_name == 'push' || inputs.e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: nx e2e
+        env:
+          NODE_OPTIONS: --experimental-vm-modules
+        run: pnpm exec nx e2e next-feature-e2e

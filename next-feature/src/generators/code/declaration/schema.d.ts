@@ -8,5 +8,5 @@ export interface DeclarationGeneratorSchema extends CodeGeneratorSchema {
   kind: DeclarationKind;
 }
 
-export interface NormalizedDeclarationGeneratorSchema
-  extends NormalizedCodeGeneratorSchema<DeclarationGeneratorSchema> {}
+export type NormalizedDeclarationGeneratorSchema =
+  NormalizedCodeGeneratorSchema<DeclarationGeneratorSchema>;

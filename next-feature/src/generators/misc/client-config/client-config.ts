@@ -10,7 +10,7 @@ import { normalize } from './lib/utils';
 import { PLUGIN_VERSION, SERVER_ONLY_VERSION } from '../../../lib/constants/versions';
 import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { updateDependencies } from '../../../lib/utils';
-import { updateDotenv } from 'next-feature/src/lib/dotenv/dot-env';
+import { updateDotenv } from '../../../lib/dotenv/dot-env';
 
 /**
  * Client config generator
@@ -34,7 +34,9 @@ export async function clientConfigGenerator(
 
   if (tree.exists(configPath)) {
     console.log(`Client config already exists at ${configPath}`);
-    return async () => {};
+    return async () => {
+      // nothing to install
+    };
   }
 
   // Add @next-feature/client dependency

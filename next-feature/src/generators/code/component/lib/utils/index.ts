@@ -21,7 +21,7 @@ export function handleComponentPackage(options: ComponentGeneratorSchema) {
   if (options.componentType === 'ui') {
     // Matches components.json's `ui` alias for `feature --type=ui` projects, kept separate
     // from hand-written components so shadcn-vendored files don't collide with them.
-    options.package ??= 'components/common';
+    options.package ??= 'components/ui/common';
     return;
   }
   options.package ??= 'components';

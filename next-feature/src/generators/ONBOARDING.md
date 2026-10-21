@@ -43,7 +43,7 @@ npx nx g next-feature:init
 
 **What happens:**
 - Registers next-feature plugin in `nx.json`
-- Adds `lucide-react` icons library
+- Adds `@next-feature/client` and `@next-feature/logging`
 - Configures generator system
 
 **Documentation:** [Init Generator](./init/README.md)

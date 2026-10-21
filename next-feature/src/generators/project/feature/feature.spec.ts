@@ -406,17 +406,16 @@ describe('feature generator', () => {
     it('should generate components.json aliases pointing at the feature import path', async () => {
       await featureGenerator(tree, options);
       const componentsJson = readJson(tree, 'features/ui/components.json');
-      expect(componentsJson.aliases.utils).toBe('@feature/ui/lib/utils');
-      expect(componentsJson.aliases.ui).toBe('@feature/ui/components/common');
+      expect(componentsJson.aliases.utils).toBe('@feature/ui/lib/ui/utils');
+      expect(componentsJson.aliases.ui).toBe('@feature/ui/components/ui/common');
       expect(componentsJson.tailwind.css).toBe('src/styles/globals.css');
     });
 
-    it('should generate the cn() utility', async () => {
+    // shadcn init writes the cn() utility to the `utils` alias itself
+    it('should not generate the cn() utility', async () => {
       await featureGenerator(tree, options);
-      const content = tree.read('features/ui/src/lib/utils/index.ts', 'utf-8');
-      expect(content).toContain('export function cn');
-      expect(content).toContain("from 'clsx'");
-      expect(content).toContain("from 'tailwind-merge'");
+      expect(tree.exists('features/ui/src/lib/ui/utils/index.ts')).toBeFalsy();
+      expect(tree.exists('features/ui/src/lib/utils/index.ts')).toBeFalsy();
     });
 
     it('should generate a tailwind css entry', async () => {
@@ -430,13 +429,13 @@ describe('feature generator', () => {
       expect(tree.exists('features/ui/src/lib/client.ts')).toBeFalsy();
     });
 
-    it('should add shadcn-related dependencies', async () => {
+    // shadcn init/add installs these alongside the files that need them
+    it('should not add shadcn component dependencies', async () => {
       await featureGenerator(tree, options);
       const packageJson = readJson(tree, 'package.json');
-      expect(packageJson.dependencies?.clsx).toBeDefined();
-      expect(packageJson.dependencies?.['tailwind-merge']).toBeDefined();
-      expect(packageJson.dependencies?.['class-variance-authority']).toBeDefined();
-      expect(packageJson.dependencies?.['lucide-react']).toBeDefined();
+      for (const pkg of ['clsx', 'tailwind-merge', 'class-variance-authority', 'lucide-react']) {
+        expect(packageJson.dependencies?.[pkg]).toBeUndefined();
+      }
     });
 
     it('should register a shadcn target on the project', async () => {

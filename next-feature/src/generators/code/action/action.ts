@@ -5,7 +5,7 @@ import {
   runTasksInSerial,
   Tree
 } from '@nx/devkit';
-import { writeCodeFile } from 'next-feature/src/lib/write-file';
+import { writeCodeFile } from '../../../lib/write-file';
 import * as path from 'path';
 import { exportFile } from '../../../lib/export-file';
 import { initializeCodeGenerator } from '../../../lib/utils/code-generator';

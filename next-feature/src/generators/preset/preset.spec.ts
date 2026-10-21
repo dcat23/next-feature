@@ -1,31 +1,32 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
-import { Tree, logger, readProjectConfiguration } from '@nx/devkit';
+import { Tree, getProjects } from '@nx/devkit';
 import { presetGenerator } from './preset';
 import { PresetGeneratorSchema } from './schema';
 describe('preset generator', () => {
   let tree: Tree;
   const options: PresetGeneratorSchema = {
     name: 'test',
+    skipFormat: true,
   };
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
   });
-  it('should run successfully', async () => {
+  it('should generate root workspace files', async () => {
     await presetGenerator(tree, options);
-    const config = readProjectConfiguration(tree, 'test');
-    expect(config).toBeDefined();
+    expect(tree.read('README.md', 'utf-8')).toContain('# test');
+    expect(tree.exists('tailwind.base.config.js')).toBeTruthy();
   });
-  it('debugging tree', async () => {
+  it('should gitignore env files except .env.example', async () => {
     await presetGenerator(tree, options);
-    const targetPath = 'apps/test/src/lib/auth';
-    logger.debug(tree.children(targetPath));
-    const targetFile = tree.read(targetPath + '/index.ts', 'utf-8');
-    logger.debug(targetFile);
+    const gitignore = tree.read('.gitignore', 'utf-8');
+    expect(gitignore).toContain('.env*');
+    expect(gitignore).toContain('!.env.example');
   });
-  it('should set import path', async () => {
+  // Scaffolding an application here makes create-next-feature far slower
+  // (dependency install, formatting), so the preset only writes root files
+  it('should not generate an application', async () => {
     await presetGenerator(tree, options);
-    const tsConfig = tree.read('tsconfig.base.json', 'utf-8');
-    expect(tsConfig.includes('@app/test')).toBeTruthy();
-    logger.debug(tsConfig);
+    expect(getProjects(tree).size).toBe(0);
+    expect(tree.exists('apps/test')).toBeFalsy();
   });
 });

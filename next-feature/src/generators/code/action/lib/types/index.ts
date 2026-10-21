@@ -60,6 +60,7 @@ export interface NormalizedActionGeneratorSchema extends NormalizedCodeGenerator
   mapperName?: string;
   mapperImportPath: string; // relative to the action package
   configImportPath: string
+  useApi: boolean; // wrap in withApi (api/form only)
 
   // Request/Response contract, written to the data-type location
   schemaName: string;

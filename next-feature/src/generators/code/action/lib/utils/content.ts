@@ -19,8 +19,7 @@ export type ${responseType} = {};
  * Server-only action, callable from RSC, route handlers and other server code.
  */
 export function apiContent(options: NormalizedActionGeneratorSchema) {
-  const { hasRequestBody, schemaName, requestType, responseType } = options;
-  const useApi = /(api|form)/.test(options.actionType);
+  const { hasRequestBody, schemaName, requestType, responseType, useApi } = options;
   return`
 export const ${options.methodName} = ${useApi ? "withApi" : ""}(async (options?: ${requestType}) => {
   ${hasRequestBody ? `const parsed = ${schemaName}.safeParse(options);

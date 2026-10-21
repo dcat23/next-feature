@@ -62,6 +62,8 @@ export function normalize(
   const hasRequestBody = /(post|put|patch)/.test(httpMethod);
   const mapperName = 'mapTo'.concat(normalized.names.className);
   const configImportPath = handleConfigImportPath(normalized)
+  // db/none actions return their result directly instead of wrapping it in withApi
+  const useApi = /(api|form)/.test(normalized.actionType);
   const schemaName = methodName + 'Schema';
   const requestType = normalized.names.className + 'Request';
   const responseType = normalized.names.className + 'Response';
@@ -94,6 +96,7 @@ export function normalize(
     mapperName,
     domain,
     configImportPath,
+    useApi,
     schemaName,
     requestType,
     responseType,

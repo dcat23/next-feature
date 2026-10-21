@@ -44,6 +44,20 @@ describe('feature generator', () => {
       await featureGenerator(tree, options);
       expect(tree.exists('features/test/src/lib/hello-server.tsx')).toBeFalsy();
     });
+
+    it('should guard server.ts with server-only', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/test/src/server.ts', 'utf-8');
+      expect(content).toContain("import 'server-only';");
+    });
+
+    it('should add server-only dependency and externalize it in the vite build', async () => {
+      await featureGenerator(tree, options);
+      const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies['server-only']).toBeDefined();
+      const viteConfig = tree.read('features/test/vite.config.mts', 'utf-8');
+      expect(viteConfig).toContain("'server-only'");
+    });
   });
 
   describe('type normalization', () => {
@@ -160,7 +174,7 @@ describe('feature generator', () => {
     it('should externalize pino packages in the vite build so the wrong browser/node build is not bundled in', async () => {
       await featureGenerator(tree, options);
       const content = tree.read('features/logger/vite.config.mts', 'utf-8');
-      expect(content).toContain("external: ['react','react-dom','react/jsx-runtime','pino','pino-http','pino-pretty','thread-stream']");
+      expect(content).toContain("external: ['react','react-dom','react/jsx-runtime','server-only','pino','pino-http','pino-pretty','thread-stream']");
     });
 
     it('should generate browser client logger with use client directive', async () => {

@@ -7,7 +7,7 @@ import {
 import * as path from 'path';
 import type { ClientConfigGeneratorSchema } from './schema';
 import { normalize } from './lib/utils';
-import { PLUGIN_VERSION } from '../../../lib/constants/versions';
+import { PLUGIN_VERSION, SERVER_ONLY_VERSION } from '../../../lib/constants/versions';
 import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { updateDependencies } from '../../../lib/utils';
 import { updateDotenv } from 'next-feature/src/lib/dotenv/dot-env';
@@ -39,7 +39,8 @@ export async function clientConfigGenerator(
 
   // Add @next-feature/client dependency
   const dependencies: Record<string, string> = {
-    "@next-feature/client": PLUGIN_VERSION
+    "@next-feature/client": PLUGIN_VERSION,
+    "server-only": SERVER_ONLY_VERSION
   };
 
   const dependenciesTask = updateDependencies(tree, dependencies, {});

@@ -29,7 +29,7 @@ export async function actionGenerator(
   );
 
   // Auto-generate client config if it doesn't exist
-  const configPath = path.join(directory, 'lib/client/config.ts');
+  const configPath = path.join(sourceRoot, 'lib/config/client.ts');
   if (!tree.exists(configPath)) {
     tasks.push(
       await clientConfigGenerator(tree, {

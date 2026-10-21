@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { ApiClient, type ApiResponse, ApiError } from '<%= clientImportPath %>';
 import { <%= apiKeyName %> } from "./env"
 // import { logger } from '@next-feature/logging/server';

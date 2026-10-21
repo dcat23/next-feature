@@ -123,6 +123,9 @@
       },
       "dotenv": {
         "skipEnvConfig": true
+      },
+      "hook": {
+        "projectName": "test"
       }
     },
     "@nx/react": {

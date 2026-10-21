@@ -21,10 +21,7 @@
       "@next-feature/client/*": ["features/client/src/*"],
       "@next-feature/logging": ["features/logging/src/index.ts"],
       "@next-feature/logging/server": ["features/logging/src/server.ts"],
-      "@next-feature/logging/*": ["features/logging/src/*"],
-      "@next-feature/test": ["features/test/src/index.ts"],
-      "@next-feature/test/server": ["features/test/src/server.ts"],
-      "@next-feature/test/*": ["features/test/src/*"]
+      "@next-feature/logging/*": ["features/logging/src/*"]
     }
   },
   "exclude": ["node_modules", "tmp"]

@@ -558,6 +558,23 @@ describe('feature generator', () => {
       const vite = tree.read('features/auth/vite.config.mts', 'utf-8');
       expect(vite).toContain("'next-auth',/^next-auth\\//,'extra']");
     });
+
+    it('should key zod field errors by their full dotted path', async () => {
+      await featureGenerator(tree, { name: 'apiClient', type: 'client', skipFormat: true });
+      const zod = tree.read('features/apiClient/src/lib/utils/zod.ts', 'utf-8');
+      expect(zod).toContain("errors[issue.path.map(String).join('.')] = issue.message;");
+    });
+
+    it('should check axios and zod errors by shape, not instanceof, in the client template', async () => {
+      await featureGenerator(tree, { name: 'apiClient', type: 'client', skipFormat: true });
+      const error = tree.read('features/apiClient/src/lib/utils/error.ts', 'utf-8');
+      expect(error).toContain('if (isAxiosError(error)) {');
+      expect(error).toContain('if (isZodError(error)) {');
+      expect(error).not.toMatch(/instanceof (AxiosError|ZodError)/);
+      const zod = tree.read('features/apiClient/src/lib/utils/zod.ts', 'utf-8');
+      expect(zod).not.toContain("from 'zod'");
+      expect(zod).toContain('zodError.issues.forEach');
+    });
   });
 
   describe('dependencies', () => {

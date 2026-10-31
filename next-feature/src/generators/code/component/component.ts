@@ -27,6 +27,7 @@ function normalize(
     options.kind ??= 'generic';
   }
   options.inferPath = Boolean(options.inferPath);
+  options.clientPackage ??= '@next-feature/client';
 
   // Must run before normalizeCodeGenerator, which unconditionally defaults
   // `package` to 'lib' and would otherwise make this per-type default a no-op.

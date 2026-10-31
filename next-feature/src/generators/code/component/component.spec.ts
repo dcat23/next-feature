@@ -77,6 +77,18 @@ describe('component generator', () => {
     expect(content).toContain('useActionState');
     expect(content).toContain('action');
     expect(content).toContain('initialState');
+    expect(content).toContain("import type { ApiResponse } from '@next-feature/client';");
+  });
+  it('should import ApiResponse from a custom clientPackage in form components', async () => {
+    await componentGenerator(tree, {
+      ...defaultOptions,
+      name: 'login',
+      componentType: 'component',
+      kind: 'form',
+      clientPackage: '@myorg/api-client',
+    });
+    const content = tree.read('features/base/src/components/login-form.tsx', 'utf-8');
+    expect(content).toContain("import type { ApiResponse } from '@myorg/api-client';");
   });
   it('should generate page component in the app directory', async () => {
     const options: ComponentGeneratorSchema = {

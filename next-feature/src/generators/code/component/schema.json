@@ -64,6 +64,11 @@
       "alias": "i",
       "default": false
     },
+    "clientPackage": {
+      "type": "string",
+      "description": "componentType 'component', kind 'form': API client package to import the ApiResponse type from. Use @next-feature/client (default) or a custom package like @myorg/api-client",
+      "default": "@next-feature/client"
+    },
     "skipFormat": {
       "type": "boolean",
       "description": "Skip prettier code formatting (used internally for chained generators)",

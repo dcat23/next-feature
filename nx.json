@@ -105,8 +105,8 @@
         "projectName": "test"
       },
       "component": {
-        "projectName": "ui",
-        "infer-path": true,
+        "projectName": "test",
+        "inferPath": true,
         "kind": "generic"
       },
       "action": {
@@ -116,9 +116,6 @@
         "orgName": "next-feature"
       },
       "application": {
-        "orgName": "next-feature"
-      },
-      "client": {
         "orgName": "next-feature"
       },
       "dotenv": {

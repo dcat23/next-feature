@@ -79,7 +79,10 @@ npx nx g next-feature:client-config --projectName=myfeature --includeInterceptor
 The generated `lib/config/client.ts` looks like:
 
 ```typescript
-import { ApiClient, type ApiResponse, ApiError } from '@next-feature/client';
+import 'server-only';
+
+import { type ApiResponse, ApiError } from '@next-feature/client';
+import { ApiClient } from '@next-feature/client/server';
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
 

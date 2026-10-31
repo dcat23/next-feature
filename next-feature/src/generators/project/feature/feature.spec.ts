@@ -209,7 +209,24 @@ describe('feature generator', () => {
       await featureGenerator(tree, options);
       const content = tree.read('features/logger/src/server.ts', 'utf-8');
       expect(content).toContain("export { default as logger } from");
-      expect(content).toContain('server');
+      expect(content.startsWith("import 'server-only';")).toBe(true);
+      expect(content).toContain('./lib/server');
+    });
+
+    it.each(['config.ts', 'lib/server.ts', 'lib/utils/index.ts'])(
+      'should mark %s as server-only',
+      async (file) => {
+        await featureGenerator(tree, options);
+        const content = tree.read(`features/logger/src/${file}`, 'utf-8');
+        expect(content.startsWith("import 'server-only';")).toBe(true);
+      }
+    );
+
+    it('should keep client-safe modules free of server-only', async () => {
+      await featureGenerator(tree, options);
+      for (const file of ['index.ts', 'lib/client.ts', 'lib/correlation.ts', 'components/global-error-handler.tsx']) {
+        expect(tree.read(`features/logger/src/${file}`, 'utf-8')).not.toContain('server-only');
+      }
     });
   });
 
@@ -252,18 +269,30 @@ describe('feature generator', () => {
       expect(packageJson.dependencies?.axios).toBeDefined();
     });
 
-    it('should generate index.ts exporting the client, error, and hooks', async () => {
+    it('should generate a client-safe index.ts exporting the error and types, but not ApiClient', async () => {
       await featureGenerator(tree, options);
       const content = tree.read('features/apiClient/src/index.ts', 'utf-8');
-      expect(content).toContain("export { ApiClient } from './lib/client'");
       expect(content).toContain("export { ApiError } from './lib/error'");
+      expect(content).not.toContain("from './lib/client'");
+      expect(content).not.toContain('with-api');
     });
 
-    it('should generate server.ts exporting the withApi action wrapper', async () => {
+    it('should generate server.ts exporting ApiClient and the withApi action wrapper', async () => {
       await featureGenerator(tree, options);
       const content = tree.read('features/apiClient/src/server.ts', 'utf-8');
+      expect(content.startsWith("import 'server-only';")).toBe(true);
       expect(content).toContain("export * from './lib/actions/with-api'");
+      expect(content).toContain("export * from './lib/client'");
     });
+
+    it.each(['lib/client.ts', 'lib/actions/with-api.ts'])(
+      'should mark %s as server-only',
+      async (file) => {
+        await featureGenerator(tree, options);
+        const content = tree.read(`features/apiClient/src/${file}`, 'utf-8');
+        expect(content.startsWith("import 'server-only';")).toBe(true);
+      }
+    );
 
     it('should fix package.json exports to remove the ./dist/ prefix', async () => {
       await featureGenerator(tree, options);

@@ -275,8 +275,9 @@ Package manager: `pnpm` (use `pnpm install`, not npm or yarn)
 - Test with different `actionType` values if applicable
 
 **Working with the client library:**
-- Client library exports from `clients/client/src/index.ts` (browser)
-- Server-side exports from `clients/client/src/server.ts` (Node.js)
+- `@next-feature/client` is generated from the `client` feature template into `features/client` (and `@next-feature/logging` from `logging` into `features/logging`); regenerate them after changing those templates
+- Client-safe exports from `features/client/src/index.ts` (`ApiError`, types, error utils)
+- Server-only exports from `features/client/src/server.ts` (`ApiClient`, `withApi`, `withForm`)
 - Use `ApiError.fromZodError()` for form validation errors
 - Use `ApiError.builder()` for custom error construction
 
@@ -298,6 +299,7 @@ Rules:
 - Action files never carry `'use server'`; they import `'server-only'`
 - `'use server'` wrappers exist only for client-originated calls and use the `Action` suffix (`<name>Action`, `<name>FormAction`), distinct from the `form` action type
 - Every feature `server.ts` and `lib/config/client.ts` starts with `import 'server-only'`; `server-only` is a feature dependency and a vite `external`
+- In the `client`/`logging` feature templates, modules that read server env or only run on the server also import `'server-only'` and are exported only from `server.ts`: `ApiClient` (`lib/client.ts`), `withApi`/`withForm` (`lib/actions/with-api.ts`), and `pinoOptions` (`config.ts`), the server `logger` (`lib/server.ts`) and `registerPino` (`lib/utils`). `index.ts` stays client-safe
 - Applications get the same files but no `index.ts`/`server.ts` exports
 
 **Action Types:**

@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { pinoOptions } from '../../config';
 
 export const registerPino = async () => {

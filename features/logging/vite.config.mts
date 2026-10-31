@@ -50,6 +50,7 @@ export default defineConfig(() => ({
         'react',
         'react-dom',
         'react/jsx-runtime',
+        'server-only',
         'pino',
         'pino-http',
         'pino-pretty',

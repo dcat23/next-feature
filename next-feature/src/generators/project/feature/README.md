@@ -88,13 +88,14 @@ features/[name]/src/
 
 ```
 features/[name]/src/
-├── config.ts               # Shared pino options (pinoOptions export)
+├── config.ts               # pino options (pinoOptions export; server-only)
 ├── lib/
-│   ├── server.ts           # Server-side pino logger (Node.js)
+│   ├── server.ts           # Server-side pino logger (Node.js; server-only)
 │   ├── client.ts           # Browser pino logger ('use client', transmit config)
-│   └── correlation.ts      # getCorrelationId / setCorrelationId (sessionStorage)
-├── index.ts                # Exports browser logger + correlation utilities
-└── server.ts               # Exports server logger
+│   ├── correlation.ts      # getCorrelationId / setCorrelationId (sessionStorage)
+│   └── utils/index.ts      # registerPino() for instrumentation.ts (server-only)
+├── index.ts                # Client-safe: browser logger, GlobalErrorHandler, correlation utilities
+└── server.ts               # 'server-only': server logger, pinoOptions, registerPino
 ```
 
 **Additional dependencies added:**
@@ -129,10 +130,10 @@ features/[name]/src/
 ├── hooks/
 │   └── use-api-error.tsx       # useApiError() hook
 ├── lib/
-│   ├── client.ts                # ApiClient (Axios wrapper: retries, token refresh)
+│   ├── client.ts                # ApiClient (Axios wrapper: retries, token refresh; server-only)
 │   ├── error.ts                 # ApiError class + ApiErrorBuilder
 │   ├── actions/
-│   │   └── with-api.ts          # withApi / withForm server action wrappers
+│   │   └── with-api.ts          # withApi / withForm server action wrappers (server-only)
 │   ├── types/
 │   │   ├── index.ts             # ApiResponse, ProblemDetail
 │   │   └── client.ts            # ApiClientConfig
@@ -140,8 +141,8 @@ features/[name]/src/
 │       ├── axios.ts             # Axios error -> ProblemDetail extraction
 │       ├── zod.ts                # Zod error -> ApiError conversion
 │       └── error.ts              # getErrorMessage, isHttpStatus, handleApiError
-├── index.ts                     # Exports ApiClient, ApiError, hooks, components
-└── server.ts                    # Exports withApi / withForm
+├── index.ts                     # Client-safe: ApiError, ApiErrorBuilder, types, error utils
+└── server.ts                    # 'server-only': ApiClient, withApi / withForm
 ```
 
 **Additional dependencies added:**
@@ -226,8 +227,8 @@ Usage:
 import { logger } from '@feature/logging';
 import { getCorrelationId } from '@feature/logging';
 
-// Server (Next.js server components / actions)
-import { logger } from '@feature/logging/server';
+// Server (server components, actions, route handlers, instrumentation)
+import { logger, pinoOptions, registerPino } from '@feature/logging/server';
 ```
 
 ## Default Dependencies
@@ -258,7 +259,8 @@ npx nx g next-feature:feature --name=logging
 npx nx g next-feature:feature --name=apiClient --type=client
 
 # Import in your app
-import { ApiClient, ApiError, useApiError } from '@feature/apiClient';
+import { ApiError, getErrorMessage } from '@feature/apiClient';  // client-safe
+import { ApiClient, withApi } from '@feature/apiClient/server';  // server-only
 ```
 
 ### Create a users feature with API actions

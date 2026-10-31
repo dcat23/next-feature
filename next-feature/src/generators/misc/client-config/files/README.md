@@ -42,17 +42,20 @@ const baseURL = process.env.NODE_ENV === 'production'
 
 ### Client Import Path
 
-Specify where to import API utilities from:
+Specify where to import API utilities from. Client-safe exports (`ApiError`, `ApiResponse`) come from the package root; the server-only `ApiClient` comes from its `/server` entry:
 
 ```typescript
 // Default - uses published @next-feature/client
-import { ApiClient, type ApiResponse, ApiError } from '@next-feature/client';
+import { type ApiResponse, ApiError } from '@next-feature/client';
+import { ApiClient } from '@next-feature/client/server';
 
 // Custom - uses project-specific client package
-import { ApiClient, type ApiResponse, ApiError } from '@myorg/http-client';
+import { type ApiResponse, ApiError } from '@myorg/http-client';
+import { ApiClient } from '@myorg/http-client/server';
 
 // Local - uses generated client package
-import { ApiClient, type ApiResponse, ApiError } from '@myfeature/client';
+import { type ApiResponse, ApiError } from '@myfeature/client';
+import { ApiClient } from '@myfeature/client/server';
 ```
 
 ### Interceptor Examples

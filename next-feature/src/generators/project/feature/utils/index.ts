@@ -57,3 +57,35 @@ export const includeSourceInReleaseManifests = (tree: Tree, projectRoot: string)
         return json;
     });
 }
+
+/**
+ * Caret range for a version constant, so a published feature library accepts
+ * compatible versions the app already has (and pnpm can dedupe them) while
+ * staying within the major it was built against. Ranges pass through as-is.
+ */
+export const asCaretRange = (version: string) =>
+    /^\d/.test(version) ? `^${version}` : version;
+
+/**
+ * Declare the packages a feature library leaves external in its vite build
+ * in the feature's own package.json (copied to dist/ and published), so
+ * installing the library installs them too. React is a peer dependency: the
+ * app must share a single copy. Everything else is a regular dependency
+ * pinned to the range the library was built against, so an app on a
+ * different major can't change the library's behaviour.
+ */
+export const updatePackageJsonDependencies = (
+    tree: Tree,
+    projectRoot: string,
+    dependencies: Record<string, string>,
+    peerDependencies: Record<string, string>
+) => {
+    const sortKeys = (deps: Record<string, string>) =>
+        Object.fromEntries(Object.entries(deps).sort(([a], [b]) => a.localeCompare(b)));
+
+    updateJson(tree, joinPathFragments(projectRoot, 'package.json'), (json) => {
+        json.dependencies = sortKeys({ ...json.dependencies, ...dependencies });
+        json.peerDependencies = sortKeys({ ...json.peerDependencies, ...peerDependencies });
+        return json;
+    });
+}

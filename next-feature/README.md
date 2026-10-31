@@ -291,7 +291,7 @@ npx nx format:write
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | --name | string | required | Name for the generated code |
-| --projectName | string | "base" | Target project for generation |
+| --projectName, -p | string | required | Target project. Can be set once as the generator's default in `nx.json` (`generators["next-feature"].<generator>.projectName`; also written automatically on first run). A name that doesn't exist yet is created as a feature library |
 | --directory | string | - | Override default directory |
 | --package | string | "lib" | Package subdirectory in src/ |
 | --skipFormat | boolean | false | Skip prettier formatting |
@@ -366,7 +366,7 @@ npx nx g next-feature:feature --name=users [options]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| --type | enum | "generic" | Type: generic, base, logging, client, auth, or ui |
+| --type | enum | "generic" | Type: generic, logging, client, auth, or ui |
 | --orgName | string | - | Scoped organization name |
 
 `--type=client` registers a `<NAME>_API_URL` variable in this feature's `.env`/`.env.example`. `--type=ui` registers a `shadcn` executor target on the project (see [Executors](#executors)).

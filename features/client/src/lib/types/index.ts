@@ -1,7 +1,12 @@
 import { HttpStatusCode } from 'axios';
-import { ApiError } from '../error';
 
 /**
+ * Result of a withApi-wrapped action.
+ *
+ * `error` is a plain ProblemDetail rather than an ApiError instance so the
+ * response survives serialization when returned from a 'use server' action.
+ * Rehydrate it with `ApiError.of(response.error)` for status helpers.
+ *
  * [api-response]
  * next-feature@0.0.11-beta
  * November 4th 2025, 6:37:27 pm
@@ -9,7 +14,7 @@ import { ApiError } from '../error';
 export interface ApiResponse<Response> {
   success?: boolean;
   message?: string;
-  error?: ApiError;
+  error?: ProblemDetail;
   data: Response;
 }
 

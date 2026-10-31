@@ -1,8 +1,11 @@
 /**
- * Client package exports
+ * Client package exports (client-safe)
  *
- * This client package provides all necessary API client utilities.
- * All implementations are self-contained and do not depend on external packages.
+ * This entry point is safe to import from client components: ApiError,
+ * response/error types and error helpers. Server-only code lives in
+ * './server' (import from '<package>/server'):
+ *   - ApiClient (reads server env, used by lib/config/client.ts)
+ *   - withApi / withForm (used by generated server actions)
  *
  * CUSTOMIZATION:
  * You can easily customize any part of the implementation:
@@ -23,11 +26,11 @@
  */
 
 // Core API utilities
-export { ApiClient } from './lib/client';
 export { ApiError } from './lib/error';
 
 export * from './lib/types/client';
 export * from './lib/types/index';
 export * from './lib/utils/axios';
 export * from './lib/utils/error';
+export * from './lib/utils/problem-detail';
 export * from './lib/utils/zod';

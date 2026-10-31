@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { ApiError } from '../error';
 import type { ApiResponse } from '../types';
 
@@ -28,7 +30,9 @@ export function withApi<F extends (...args: any[]) => Promise<any>>(
       const apiError = ApiError.of(e);
       return {
         data: opts.fallbackData,
-        error: apiError,
+        // plain ProblemDetail: an ApiError instance would not survive being
+        // returned from a 'use server' action
+        error: apiError.problemDetail,
         message: apiError.message,
         success: false,
       };

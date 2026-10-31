@@ -7,8 +7,9 @@
   "properties": {
     "projectName": {
       "type": "string",
-      "description": "Target project name where config will be generated at src/lib/config/client.ts. Auto-creates feature if not found.",
-      "alias": "p"
+      "description": "Target project name where config will be generated at src/lib/config/client.ts. Required (or set it as this generator's default in nx.json); must be an existing project.",
+      "alias": "p",
+      "x-prompt": "Which project should the client config be generated in?"
     },
     "clientPackage": {
       "type": "string",
@@ -32,5 +33,6 @@
       "description": "Skip prettier code formatting (used internally for chained generators)",
       "default": false
     }
-  }
+  },
+  "required": ["projectName"]
 }

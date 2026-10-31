@@ -1,6 +1,7 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { Tree, readProjectConfiguration, readJson } from '@nx/devkit';
 import { featureGenerator } from './feature';
+import { addRollupExternalPackages } from '../../../lib/utils/vite-config';
 import { FeatureGeneratorSchema } from './schema';
 import { normalizeFeatureGenerator } from './utils/normalize';
 
@@ -66,16 +67,6 @@ describe('feature generator', () => {
       expect(normalized.type).toBe('generic');
     });
 
-    it('should set type to base when name is base and type is not specified', () => {
-      const normalized = normalizeFeatureGenerator({ name: 'base' });
-      expect(normalized.type).toBe('base');
-    });
-
-    it('should set type to base when name is base and type is generic', () => {
-      const normalized = normalizeFeatureGenerator({ name: 'base', type: 'generic' });
-      expect(normalized.type).toBe('base');
-    });
-
     it('should set type to logging when name is logging and type is not specified', () => {
       const normalized = normalizeFeatureGenerator({ name: 'logging' });
       expect(normalized.type).toBe('logging');
@@ -88,12 +79,12 @@ describe('feature generator', () => {
 
     it('should keep explicit type for non-inferred names', () => {
       expect(normalizeFeatureGenerator({ name: 'test', type: 'logging' }).type).toBe('logging');
-      expect(normalizeFeatureGenerator({ name: 'test', type: 'base' }).type).toBe('base');
+      expect(normalizeFeatureGenerator({ name: 'test', type: 'client' }).type).toBe('client');
     });
 
     it('should allow explicit type override on inferred names', () => {
-      expect(normalizeFeatureGenerator({ name: 'base', type: 'logging' }).type).toBe('logging');
-      expect(normalizeFeatureGenerator({ name: 'logging', type: 'base' }).type).toBe('base');
+      expect(normalizeFeatureGenerator({ name: 'client', type: 'logging' }).type).toBe('logging');
+      expect(normalizeFeatureGenerator({ name: 'logging', type: 'client' }).type).toBe('client');
     });
 
     it('should set type to client when name is client and type is not specified', () => {
@@ -174,7 +165,7 @@ describe('feature generator', () => {
     it('should externalize pino packages in the vite build so the wrong browser/node build is not bundled in', async () => {
       await featureGenerator(tree, options);
       const content = tree.read('features/logger/vite.config.mts', 'utf-8');
-      expect(content).toContain("external: ['react','react-dom','react/jsx-runtime','server-only','pino','pino-http','pino-pretty','thread-stream']");
+      expect(content).toContain("external: ['react','react-dom','react/jsx-runtime','server-only','zod','pino','pino-http','pino-pretty','thread-stream']");
     });
 
     it('should generate browser client logger with use client directive', async () => {
@@ -209,7 +200,24 @@ describe('feature generator', () => {
       await featureGenerator(tree, options);
       const content = tree.read('features/logger/src/server.ts', 'utf-8');
       expect(content).toContain("export { default as logger } from");
-      expect(content).toContain('server');
+      expect(content.startsWith("import 'server-only';")).toBe(true);
+      expect(content).toContain('./lib/server');
+    });
+
+    it.each(['config.ts', 'lib/server.ts', 'lib/utils/index.ts'])(
+      'should mark %s as server-only',
+      async (file) => {
+        await featureGenerator(tree, options);
+        const content = tree.read(`features/logger/src/${file}`, 'utf-8');
+        expect(content.startsWith("import 'server-only';")).toBe(true);
+      }
+    );
+
+    it('should keep client-safe modules free of server-only', async () => {
+      await featureGenerator(tree, options);
+      for (const file of ['index.ts', 'lib/client.ts', 'lib/correlation.ts', 'components/global-error-handler.tsx']) {
+        expect(tree.read(`features/logger/src/${file}`, 'utf-8')).not.toContain('server-only');
+      }
     });
   });
 
@@ -252,18 +260,49 @@ describe('feature generator', () => {
       expect(packageJson.dependencies?.axios).toBeDefined();
     });
 
-    it('should generate index.ts exporting the client, error, and hooks', async () => {
+    it('should generate a client-safe index.ts exporting the error and types, but not ApiClient', async () => {
       await featureGenerator(tree, options);
       const content = tree.read('features/apiClient/src/index.ts', 'utf-8');
-      expect(content).toContain("export { ApiClient } from './lib/client'");
       expect(content).toContain("export { ApiError } from './lib/error'");
+      expect(content).not.toContain("from './lib/client'");
+      expect(content).not.toContain('with-api');
     });
 
-    it('should generate server.ts exporting the withApi action wrapper', async () => {
+    it('should generate server.ts exporting ApiClient and the withApi action wrapper', async () => {
       await featureGenerator(tree, options);
       const content = tree.read('features/apiClient/src/server.ts', 'utf-8');
+      expect(content.startsWith("import 'server-only';")).toBe(true);
       expect(content).toContain("export * from './lib/actions/with-api'");
+      expect(content).toContain("export * from './lib/client'");
     });
+
+    it('should return a serializable ProblemDetail (not an ApiError instance) from withApi', async () => {
+      await featureGenerator(tree, options);
+      const types = tree.read('features/apiClient/src/lib/types/index.ts', 'utf-8');
+      expect(types).toContain('error?: ProblemDetail;');
+      expect(types).not.toContain("from '../error'");
+      const withApi = tree.read('features/apiClient/src/lib/actions/with-api.ts', 'utf-8');
+      expect(withApi).toContain('error: apiError.problemDetail,');
+    });
+
+    it('should rehydrate a ProblemDetail into an ApiError via ApiError.of', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/apiClient/src/lib/utils/problem-detail.ts')).toBeTruthy();
+      const error = tree.read('features/apiClient/src/lib/utils/error.ts', 'utf-8');
+      expect(error).toContain('if (isProblemDetail(error)) {');
+      expect(error).toContain('return new ApiError(error);');
+      const index = tree.read('features/apiClient/src/index.ts', 'utf-8');
+      expect(index).toContain("export * from './lib/utils/problem-detail'");
+    });
+
+    it.each(['lib/client.ts', 'lib/actions/with-api.ts'])(
+      'should mark %s as server-only',
+      async (file) => {
+        await featureGenerator(tree, options);
+        const content = tree.read(`features/apiClient/src/${file}`, 'utf-8');
+        expect(content.startsWith("import 'server-only';")).toBe(true);
+      }
+    );
 
     it('should fix package.json exports to remove the ./dist/ prefix', async () => {
       await featureGenerator(tree, options);
@@ -298,7 +337,7 @@ describe('feature generator', () => {
       expect(tree.exists('features/auth/src/lib/types/next-auth.d.ts')).toBeTruthy();
     });
 
-    it('should not generate logging, base, or client files', async () => {
+    it('should not generate logging or client files', async () => {
       await featureGenerator(tree, options);
       expect(tree.exists('features/auth/src/config.ts')).toBeFalsy();
       expect(tree.exists('features/auth/src/components/error-component.tsx')).toBeFalsy();
@@ -366,31 +405,12 @@ describe('feature generator', () => {
     });
   });
 
-  describe('base type', () => {
-    const options: FeatureGeneratorSchema = { name: 'base', skipFormat: true };
-
-    it('should auto-resolve to base type when name is base', async () => {
-      await featureGenerator(tree, options);
-      expect(tree.exists('features/base/src/components/error-component.tsx')).toBeTruthy();
-    });
-
-    it('should not generate logging files for base type', async () => {
-      await featureGenerator(tree, options);
-      expect(tree.exists('features/base/src/config.ts')).toBeFalsy();
-      expect(tree.exists('features/base/src/lib/server.ts')).toBeFalsy();
-    });
-
-    it('should not add pino dependencies for base type', async () => {
-      await featureGenerator(tree, options);
-      const packageJson = readJson(tree, 'package.json');
-      expect(packageJson.dependencies?.pino).toBeUndefined();
-    });
-
-    it('should add base sonner and zod dependencies', async () => {
-      await featureGenerator(tree, options);
-      const packageJson = readJson(tree, 'package.json');
-      expect(packageJson.dependencies?.sonner).toBeDefined();
-      expect(packageJson.dependencies?.zod).toBeDefined();
+  describe('former base type', () => {
+    it('should treat a feature named base as a generic feature', async () => {
+      expect(normalizeFeatureGenerator({ name: 'base' }).type).toBe('generic');
+      await featureGenerator(tree, { name: 'base', skipFormat: true });
+      expect(tree.exists('features/base/src/index.ts')).toBeTruthy();
+      expect(tree.exists('features/base/src/components')).toBeFalsy();
     });
   });
 
@@ -454,6 +474,67 @@ describe('feature generator', () => {
     it('should generate ui files when name is ui', async () => {
       await featureGenerator(tree, { name: 'ui', skipFormat: true });
       expect(tree.exists('features/ui/components.json')).toBeTruthy();
+    });
+  });
+
+  describe('published library dependencies', () => {
+    const readLibPackageJson = (name: string) => readJson(tree, `features/${name}/package.json`);
+
+    it('should declare every feature\'s externals in its own package.json, with react as a peer', async () => {
+      await featureGenerator(tree, { name: 'test', skipFormat: true });
+      const pkg = readLibPackageJson('test');
+      expect(pkg.dependencies).toEqual({ 'server-only': '^0.0.1', zod: '^3.24.4' });
+      expect(pkg.peerDependencies).toEqual({ react: '^19.0.0', 'react-dom': '^19.0.0' });
+      expect(tree.read('features/test/vite.config.mts', 'utf-8')).toContain("'server-only','zod'");
+    });
+
+    it('should externalize and declare axios for client features', async () => {
+      await featureGenerator(tree, { name: 'apiClient', type: 'client', skipFormat: true });
+      const pkg = readLibPackageJson('apiClient');
+      expect(pkg.dependencies).toEqual({ axios: '^1.9.0', 'server-only': '^0.0.1', zod: '^3.24.4' });
+      expect(tree.read('features/apiClient/vite.config.mts', 'utf-8')).toContain("'server-only','zod','axios'");
+    });
+
+    it('should declare pino packages for logging features', async () => {
+      await featureGenerator(tree, { name: 'logger', type: 'logging', skipFormat: true });
+      expect(readLibPackageJson('logger').dependencies).toEqual({
+        pino: '^10.3.1',
+        'pino-http': '^11.0.0',
+        'pino-pretty': '^13.0.0',
+        'server-only': '^0.0.1',
+        zod: '^3.24.4',
+      });
+    });
+
+    it('should make next-auth a peer for auth features and externalize its subpath imports', async () => {
+      await featureGenerator(tree, { name: 'auth', type: 'auth', skipFormat: true });
+      expect(readLibPackageJson('auth').peerDependencies['next-auth']).toBe('^5.0.0-beta.27');
+      const vite = tree.read('features/auth/vite.config.mts', 'utf-8');
+      expect(vite).toContain("'next-auth',/^next-auth\\//]");
+    });
+
+    it('should keep regex externals intact when more packages are added later', async () => {
+      await featureGenerator(tree, { name: 'auth', type: 'auth', skipFormat: true });
+      addRollupExternalPackages(tree, 'features/auth', ['extra', /^next-auth\//]);
+      const vite = tree.read('features/auth/vite.config.mts', 'utf-8');
+      expect(vite).toContain("'next-auth',/^next-auth\\//,'extra']");
+    });
+
+    it('should key zod field errors by their full dotted path', async () => {
+      await featureGenerator(tree, { name: 'apiClient', type: 'client', skipFormat: true });
+      const zod = tree.read('features/apiClient/src/lib/utils/zod.ts', 'utf-8');
+      expect(zod).toContain("errors[issue.path.map(String).join('.')] = issue.message;");
+    });
+
+    it('should check axios and zod errors by shape, not instanceof, in the client template', async () => {
+      await featureGenerator(tree, { name: 'apiClient', type: 'client', skipFormat: true });
+      const error = tree.read('features/apiClient/src/lib/utils/error.ts', 'utf-8');
+      expect(error).toContain('if (isAxiosError(error)) {');
+      expect(error).toContain('if (isZodError(error)) {');
+      expect(error).not.toMatch(/instanceof (AxiosError|ZodError)/);
+      const zod = tree.read('features/apiClient/src/lib/utils/zod.ts', 'utf-8');
+      expect(zod).not.toContain("from 'zod'");
+      expect(zod).toContain('zodError.issues.forEach');
     });
   });
 

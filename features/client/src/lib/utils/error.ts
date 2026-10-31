@@ -1,8 +1,8 @@
-import { AxiosError } from 'axios';
-import { ZodError } from 'zod';
+import { isAxiosError } from 'axios';
 import { ApiError, ApiErrorBuilder } from '../error';
 import { handleAxiosError } from './axios';
-import { handleZodError } from './zod';
+import { isProblemDetail } from './problem-detail';
+import { handleZodError, isZodError } from './zod';
 
 /**
  * Extract user-friendly error message from ApiError
@@ -46,11 +46,18 @@ function handleApiError(error: unknown): ApiError {
     return error;
   }
 
-  if (error instanceof AxiosError) {
+  // isAxiosError / isZodError check by shape, so errors created by the app's
+  // own copy of axios or zod (a different version than this package's) match
+  if (isAxiosError(error)) {
     return handleAxiosError(error);
   }
 
-  if (error instanceof ZodError) {
+  // ApiResponse.error from a server action
+  if (isProblemDetail(error)) {
+    return new ApiError(error);
+  }
+
+  if (isZodError(error)) {
     return handleZodError(error);
   }
 

@@ -22,7 +22,6 @@ export function normalizeFeatureGenerator(
     switch (normalized.name) {
       case 'client':
       case 'auth':
-      case 'base':
       case 'logging':
       case 'ui':
         type = normalized.name;

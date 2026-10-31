@@ -1,6 +1,7 @@
 import { AxiosError, AxiosResponse, HttpStatusCode } from 'axios';
 import { ApiErrorBuilder } from '../error';
 import type { ProblemDetail } from '../types';
+import { isProblemDetail } from './problem-detail';
 
 /**
  * Extract ProblemDetail from error response
@@ -12,23 +13,7 @@ import type { ProblemDetail } from '../types';
 function extractProblemDetail(
   response: AxiosResponse<unknown, any>,
 ): ProblemDetail | null {
-  if (!response.data) {
-    return null;
-  }
-
-  const data = response.data;
-
-  // Check if response matches ProblemDetail structure
-  if (
-    typeof data === 'object' &&
-    'type' in data &&
-    'title' in data &&
-    'status' in data
-  ) {
-    return data as ProblemDetail;
-  }
-
-  return null;
+  return isProblemDetail(response.data) ? response.data : null;
 }
 
 /**

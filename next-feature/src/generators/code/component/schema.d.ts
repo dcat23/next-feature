@@ -6,6 +6,7 @@ export interface ComponentGeneratorSchema extends CodeGeneratorSchema {
        | "layout" | "loading" | "error" | "not-found"
        | "template" | "default" | "global-error" | "route"
   inferPath?: boolean
+  clientPackage?: string
 }
 
 export interface NormalizedComponentGeneratorSchema extends NormalizedCodeGeneratorSchema<ComponentGeneratorSchema> {

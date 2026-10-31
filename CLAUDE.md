@@ -58,12 +58,12 @@ The plugin follows an Nx plugin structure with generators organized by category:
 ### Generator Categories
 
 **Project Generators** (`src/generators/project/`)
-- `feature` - Creates a feature project with Next.js library. The `type` option selects scaffolding: `generic` (default), `base`, `logging`, `client` (API client library with error handling), `auth` (NextAuth.js configuration), or `ui` (shadcn-ready component library: `components.json` at the project root whose aliases keep shadcn files under `components/ui`, `lib/ui` and `hooks/ui`, Tailwind v4 entry, plus a `shadcn` target for pulling in components later; `shadcn init` writes the `cn()` util)
+- `feature` - Creates a feature project with Next.js library. The `type` option selects scaffolding: `generic` (default), `logging`, `client` (API client library with error handling), `auth` (NextAuth.js configuration), or `ui` (shadcn-ready component library: `components.json` at the project root whose aliases keep shadcn files under `components/ui`, `lib/ui` and `hooks/ui`, Tailwind v4 entry, plus a `shadcn` target for pulling in components later; `shadcn init` writes the `cn()` util)
 - `application` - Creates a Next.js application
 
 **Code Generators** (`src/generators/code/`)
 - `action` - Generates server-only actions (API, form, or database operations) plus a client-safe request/response contract, and `'use server'` wrappers only for calls that originate in client components (see Server Actions Architecture)
-- `component` - Generates React components. `componentType=hook` scaffolds a generic reusable hook (`use<Name>`) in `src/hooks/` instead of a component. `componentType=ui` adds a shadcn component to a `ui`-type feature library instead: no template is written, it invokes the shared shadcn CLI helper (`lib/utils/shadcn.ts`, also used by the `shadcn` executor) to run `npx shadcn@latest add <slug>` in the target project's root, skipping if the component file already exists
+- `component` - Generates React components (`kind=form` imports `ApiResponse` from `clientPackage`, default `@next-feature/client`). `componentType=hook` scaffolds a generic reusable hook (`use<Name>`) in `src/hooks/` instead of a component. `componentType=ui` adds a shadcn component to a `ui`-type feature library instead: no template is written, it invokes the shared shadcn CLI helper (`lib/utils/shadcn.ts`, also used by the `shadcn` executor) to run `npx shadcn@latest add <slug>` in the target project's root, skipping if the component file already exists
 - `hook` - Generates a TanStack Query hook (`useQuery` for GET-derived actions, `useMutation` otherwise) that calls an action's `'use server'` wrapper (`<actionFile>.action.ts`) and imports its request type from `lib/types/<actionFile>`, in `src/hooks/`. Auto-invoked by the `action` generator when `useHook` is set
 - `store` - Generates Zustand stores
 - `data-type` - Generates TypeScript type definitions
@@ -90,7 +90,7 @@ Unlike generators (which scaffold files once), executors run as Nx targets (`nx 
 ### Core Libraries
 
 **Code Generator Utilities** (`src/lib/utils/code-generator.ts`)
-- `initializeCodeGenerator()` - Initializes code generators. Auto-creates feature project if needed. Returns project paths, `projectName`, and `projectType` (`application` | `library`, via `resolveProjectType()`, which falls back to detecting `next.config.*`). Code generators skip `index.ts`/`server.ts` exports for applications.
+- `initializeCodeGenerator()` - Initializes code generators. Throws if `projectName` is missing (no implicit default project); auto-creates a named feature project that doesn't exist yet, and records `projectName` as the generator's `nx.json` default. Returns project paths, `projectName`, and `projectType` (`application` | `library`, via `resolveProjectType()`, which falls back to detecting `next.config.*`). Code generators skip `index.ts`/`server.ts` exports for applications.
 - `normalizeCodeGenerator()` - Normalizes code generator options, handles name transformations and export paths.
 
 **Project Generator Utilities** (`src/lib/utils/index.ts`)
@@ -132,7 +132,7 @@ All generators follow a consistent pattern:
 
 **Code Generators:**
 - `name` (required) - Base name for generated code (normalized to className, propertyName, fileName)
-- `projectName` - Target project (auto-creates feature if not found)
+- `projectName` (required) - Target project, from `-p`, the interactive prompt (existing projects only) or the generator's `nx.json` default (Nx merges `nx.json` defaults before prompting and validating; `nx.json` keys must be camelCase). Auto-creates a feature if the named project doesn't exist (except `client-config`, which needs an existing project)
 - `package` - Subdirectory within `src/` (default: 'lib')
 - `file` - Custom file name (overrides derived fileName)
 - `export` - Whether to add export to package index (default: false)
@@ -221,6 +221,8 @@ updateDependencies(
 );
 ```
 
+**Published feature libraries** (`feature` generator): every package a feature's vite build leaves `external` must be declared in the feature's own `package.json` (copied to `dist/` and published) via `updatePackageJsonDependencies()` (`project/feature/utils`). `react`/`react-dom` are `peerDependencies` (the app must share one copy), as is `next-auth` for `auth` (must match the app's `next-auth/react` `SessionProvider`); everything else (`server-only`, `zod`, plus `axios` for `client`, `pino*` for `logging`) is a regular dependency on a caret range of the version constant (`asCaretRange()`), so an app on another major can't change the library's behaviour. `addRollupExternalPackages()` string entries match exact module ids only; pass a `RegExp` (e.g. `/^next-auth\//`) for packages imported through subpaths. This only works because library code never relies on class identity for values created by the app's copy of a package: the `client` template detects errors with `axios.isAxiosError()` and `isZodError()` (shape check, zod 3 and 4) instead of `instanceof`. Keep it that way. After changing feature dependencies, regenerate the features and run `pnpm install` so `pnpm-lock.yaml` stays in sync (CI uses `--frozen-lockfile`).
+
 Version constants are centralized in `src/lib/constants/versions.ts`:
 ```typescript
 import { SONNER_VERSION, ZOD_VERSION, NEXTAUTH_VERSION } from '../lib/constants/versions';
@@ -275,8 +277,9 @@ Package manager: `pnpm` (use `pnpm install`, not npm or yarn)
 - Test with different `actionType` values if applicable
 
 **Working with the client library:**
-- Client library exports from `clients/client/src/index.ts` (browser)
-- Server-side exports from `clients/client/src/server.ts` (Node.js)
+- `@next-feature/client` is generated from the `client` feature template into `features/client` (and `@next-feature/logging` from `logging` into `features/logging`); regenerate them after changing those templates
+- Client-safe exports from `features/client/src/index.ts` (`ApiError`, types, error utils)
+- Server-only exports from `features/client/src/server.ts` (`ApiClient`, `withApi`, `withForm`)
 - Use `ApiError.fromZodError()` for form validation errors
 - Use `ApiError.builder()` for custom error construction
 
@@ -298,6 +301,7 @@ Rules:
 - Action files never carry `'use server'`; they import `'server-only'`
 - `'use server'` wrappers exist only for client-originated calls and use the `Action` suffix (`<name>Action`, `<name>FormAction`), distinct from the `form` action type
 - Every feature `server.ts` and `lib/config/client.ts` starts with `import 'server-only'`; `server-only` is a feature dependency and a vite `external`
+- In the `client`/`logging` feature templates, modules that read server env or only run on the server also import `'server-only'` and are exported only from `server.ts`: `ApiClient` (`lib/client.ts`), `withApi`/`withForm` (`lib/actions/with-api.ts`), and `pinoOptions` (`config.ts`), the server `logger` (`lib/server.ts`) and `registerPino` (`lib/utils`). `index.ts` stays client-safe
 - Applications get the same files but no `index.ts`/`server.ts` exports
 
 **Action Types:**
@@ -318,8 +322,9 @@ export const getUsers = withApi(async (options?: GetUsersRequest) => {
   const response = await api.get<GetUsersResponse>(endpoint);
   return response;
 }, {});
-// => { success: true, data } | { success: false, message, error: ApiError }
+// => { success: true, data } | { success: false, message, error: ProblemDetail }
 ```
+`error` is the plain `ProblemDetail`, not the `ApiError` instance: React can't serialize class instances returned from `'use server'` actions (in production an `Error` arrives as a generic, message-redacted `Error`). Client code rehydrates it with `ApiError.of(response.error)` (`handleApiError` recognises the shape via `isProblemDetail()`), which keeps `status`, `isNotFound` etc. and the field `errors` map.
 
 **Response Types:**
 All actions return `ApiResponse<T>`:

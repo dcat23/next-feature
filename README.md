@@ -85,8 +85,9 @@ npx nx g next-feature:feature --name=myfeature
 **Client-Config Generator** automatically creates `lib/config/client.ts` on first action:
 
 ```typescript
-// Auto-generated and ready to customize
-import { ApiClient } from '@next-feature/client';
+// Auto-generated and ready to customize (server-only)
+import 'server-only';
+import { ApiClient } from '@next-feature/client/server';
 
 const apiClient = new ApiClient({
   baseURL: process.env.NEXT_PUBLIC_API_URL

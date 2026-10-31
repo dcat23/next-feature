@@ -26,8 +26,9 @@
     },
     "projectName": {
       "type": "string",
-      "description": "Target project name where store will be generated. Auto-creates feature if not found.",
-      "alias": "p"
+      "description": "Target project name where store will be generated. Required (or set it as this generator's default in nx.json); the prompt lists existing projects; pass a new name with -p to create it as a feature library.",
+      "alias": "p",
+      "x-prompt": "Which project should the store be generated in?"
     },
     "useContext": {
       "type": "boolean",
@@ -47,5 +48,5 @@
       "alias": "e"
     }
   },
-  "required": ["name"]
+  "required": ["name", "projectName"]
 }

@@ -2,6 +2,7 @@ import { AxiosError } from 'axios';
 import { ZodError } from 'zod';
 import { ApiError, ApiErrorBuilder } from '../error';
 import { handleAxiosError } from './axios';
+import { isProblemDetail } from './problem-detail';
 import { handleZodError } from './zod';
 
 /**
@@ -48,6 +49,11 @@ function handleApiError(error: unknown): ApiError {
 
   if (error instanceof AxiosError) {
     return handleAxiosError(error);
+  }
+
+  // ApiResponse.error from a server action
+  if (isProblemDetail(error)) {
+    return new ApiError(error);
   }
 
   if (error instanceof ZodError) {

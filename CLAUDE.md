@@ -320,8 +320,9 @@ export const getUsers = withApi(async (options?: GetUsersRequest) => {
   const response = await api.get<GetUsersResponse>(endpoint);
   return response;
 }, {});
-// => { success: true, data } | { success: false, message, error: ApiError }
+// => { success: true, data } | { success: false, message, error: ProblemDetail }
 ```
+`error` is the plain `ProblemDetail`, not the `ApiError` instance: React can't serialize class instances returned from `'use server'` actions (in production an `Error` arrives as a generic, message-redacted `Error`). Client code rehydrates it with `ApiError.of(response.error)` (`handleApiError` recognises the shape via `isProblemDetail()`), which keeps `status`, `isNotFound` etc. and the field `errors` map.
 
 **Response Types:**
 All actions return `ApiResponse<T>`:

@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { ApiError } from '../lib/error';
 import { getErrorMessage } from '../lib/utils/error';
+import { isProblemDetail } from '../lib/utils/problem-detail';
 
 interface UseApiErrorResult {
   error: ApiError | null;
@@ -20,8 +21,9 @@ export function useApiError(): UseApiErrorResult {
   }, []);
 
   const handleError = useCallback((err: unknown) => {
-    if (err instanceof ApiError) {
-      setError(err);
+    // accepts ApiError instances and ProblemDetail from ApiResponse.error
+    if (err instanceof ApiError || isProblemDetail(err)) {
+      setError(ApiError.of(err));
     } else {
       console.error('Non-API error:', err);
     }

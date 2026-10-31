@@ -285,6 +285,25 @@ describe('feature generator', () => {
       expect(content).toContain("export * from './lib/client'");
     });
 
+    it('should return a serializable ProblemDetail (not an ApiError instance) from withApi', async () => {
+      await featureGenerator(tree, options);
+      const types = tree.read('features/apiClient/src/lib/types/index.ts', 'utf-8');
+      expect(types).toContain('error?: ProblemDetail;');
+      expect(types).not.toContain("from '../error'");
+      const withApi = tree.read('features/apiClient/src/lib/actions/with-api.ts', 'utf-8');
+      expect(withApi).toContain('error: apiError.problemDetail,');
+    });
+
+    it('should rehydrate a ProblemDetail into an ApiError via ApiError.of', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.exists('features/apiClient/src/lib/utils/problem-detail.ts')).toBeTruthy();
+      const error = tree.read('features/apiClient/src/lib/utils/error.ts', 'utf-8');
+      expect(error).toContain('if (isProblemDetail(error)) {');
+      expect(error).toContain('return new ApiError(error);');
+      const index = tree.read('features/apiClient/src/index.ts', 'utf-8');
+      expect(index).toContain("export * from './lib/utils/problem-detail'");
+    });
+
     it.each(['lib/client.ts', 'lib/actions/with-api.ts'])(
       'should mark %s as server-only',
       async (file) => {

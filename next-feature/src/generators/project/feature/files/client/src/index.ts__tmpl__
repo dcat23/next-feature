@@ -32,4 +32,5 @@ export * from './lib/types/client';
 export * from './lib/types/index';
 export * from './lib/utils/axios';
 export * from './lib/utils/error';
+export * from './lib/utils/problem-detail';
 export * from './lib/utils/zod';

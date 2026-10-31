@@ -291,7 +291,7 @@ npx nx format:write
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | --name | string | required | Name for the generated code |
-| --projectName | string | "base" | Target project for generation |
+| --projectName, -p | string | required | Target project. Can be set once as the generator's default in `nx.json` (`generators["next-feature"].<generator>.projectName`; also written automatically on first run). A name that doesn't exist yet is created as a feature library |
 | --directory | string | - | Override default directory |
 | --package | string | "lib" | Package subdirectory in src/ |
 | --skipFormat | boolean | false | Skip prettier formatting |

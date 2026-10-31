@@ -90,7 +90,7 @@ Unlike generators (which scaffold files once), executors run as Nx targets (`nx 
 ### Core Libraries
 
 **Code Generator Utilities** (`src/lib/utils/code-generator.ts`)
-- `initializeCodeGenerator()` - Initializes code generators. Auto-creates feature project if needed. Returns project paths, `projectName`, and `projectType` (`application` | `library`, via `resolveProjectType()`, which falls back to detecting `next.config.*`). Code generators skip `index.ts`/`server.ts` exports for applications.
+- `initializeCodeGenerator()` - Initializes code generators. Throws if `projectName` is missing (no implicit default project); auto-creates a named feature project that doesn't exist yet, and records `projectName` as the generator's `nx.json` default. Returns project paths, `projectName`, and `projectType` (`application` | `library`, via `resolveProjectType()`, which falls back to detecting `next.config.*`). Code generators skip `index.ts`/`server.ts` exports for applications.
 - `normalizeCodeGenerator()` - Normalizes code generator options, handles name transformations and export paths.
 
 **Project Generator Utilities** (`src/lib/utils/index.ts`)
@@ -132,7 +132,7 @@ All generators follow a consistent pattern:
 
 **Code Generators:**
 - `name` (required) - Base name for generated code (normalized to className, propertyName, fileName)
-- `projectName` - Target project (auto-creates feature if not found)
+- `projectName` (required) - Target project, from `-p`, the interactive prompt (existing projects only) or the generator's `nx.json` default (Nx merges `nx.json` defaults before prompting and validating; `nx.json` keys must be camelCase). Auto-creates a feature if the named project doesn't exist (except `client-config`, which needs an existing project)
 - `package` - Subdirectory within `src/` (default: 'lib')
 - `file` - Custom file name (overrides derived fileName)
 - `export` - Whether to add export to package index (default: false)

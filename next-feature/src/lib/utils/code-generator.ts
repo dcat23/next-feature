@@ -18,7 +18,15 @@ export async function initializeCodeGenerator(
   options: CodeGeneratorSchema,
   generatorName: string
 ) {
-  const projectName = options.projectName ?? 'base';
+  // Schemas require projectName (CLI flag, prompt or nx.json generator
+  // default); this guards programmatic callers. No implicit fallback project.
+  const projectName = options.projectName;
+  if (!projectName) {
+    throw new Error(
+      `${generatorName}: projectName is required. Pass --projectName (-p) or set ` +
+      `generators["${PLUGIN_NAME}"]["${generatorName}"].projectName in nx.json.`
+    );
+  }
   let projectConfiguration: ProjectConfiguration;
   try {
     projectConfiguration = readProjectConfiguration(tree, projectName);

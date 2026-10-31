@@ -1,12 +1,25 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { addProjectConfiguration, Tree } from '@nx/devkit';
 import { initializeCodeGenerator, resolveProjectType } from './code-generator';
+import type { CodeGeneratorSchema } from '../types';
 
 describe('initializeCodeGenerator', () => {
   let tree: Tree;
 
   beforeEach(() => {
     tree = createTreeWithEmptyWorkspace();
+  });
+
+  it('should throw instead of falling back to a default project when projectName is missing', async () => {
+    await expect(
+      initializeCodeGenerator(tree, { name: 'getUser' } as CodeGeneratorSchema, 'action')
+    ).rejects.toThrow('action: projectName is required');
+    expect(tree.exists('features/base/project.json')).toBe(false);
+  });
+
+  it('should auto-create a named project that does not exist yet', async () => {
+    await initializeCodeGenerator(tree, { name: 'getUser', projectName: 'orders' }, 'action');
+    expect(tree.exists('features/orders/project.json')).toBe(true);
   });
 
   it('should return library projectType for an auto-created feature', async () => {

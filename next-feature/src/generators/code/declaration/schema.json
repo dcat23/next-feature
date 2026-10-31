@@ -39,8 +39,9 @@
     },
     "projectName": {
       "type": "string",
-      "description": "Target project name where the declaration will be generated. Auto-creates feature if not found.",
-      "alias": "p"
+      "description": "Target project name where the declaration will be generated. Required (or set it as this generator's default in nx.json); the prompt lists existing projects; pass a new name with -p to create it as a feature library.",
+      "alias": "p",
+      "x-prompt": "Which project should the declaration be generated in?"
     },
     "directory": {
       "type": "string",
@@ -64,5 +65,5 @@
       "alias": "e"
     }
   },
-  "required": ["name", "kind"]
+  "required": ["name", "kind", "projectName"]
 }

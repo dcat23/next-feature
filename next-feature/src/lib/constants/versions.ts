@@ -15,3 +15,5 @@ export const PINO_HTTP_VERSION = "^11.0.0";
 export const PINO_PRETTY_VERSION = "^13.0.0"
 export const NEXT_THEMES_VERSION = "^0.4.0";
 export const SERVER_ONLY_VERSION = "^0.0.1";
+/** React range published feature libraries declare as a peer dependency */
+export const REACT_PEER_VERSION = "^19.0.0";

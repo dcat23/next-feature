@@ -221,6 +221,8 @@ updateDependencies(
 );
 ```
 
+**Published feature libraries** (`feature` generator): every package a feature's vite build leaves `external` must be declared in the feature's own `package.json` (copied to `dist/` and published) via `updatePackageJsonDependencies()` (`project/feature/utils`). `react`/`react-dom` are `peerDependencies` (the app must share one copy), as are `sonner` for `base` (`toast()` only reaches the app's `<Toaster />` from the same copy) and `next-auth` for `auth` (must match the app's `next-auth/react` `SessionProvider`); everything else (`server-only`, `zod`, plus `axios` for `client`, `pino*` for `logging`) is a regular dependency on a caret range of the version constant (`asCaretRange()`), so an app on another major can't change the library's behaviour. `addRollupExternalPackages()` string entries match exact module ids only; pass a `RegExp` (e.g. `/^next-auth\//`) for packages imported through subpaths. After changing feature dependencies, regenerate the features and run `pnpm install` so `pnpm-lock.yaml` stays in sync (CI uses `--frozen-lockfile`).
+
 Version constants are centralized in `src/lib/constants/versions.ts`:
 ```typescript
 import { SONNER_VERSION, ZOD_VERSION, NEXTAUTH_VERSION } from '../lib/constants/versions';

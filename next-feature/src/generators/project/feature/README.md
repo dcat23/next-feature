@@ -8,12 +8,11 @@ Feature libraries are domain-scoped code modules (users, products, auth) created
 
 - **`generic`** (default) — Plain feature library with shared utilities only
 - **`logging`** — Adds pino-based server + browser logging with correlation ID support
-- **`base`** — Adds base UI components (error boundary, etc.)
 - **`client`** — Adds a reusable API client (Axios wrapper, `ApiError`, hooks, error boundary)
 - **`auth`** — Adds a NextAuth.js configuration with credential + OAuth providers
 - **`ui`** — Adds a shadcn-ready component library (`components.json`, `cn()` util, Tailwind entry) plus a `shadcn` target for pulling in components
 
-Type is inferred automatically from the feature name: `--name=logging` sets `type=logging`, `--name=base` sets `type=base`, `--name=client` sets `type=client`, `--name=auth` sets `type=auth`, `--name=ui` sets `type=ui`.
+Type is inferred automatically from the feature name: `--name=logging` sets `type=logging`, `--name=client` sets `type=client`, `--name=auth` sets `type=auth`, `--name=ui` sets `type=ui`.
 
 ## Quick Start
 
@@ -58,7 +57,6 @@ The `type` is inferred from `name` when `type` is `generic` or omitted:
 
 | Name | Inferred type |
 |------|--------------|
-| `base` | `base` |
 | `logging` | `logging` |
 | `client` | `client` |
 | `auth` | `auth` |
@@ -110,16 +108,6 @@ features/[name]/src/
 **Browser logger** (`lib/client.ts`) uses pino's browser transport with correlation ID injection. Marked `'use client'` for Next.js.
 
 **Server logger** (`lib/server.ts`) uses pino with pino-pretty in development (`NODE_ENV !== 'production'`).
-
-### `base` type — additional files
-
-```
-features/[name]/src/
-└── components/
-    └── error-component.tsx  # Base error boundary component
-```
-
-No pino dependencies are added for the `base` type.
 
 ### `client` type — additional files
 

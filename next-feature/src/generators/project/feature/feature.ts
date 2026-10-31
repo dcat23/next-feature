@@ -1,6 +1,7 @@
 import type { GeneratorCallback } from '@nx/devkit';
 import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
 import { libraryGenerator } from '@nx/next';
+import { existsSync } from 'fs';
 import * as path from 'path';
 import { AXIOS_VERSION, NEXTAUTH_VERSION, PINO_HTTP_VERSION, PINO_PRETTY_VERSION, PINO_VERSION, REACT_PEER_VERSION, SERVER_ONLY_VERSION, SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
 import { updateDotenv } from '../../../lib/dotenv/dot-env';
@@ -70,12 +71,6 @@ export async function featureGenerator(
   const setDotenv: Record<string, string> = {};
 
   switch (type) {
-    case 'base':
-      // peer: toast() only reaches the app's <Toaster /> if both use the
-      // same copy of sonner (each copy has its own toast store)
-      libraryPeerDependencies['sonner'] = asCaretRange(SONNER_VERSION);
-      addRollupExternalPackages(tree, projectRoot, ['sonner']);
-      break;
     case 'logging':
       // Handle logging-specific logic
       dependencies['pino'] = PINO_VERSION;
@@ -132,13 +127,10 @@ export async function featureGenerator(
     normalizedOptions
   );
 
-  if (type !== 'generic') {
-    generateFiles(
-      tree,
-      path.join(__dirname, 'files', type),
-      projectRoot,
-      normalizedOptions
-    );
+  // Types without extra scaffolding (generic) have no template folder
+  const typeFiles = path.join(__dirname, 'files', type);
+  if (existsSync(typeFiles)) {
+    generateFiles(tree, typeFiles, projectRoot, normalizedOptions);
   }
 
   updateDotenv(tree, { projectRoot, section: type }, {

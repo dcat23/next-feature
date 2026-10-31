@@ -366,7 +366,7 @@ npx nx g next-feature:feature --name=users [options]
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| --type | enum | "generic" | Type: generic, base, logging, client, auth, or ui |
+| --type | enum | "generic" | Type: generic, logging, client, auth, or ui |
 | --orgName | string | - | Scoped organization name |
 
 `--type=client` registers a `<NAME>_API_URL` variable in this feature's `.env`/`.env.example`. `--type=ui` registers a `shadcn` executor target on the project (see [Executors](#executors)).

@@ -67,16 +67,6 @@ describe('feature generator', () => {
       expect(normalized.type).toBe('generic');
     });
 
-    it('should set type to base when name is base and type is not specified', () => {
-      const normalized = normalizeFeatureGenerator({ name: 'base' });
-      expect(normalized.type).toBe('base');
-    });
-
-    it('should set type to base when name is base and type is generic', () => {
-      const normalized = normalizeFeatureGenerator({ name: 'base', type: 'generic' });
-      expect(normalized.type).toBe('base');
-    });
-
     it('should set type to logging when name is logging and type is not specified', () => {
       const normalized = normalizeFeatureGenerator({ name: 'logging' });
       expect(normalized.type).toBe('logging');
@@ -89,12 +79,12 @@ describe('feature generator', () => {
 
     it('should keep explicit type for non-inferred names', () => {
       expect(normalizeFeatureGenerator({ name: 'test', type: 'logging' }).type).toBe('logging');
-      expect(normalizeFeatureGenerator({ name: 'test', type: 'base' }).type).toBe('base');
+      expect(normalizeFeatureGenerator({ name: 'test', type: 'client' }).type).toBe('client');
     });
 
     it('should allow explicit type override on inferred names', () => {
-      expect(normalizeFeatureGenerator({ name: 'base', type: 'logging' }).type).toBe('logging');
-      expect(normalizeFeatureGenerator({ name: 'logging', type: 'base' }).type).toBe('base');
+      expect(normalizeFeatureGenerator({ name: 'client', type: 'logging' }).type).toBe('logging');
+      expect(normalizeFeatureGenerator({ name: 'logging', type: 'client' }).type).toBe('client');
     });
 
     it('should set type to client when name is client and type is not specified', () => {
@@ -347,7 +337,7 @@ describe('feature generator', () => {
       expect(tree.exists('features/auth/src/lib/types/next-auth.d.ts')).toBeTruthy();
     });
 
-    it('should not generate logging, base, or client files', async () => {
+    it('should not generate logging or client files', async () => {
       await featureGenerator(tree, options);
       expect(tree.exists('features/auth/src/config.ts')).toBeFalsy();
       expect(tree.exists('features/auth/src/components/error-component.tsx')).toBeFalsy();
@@ -415,31 +405,12 @@ describe('feature generator', () => {
     });
   });
 
-  describe('base type', () => {
-    const options: FeatureGeneratorSchema = { name: 'base', skipFormat: true };
-
-    it('should auto-resolve to base type when name is base', async () => {
-      await featureGenerator(tree, options);
-      expect(tree.exists('features/base/src/components/error-component.tsx')).toBeTruthy();
-    });
-
-    it('should not generate logging files for base type', async () => {
-      await featureGenerator(tree, options);
-      expect(tree.exists('features/base/src/config.ts')).toBeFalsy();
-      expect(tree.exists('features/base/src/lib/server.ts')).toBeFalsy();
-    });
-
-    it('should not add pino dependencies for base type', async () => {
-      await featureGenerator(tree, options);
-      const packageJson = readJson(tree, 'package.json');
-      expect(packageJson.dependencies?.pino).toBeUndefined();
-    });
-
-    it('should add base sonner and zod dependencies', async () => {
-      await featureGenerator(tree, options);
-      const packageJson = readJson(tree, 'package.json');
-      expect(packageJson.dependencies?.sonner).toBeDefined();
-      expect(packageJson.dependencies?.zod).toBeDefined();
+  describe('former base type', () => {
+    it('should treat a feature named base as a generic feature', async () => {
+      expect(normalizeFeatureGenerator({ name: 'base' }).type).toBe('generic');
+      await featureGenerator(tree, { name: 'base', skipFormat: true });
+      expect(tree.exists('features/base/src/index.ts')).toBeTruthy();
+      expect(tree.exists('features/base/src/components')).toBeFalsy();
     });
   });
 
@@ -533,16 +504,6 @@ describe('feature generator', () => {
         'server-only': '^0.0.1',
         zod: '^3.24.4',
       });
-    });
-
-    it('should make sonner a peer for base features so toast() reaches the app\'s <Toaster />', async () => {
-      await featureGenerator(tree, { name: 'base', type: 'base', skipFormat: true });
-      expect(readLibPackageJson('base').peerDependencies).toEqual({
-        react: '^19.0.0',
-        'react-dom': '^19.0.0',
-        sonner: '^2.0.3',
-      });
-      expect(tree.read('features/base/vite.config.mts', 'utf-8')).toContain("'sonner'");
     });
 
     it('should make next-auth a peer for auth features and externalize its subpath imports', async () => {

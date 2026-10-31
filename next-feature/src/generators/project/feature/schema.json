@@ -12,8 +12,7 @@
         "$source": "argv",
         "index": 0
       },
-      "x-prompt": "What name would you like to use for this feature?",
-      "default": "base"
+      "x-prompt": "What name would you like to use for this feature?"
     },
     "directory": {
       "type": "string",
@@ -31,8 +30,8 @@
     },
     "type": {
       "type": "string",
-      "description": "Type of feature library to create. 'base' includes base components and logging, 'logging' includes only logging config, 'client' creates a reusable API client library with error handling and utilities, 'auth' creates a NextAuth.js configuration with credential + OAuth providers, 'ui' creates a shadcn-ready component library (components.json, cn() util, Tailwind entry) with a 'shadcn' target for pulling in components, 'generic' is a plain feature library.",
-      "enum": ["base", "logging", "client", "auth", "ui", "generic"],
+      "description": "Type of feature library to create. 'logging' includes only logging config, 'client' creates a reusable API client library with error handling and utilities, 'auth' creates a NextAuth.js configuration with credential + OAuth providers, 'ui' creates a shadcn-ready component library (components.json, cn() util, Tailwind entry) with a 'shadcn' target for pulling in components, 'generic' is a plain feature library.",
+      "enum": ["logging", "client", "auth", "ui", "generic"],
       "default": "generic",
       "alias": "t"
     },

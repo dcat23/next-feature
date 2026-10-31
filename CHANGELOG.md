@@ -1,3 +1,14 @@
+## 0.1.4 (2026-10-31)
+
+### 🩹 Fixes
+
+- **e2e:** get local registry e2e running on Nx 22 and pnpm 11 ([86d7b4e](https://github.com/dcat23/next-feature/commit/86d7b4e))
+
+### ❤️ Thank You
+
+- Claude Opus 5.5
+- Devin Catuns
+
 ## 0.1.4-beta.1 (2026-10-21)
 
 ### 🚀 Features

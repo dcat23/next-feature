@@ -1,4 +1,3 @@
-import { logger } from '@nx/devkit';
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { Tree, readProjectConfiguration } from '@nx/devkit';
 import { storeGenerator } from './store';

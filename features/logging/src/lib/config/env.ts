@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const envSchema = z.object({
+export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production']),
   /* schema start */
   NEXT_PUBLIC_LOGGING_BEACON_PATH: z.string().optional(),

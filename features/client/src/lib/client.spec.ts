@@ -47,7 +47,10 @@ describe('ApiClient', () => {
 
     it('does not retry POST by default', async () => {
       let calls = 0;
-      const { client } = createClient(() => (++calls, { status: 503 }));
+      const { client } = createClient(() => {
+        calls++;
+        return { status: 503 };
+      });
       await expect(client.post('/orders', {})).rejects.toBeDefined();
       expect(calls).toBe(1);
     });
@@ -61,7 +64,10 @@ describe('ApiClient', () => {
 
     it('does not retry a 4xx other than 429', async () => {
       let calls = 0;
-      const { client } = createClient(() => (++calls, { status: 404 }));
+      const { client } = createClient(() => {
+        calls++;
+        return { status: 404 };
+      });
       await expect(client.get('/users')).rejects.toBeDefined();
       expect(calls).toBe(1);
     });
@@ -86,7 +92,13 @@ describe('ApiClient', () => {
 
     it('gives up when Retry-After is longer than the timeout', async () => {
       let calls = 0;
-      const { client } = createClient(() => (++calls, { status: 503, headers: { 'retry-after': '60' } }), { timeout: 1000 });
+      const { client } = createClient(
+        () => {
+          calls++;
+          return { status: 503, headers: { 'retry-after': '60' } };
+        },
+        { timeout: 1000 }
+      );
       await expect(client.get('/users')).rejects.toBeDefined();
       expect(calls).toBe(1);
     });

@@ -110,7 +110,7 @@ my-project/
 - ✅ **axios** (1.9.0) - HTTP client
 - ✅ **zod** - Schema validation
 - ✅ **@tanstack/react-query** (5.75.7) - Data fetching
-- ✅ **next-auth** (5.0.0-beta.27) - Authentication
+- ✅ **next-auth** (v5 beta) - Authentication
 
 ### Dev Dependencies
 

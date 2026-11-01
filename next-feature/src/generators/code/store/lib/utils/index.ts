@@ -5,7 +5,7 @@
  */
 import { type NormalizedStoreGeneratorSchema, StoreGeneratorSchema } from '../../schema';
 import { handleExportPath, normalizeCodeGenerator } from '../../../../../lib/utils/code-generator';
-import { mutateNames, zustandCreateMethod } from '../options';
+import { mutateNames } from '../options';
 
 export function normalizeStoreGenerator(
   options: StoreGeneratorSchema
@@ -15,7 +15,6 @@ export function normalizeStoreGenerator(
   normalized.persist = Boolean(normalized.persist);
   normalized.useTypes = Boolean(normalized.useTypes);
   const mutatedNames = mutateNames(normalized);
-  // const createMethod = zustandCreateMethod({ ...normalized, ...mutatedNames });
   const storeType = normalized.useContext ? 'context' : 'zustand';
   const exportPath = handleExportPath(normalized, storeType)
   normalized.outputFileName = mutatedNames.fileName;

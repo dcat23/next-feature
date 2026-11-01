@@ -235,6 +235,7 @@ Key configuration in `nx.json`:
 - `generators.next-feature` section defines generator defaults (e.g., default projectName for action, component, store)
 - Plugins configured: `@nx/eslint/plugin`, `@nx/next/plugin` with custom target names
 - Target defaults cache test, lint, and build results
+- Lint fails on any warning: `maxWarnings: 0` for the `@nx/eslint:lint` executor (`nx lint <project>`) and `--max-warnings=0` for the inferred `eslint:lint` target CI runs. Fix or explicitly `eslint-disable` (with a reason) new warnings
 - Release configuration uses git tags and runs `pnpm dlx nx run-many -t build` before versioning
 
 Generators are registered in `next-feature/generators.json`:

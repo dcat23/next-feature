@@ -1,3 +1,28 @@
+## 0.2.1 (2026-11-01)
+
+### 🚀 Features
+
+- **application:** generate proxy.ts, wrapped in auth() with --useAuth ([99c2eff](https://github.com/dcat23/next-feature/commit/99c2eff))
+- **client-config:** support multiple named clients and create a missing project ([#27](https://github.com/dcat23/next-feature/issues/27))
+- **feature:** keep 'use client' boundaries in built feature libraries; export useApiError and ApiErrorBoundary ([#25](https://github.com/dcat23/next-feature/issues/25))
+- **logging:** make the logging env vars optional and add createPinoOptions ([#26](https://github.com/dcat23/next-feature/issues/26))
+
+### 🩹 Fixes
+
+- **action:** remove the unimplemented db action type ([#39](https://github.com/dcat23/next-feature/issues/39))
+- **auth:** bump next-auth to 5.0.0-beta.32 for Next 16 ([e380964](https://github.com/dcat23/next-feature/commit/e380964))
+- **auth:** keep backend tokens out of the session and harden the callbacks ([#50](https://github.com/dcat23/next-feature/issues/50))
+- **client:** scope ApiClient token refresh per token and retry only idempotent methods ([#38](https://github.com/dcat23/next-feature/issues/38))
+- **client-config:** declare @next-feature/client in feature libraries and deprecate unused options ([#40](https://github.com/dcat23/next-feature/issues/40))
+- **core:** resolve updateDependencies projectRoot and allow raising installed versions ([#28](https://github.com/dcat23/next-feature/issues/28))
+- **core:** apply the irregular and uncountable word lists in singularize/pluralize ([ee4e091](https://github.com/dcat23/next-feature/commit/ee4e091))
+- **create-next-feature:** align create-nx-workspace with Nx 22.4.3 ([6da2b31](https://github.com/dcat23/next-feature/commit/6da2b31))
+
+### ❤️ Thank You
+
+- Claude Opus 5.5
+- Devin Catuns
+
 ## 0.2.0 (2026-11-01)
 
 ### 🩹 Fixes

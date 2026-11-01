@@ -520,10 +520,13 @@ describe('feature generator', () => {
       expect(vite).toContain("'next-auth',/^next-auth\\//,'extra']");
     });
 
-    it('should key zod field errors by their full dotted path', async () => {
+    it('should key zod field errors by their full dotted path and path-less issues under FORM_ERROR_KEY', async () => {
       await featureGenerator(tree, { name: 'apiClient', type: 'client', skipFormat: true });
       const zod = tree.read('features/apiClient/src/lib/utils/zod.ts', 'utf-8');
-      expect(zod).toContain("errors[issue.path.map(String).join('.')] = issue.message;");
+      expect(zod).toContain("export const FORM_ERROR_KEY = '_form';");
+      expect(zod).toContain("? issue.path.map(String).join('.')");
+      expect(zod).toContain(': FORM_ERROR_KEY;');
+      expect(zod).toContain('errors[key] = issue.message;');
     });
 
     it('should check axios and zod errors by shape, not instanceof, in the client template', async () => {

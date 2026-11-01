@@ -23,6 +23,13 @@ export function isZodError(error: unknown): error is ZodErrorLike {
 }
 
 /**
+ * Key in `ProblemDetail.errors` for issues without a path, e.g. an
+ * object-level `.refine()` such as "Passwords must match". Field issues are
+ * keyed by their dotted path instead.
+ */
+export const FORM_ERROR_KEY = '_form';
+
+/**
  * Create ApiError from Zod validation error
  *
  * [handle-zod-error]
@@ -34,12 +41,13 @@ export function handleZodError(zodError: ZodErrorLike) {
 
   // `issues` exists in zod 3 and 4 (`errors` was removed in zod 4).
   // Keyed by the full dotted path (`address.city`, `tags.0`), matching the
-  // form field names; issues without a path (object-level refinements) are
-  // left to the error message.
+  // form field names; issues without a path (object-level refinements) go
+  // under FORM_ERROR_KEY so forms can still show them.
   zodError.issues.forEach((issue) => {
-    if (issue.path.length) {
-      errors[issue.path.map(String).join('.')] = issue.message;
-    }
+    const key = issue.path.length
+      ? issue.path.map(String).join('.')
+      : FORM_ERROR_KEY;
+    errors[key] = issue.message;
   });
 
   return ApiError.builder()

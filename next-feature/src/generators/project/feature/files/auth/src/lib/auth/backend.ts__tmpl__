@@ -1,0 +1,94 @@
+import { z } from 'zod';
+
+/**
+ * Calls to your backend's auth endpoints. Replace the stubs below.
+ *
+ * Only the server runs this code (authorize() and the jwt callback), and
+ * nothing it returns reaches the browser except what the session callback
+ * exposes.
+ *
+ * The examples use an ApiClient from this feature's lib/config/client.ts,
+ * whose base URL is <%= apiKeyName %>:
+ *
+ *   npx nx g next-feature:client-config -p <%= name %>
+ *
+ * Don't call getAccessToken() from here, directly or through a client's
+ * onAuthenticated: these calls obtain the tokens, so the session cookie
+ * doesn't hold them yet. It throws when called from here (see runAuthFlow()
+ * in tokens.ts); without that it would deadlock on its own refresh, or, when
+ * someone signs in while signed in as another user, return that user's
+ * token. Use the tokens these calls receive instead (see login()).
+ */
+
+/** What the sign-in form posts; validated by authorize() before login() */
+export const credentialsSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
+export type BackendCredentials = z.infer<typeof credentialsSchema>;
+
+export interface BackendTokens {
+  accessToken: string;
+  /** Omitted when the backend doesn't rotate refresh tokens */
+  refreshToken?: string;
+  /** Access token lifetime in seconds */
+  expiresIn: number;
+}
+
+export interface BackendSession extends BackendTokens {
+  user: {
+    id: string;
+    role: string;
+    name?: string | null;
+    email?: string | null;
+  };
+}
+
+export interface LoginContext {
+  /** Client IP, forwarded so the backend can rate-limit login attempts */
+  ip?: string;
+}
+
+/**
+ * Exchange credentials for a backend session. Return null for invalid
+ * credentials (wrong password, unknown email, ...); throw only for
+ * unexpected failures.
+ *
+ * @example
+ * import { ApiError } from '@next-feature/client';
+ * import api from '../config/client';
+ *
+ * try {
+ *   const session = await api.post<BackendSession>('/auth/login', credentials, {
+ *     headers: context.ip ? { 'X-Forwarded-For': context.ip } : undefined,
+ *   });
+ *   // Calls to other services during sign-in use the token just received:
+ *   // const profile = await users.get<Profile>('/me', {
+ *   //   headers: { Authorization: `Bearer ${session.accessToken}` },
+ *   // });
+ *   return session;
+ * } catch (error) {
+ *   if (ApiError.of(error).isUnauthorized) return null;
+ *   throw error;
+ * }
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- stub: replace with your backend call
+export async function login(credentials: BackendCredentials, context: LoginContext): Promise<BackendSession | null> {
+  return null;
+}
+
+/**
+ * Exchange a refresh token for new tokens. Throw when the backend refuses
+ * it: the user is then signed out (session `error: 'RefreshTokenError'`).
+ * ApiClient already throws an ApiError for any error response.
+ *
+ * @example
+ * import api from '../config/client';
+ *
+ * return api.post<BackendTokens>('/auth/refresh', { refreshToken });
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- stub: replace with your backend call
+export async function refresh(refreshToken: string): Promise<BackendTokens> {
+  throw new Error('Token refresh is not implemented: see lib/auth/backend.ts');
+}

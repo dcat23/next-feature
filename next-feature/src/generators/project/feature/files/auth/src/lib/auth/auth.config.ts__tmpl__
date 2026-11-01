@@ -1,15 +1,14 @@
 import type { NextAuthConfig } from 'next-auth';
 import { authorized, jwt, redirect, session } from './callbacks';
 
-const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
-
-// Edge-safe config (no providers) — usable in middleware for route protection.
+// Shared NextAuth options; providers are added in ./index.ts. Server code only:
+// the callbacks reach backend.ts.
+// Cookies keep the Auth.js defaults (__Host-/__Secure- prefixes, `secure` over
+// https). Outside Vercel, set AUTH_URL and AUTH_TRUST_HOST=true.
 export const authConfig: NextAuthConfig = {
   pages: {
     signIn: `/auth`,
-    verifyRequest: `/auth`,
     error: '/auth', // Error code passed in query string as ?error=
-    newUser: '/onboarding',
   },
   callbacks: {
     authorized,
@@ -17,17 +16,10 @@ export const authConfig: NextAuthConfig = {
     session,
     redirect,
   },
-  session: { strategy: 'jwt' },
-  cookies: {
-    csrfToken: {
-      name: 'authjs.csrf-token',
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: VERCEL_DEPLOYMENT,
-      },
-    },
+  session: {
+    strategy: 'jwt',
+    // Keep this at most your backend's refresh token lifetime
+    maxAge: 30 * 24 * 60 * 60,
   },
   providers: [],
 };

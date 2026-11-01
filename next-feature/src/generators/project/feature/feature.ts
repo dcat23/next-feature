@@ -114,6 +114,10 @@ export async function featureGenerator(
       // version this library's handlers/session code runs. Subpath imports
       // (next-auth/jwt, next-auth/providers/*) stay external with it.
       libraryPeerDependencies['next-auth'] = asCaretRange(NEXTAUTH_VERSION);
+      // getAccessToken() reads next/headers from the app's Next.js, and the
+      // token refresh guard uses AsyncLocalStorage: neither may be bundled
+      // (Vite would replace the Node builtin with an empty browser shim)
+      extraExternals.push('next', 'node:async_hooks');
       break;
     case 'ui':
       // shadcn init/add installs the packages its components need into this

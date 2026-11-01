@@ -13,10 +13,10 @@ NextFeature is an Nx workspace containing a **generator plugin ecosystem** that 
 The plugin provides generators for creating projects, server actions (API, form, database), components, stores, and configurations (client-config).
 
 Key technologies:
-- **Nx 22.0.3** - Monorepo framework
-- **Next.js 15.2** - React framework with Server Actions
+- **Nx 22.4.3** - Monorepo framework
+- **Next.js 16** - React framework with Server Actions (`proxy.ts`, async request APIs, Turbopack builds)
 - **TypeScript** - Language
-- **Jest + Vitest** - Testing frameworks
+- **Jest** - Testing framework (every project, including the feature libraries)
 - **TailwindCSS** - Styling
 - **Zustand** - State management
 - **TanStack Query** - Data fetching
@@ -44,8 +44,8 @@ npx nx format:write
 # Run a specific generator (e.g., create a server action)
 npx nx g next-feature:action --name=getUser --actionType=api --projectName=myfeature
 
-# Run e2e tests
-npx nx test next-feature-e2e
+# Run e2e tests (local registry; restores nothing: afterwards `git restore` the four package.json versions it sets to 0.0.0-e2e)
+npx nx e2e next-feature-e2e
 
 # View the dependency graph
 npx nx graph
@@ -58,7 +58,7 @@ The plugin follows an Nx plugin structure with generators organized by category:
 ### Generator Categories
 
 **Project Generators** (`src/generators/project/`)
-- `feature` - Creates a feature project with Next.js library. The `type` option selects scaffolding: `generic` (default), `logging`, `client` (API client library with error handling), `auth` (NextAuth.js configuration), or `ui` (shadcn-ready component library: `components.json` at the project root whose aliases keep shadcn files under `components/ui`, `lib/ui` and `hooks/ui`, Tailwind v4 entry, plus a `shadcn` target for pulling in components later; `shadcn init` writes the `cn()` util)
+- `feature` - Creates a feature project with Next.js library. The `type` option selects scaffolding: `generic` (default), `logging`, `client` (API client library with error handling), `auth` (NextAuth.js v5 for a Credentials provider backed by the app's API: backend tokens live only in the encrypted JWT, refreshed in the `jwt` callback with a deduplicated per-refresh-token cache in `lib/auth/tokens.ts`, never exposed by the `session` callback; server code reads them with the `'server-only'` `getAccessToken()`, which throws inside `runAuthFlow()` (an `AsyncLocalStorage` scope around `login()`/`refresh()`, preventing a self-refresh deadlock or a stale user's token; the build keeps `next` and `node:async_hooks` external); `login()`/`refresh()` stubs in `lib/auth/backend.ts`), or `ui` (shadcn-ready component library: `components.json` at the project root whose aliases keep shadcn files under `components/ui`, `lib/ui` and `hooks/ui`, Tailwind v4 entry, plus a `shadcn` target for pulling in components later; `shadcn init` writes the `cn()` util)
 - `application` - Creates a Next.js application
 
 **Code Generators** (`src/generators/code/`)
@@ -165,6 +165,7 @@ Generators can invoke other generators via `runTasksInSerial()`:
 - Action generator chains the `hook` generator when `useHook` is set (ignored for `actionType=form`), scaffolding a `useQuery`/`useMutation` hook that wraps the generated action
 - `<NAME>_API_URL` vars come from `client-config` (one per client, also run by the first action); `feature`/`application` have no `env` option
 - Application generator creates a sibling `auth`-type feature (if missing) when `useAuth` is set
+- Application generator always writes `proxy.ts` (Next 16 middleware) with a matcher for API routes and pages, skipping `_next` and static files; with `useAuth` it's `auth((request) => ...)` from the auth feature's `/server` entry (the proxy runs on Node.js and Next allows `server-only` in it; the auth feature's `index.ts` exports types only, since `authConfig` reaches server code), which refreshes the session cookie without redirecting (a custom handler makes next-auth ignore `authorized`'s `false`)
 - Application generator wires `@next-feature/logging` unless `skipLogging`: `instrumentation.ts` dynamically imports `registerPino` from `@next-feature/logging/server` on the `nodejs` runtime and passes the app's `lib/config/logging.ts` options (`createPinoOptions({ service: '<name>' })`, plus a server `logger`); `app/api/log/route.ts` receives browser beacons. These files, and the logger import in `error.tsx`, only exist when logging is enabled
 - This avoids duplication and ensures consistent setup
 
@@ -184,7 +185,7 @@ npx nx test next-feature -- --coverage
 # Watch mode
 npx nx test next-feature -- --watch
 
-# Test client library (uses Vitest)
+# Test client library (Jest)
 npx nx test client
 ```
 

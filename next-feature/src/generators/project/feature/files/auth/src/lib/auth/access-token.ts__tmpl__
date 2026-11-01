@@ -1,0 +1,54 @@
+import 'server-only';
+
+import { getToken } from 'next-auth/jwt';
+import { headers } from 'next/headers';
+import { currentAuthFlow, isAccessTokenValid, refreshAccessToken } from './tokens';
+
+const SESSION_COOKIE = 'authjs.session-token';
+const SECURE_SESSION_COOKIE = `__Secure-${SESSION_COOKIE}`;
+
+/**
+ * The signed-in user's backend access token, or undefined when signed out.
+ * Server-only (server components, server actions, route handlers): the token
+ * never reaches the browser.
+ *
+ * Throws when called from the backend calls that obtain the tokens
+ * (backend.ts), instead of deadlocking or returning another session's token.
+ *
+ * Reads the encrypted session cookie directly, and refreshes an expired
+ * token the same way the jwt callback does (sharing its refresh), since
+ * server components can't save a refreshed cookie.
+ *
+ * @example
+ * // lib/config/client.ts
+ * onAuthenticated: async (config) => {
+ *   const token = await getAccessToken();
+ *   if (token) config.headers.Authorization = `Bearer ${token}`;
+ * },
+ */
+export async function getAccessToken(): Promise<string | undefined> {
+  const flow = currentAuthFlow();
+  if (flow) {
+    throw new Error(
+      `getAccessToken() was called during ${flow === 'login' ? 'sign-in' : 'a token refresh'} ` +
+        '(lib/auth/backend.ts), when the session cookie does not hold the tokens being obtained. ' +
+        'Use the token login()/refresh() received instead, and keep getAccessToken() out of the ' +
+        'onAuthenticated of the client backend.ts uses.'
+    );
+  }
+
+  const requestHeaders = await headers();
+  // Over https Auth.js uses the __Secure- cookie name, which is also the salt
+  const secureCookie = (requestHeaders.get('cookie') ?? '').includes(SECURE_SESSION_COOKIE);
+
+  const token = await getToken({
+    req: { headers: new Headers(requestHeaders) },
+    secret: process.env.AUTH_SECRET,
+    secureCookie,
+  });
+  if (!token || token.error) return undefined;
+  if (isAccessTokenValid(token)) return token.accessToken;
+
+  const refreshed = await refreshAccessToken(token);
+  return refreshed.error ? undefined : refreshed.accessToken;
+}

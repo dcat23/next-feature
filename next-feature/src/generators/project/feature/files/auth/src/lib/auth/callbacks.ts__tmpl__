@@ -1,24 +1,52 @@
 import type { NextAuthConfig } from 'next-auth';
+import { isAccessTokenValid, refreshAccessToken } from './tokens';
 
 type Callbacks = NonNullable<NextAuthConfig['callbacks']>;
 
-export const jwt: Callbacks['jwt'] = async ({ token, user }) => {
+/**
+ * Runs on sign-in and whenever the session is read. The returned token is
+ * stored encrypted in the session cookie (AUTH_SECRET) and never sent to
+ * the browser as-is: the session callback decides what is.
+ */
+export const jwt: Callbacks['jwt'] = async ({ token, user, trigger }) => {
+  // Sign-in: `user` is what authorize() returned (only set this once)
   if (user) {
-    token.role = user.role;
-    token.jwtToken = user.jwtToken;
-    token.refreshToken = user.refreshToken;
-    token.expiration = user.expiration;
+    return {
+      ...token,
+      sub: user.id ?? token.sub,
+      role: user.role,
+      accessToken: user.accessToken,
+      refreshToken: user.refreshToken,
+      accessTokenExpires: user.accessTokenExpires,
+      error: undefined,
+    };
   }
-  return token;
+
+  if (trigger === 'update') {
+    // useSession().update(data) passes client-controlled `session` data here.
+    // Never copy it into the token as-is: whitelist the fields users may
+    // change themselves (e.g. `name`), and never the role or tokens.
+  }
+
+  // A failed refresh stays failed until the user signs in again
+  if (token.error) return token;
+
+  // No backend tokens (e.g. an OAuth sign-in): nothing to refresh
+  if (!token.refreshToken && !token.accessToken) return token;
+
+  if (isAccessTokenValid(token)) return token;
+
+  return refreshAccessToken(token);
 };
 
+/**
+ * What the browser sees (useSession(), /api/auth/session). Keep backend
+ * tokens out: server code reads them with getAccessToken().
+ */
 export const session: Callbacks['session'] = async ({ session, token }) => {
-  if (token && session.user) {
-    session.user.id = token.sub as string;
-    session.user.role = token.role as string;
-    session.user.jwtToken = token.jwtToken as string;
-    session.user.refreshToken = token.refreshToken as string;
-  }
+  if (token.sub) session.user.id = token.sub;
+  if (token.role) session.user.role = token.role;
+  if (token.error) session.error = token.error;
   return session;
 };
 
@@ -26,10 +54,19 @@ export const redirect: Callbacks['redirect'] = async ({ url, baseUrl }) => {
   // Allows relative callback URLs
   if (url.startsWith('/')) return `${baseUrl}${url}`;
   // Allows callback URLs on the same origin
-  if (new URL(url).origin === baseUrl) return url;
+  try {
+    if (new URL(url).origin === baseUrl) return url;
+  } catch {
+    // Malformed URL: fall back to the base URL
+  }
   return baseUrl;
 };
 
+/**
+ * Route protection in the proxy (proxy.ts / middleware.ts). It only covers
+ * the routes the proxy matches: server actions, route handlers and data
+ * access must still check auth() themselves.
+ */
 export const authorized: Callbacks['authorized'] = ({ auth }) => {
-  return !!auth?.user;
+  return !!auth?.user && !auth.error;
 };

@@ -59,22 +59,22 @@ import { ORDERS_API_URL, PAYMENTS_API_URL } from './env';
 
 export const api = new ApiClient({
   baseURL: ORDERS_API_URL,
+  userAgent: 'orders',
   // onAuthenticated: async (config) => {
   //   config.headers.Authorization = `Bearer ${token}`;
   // },
 });
-api.axios.defaults.headers.common['User-Agent'] = 'orders';
 
 export default api;
 
 export const payments = new ApiClient({
   baseURL: PAYMENTS_API_URL,
+  userAgent: 'orders',
 });
-payments.axios.defaults.headers.common['User-Agent'] = 'orders';
 ```
 
 - **Default export:** the first client in the file is also its default export, which actions import unless they name a client. Adding clients never changes the default export.
-- **User-Agent:** the project name, written at generation time.
+- **User-Agent:** the project name, written at generation time (`userAgent` option).
 - **Content type:** not set globally. axios sends JSON for plain objects and multipart, with its boundary, for `FormData`.
 - **Server-only:** the file imports `'server-only'`. Client components import `ApiError` and the response types from `@next-feature/client` itself.
 
@@ -119,4 +119,4 @@ payments.axios.interceptors.response.use(
 );
 ```
 
-`ApiClient` options (`timeout`, `maxRetries`, `enableRefreshToken`, `onAuthenticated`, ...) are documented in the [feature generator README](../../project/feature/README.md) under the `client` type.
+`ApiClient` options (`timeout`, `maxRetries`, `retryMethods`, `headers`, `logger`, `enableRefreshToken`, `onAuthenticated`, ...) are documented in the [feature generator README](../../project/feature/README.md) under the `client` type.

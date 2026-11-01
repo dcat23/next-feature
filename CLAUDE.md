@@ -105,6 +105,7 @@ Unlike generators (which scaffold files once), executors run as Nx targets (`nx 
 **Client Library** (`features/client/src/`, generated from the `client` feature template)
 - `ApiError` - Custom error class with status helpers (isUnauthorized, isNotFound, etc.)
 - `ApiError.of()` - Converts any error (ApiError, AxiosError, ZodError, ProblemDetail) to an `ApiError`. Axios and zod errors are detected by shape (`isAxiosError()`, `isZodError()`), and a `ProblemDetail` (e.g. `ApiResponse.error`) is detected with `isProblemDetail()`.
+- `ApiClient` (`lib/client.ts`, server-only) - Axios wrapper. Clients are module-level and shared by every server request, so never keep per-request state on the instance: token refreshes are keyed by the expired `Authorization` header (`refreshes` map). Retries only cover `retryMethods` (idempotent by default) and honour `Retry-After`. Optional `userAgent`, `headers` and `logger` (pino-compatible, console by default). Tested in `features/client/src/lib/client.spec.ts` with a fake axios adapter
 - `ApiErrorBuilder` - Fluent builder for creating API errors with ProblemDetail structure.
 - `ProblemDetail` - Spring Boot-compatible error response interface.
 

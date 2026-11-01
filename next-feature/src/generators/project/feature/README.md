@@ -157,6 +157,26 @@ features/[name]/src/
 }
 ```
 
+**`ApiClient` options.** All optional; `lib/config/client.ts` (the [client-config generator](../../misc/client-config/README.md)) passes `baseURL` and `userAgent`.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `baseURL` | `<NAME>_API_URL` (optional env var) | API base URL |
+| `timeout` | `30000` | Request timeout (ms) |
+| `userAgent` | - | `User-Agent` header, e.g. `orders/1.2.0` |
+| `headers` | - | Default headers for every request |
+| `maxRetries` | `1` | Retries on network errors, 5xx (except 501) and 429 |
+| `retryDelay` | `1000` | Base delay (ms) for exponential backoff. A `Retry-After` header is honoured, unless it's longer than `timeout` |
+| `retryMethods` | `get`, `head`, `options`, `put`, `delete` | Methods that are retried. POST/PATCH aren't by default: retrying them can repeat side effects |
+| `logger` | console | `{ info, warn, error }(obj, msg)`, e.g. a pino logger. Used for retries and hook errors |
+| `onAuthenticated` | - | Runs before each request (e.g. attach a token). If it throws, the error is logged and the request is still sent |
+| `enableRefreshToken` | `false` | On a 401, call `onRefreshToken` and retry once with `Bearer <token>` |
+| `onRefreshToken` | - | Returns the new token. Throwing or returning an empty token fails the refresh |
+| `onUnauthorized` / `onRefreshTokenExpired` | - | Called when the refresh fails / when the refreshed token is rejected too |
+| `skipRefreshPaths` | `[]` | URL patterns (e.g. login) that never trigger a refresh |
+
+Clients in `lib/config/client.ts` are module-level, so one instance serves every request the server handles. Token refreshes are keyed by the request's expired `Authorization` header: concurrent requests with the same token share one refresh, and requests from other users are never retried with it.
+
 **Validation errors.** `ApiError.of(zodError)` (and `withApi`, when an action throws a `ZodError`) returns a 400 whose `problemDetail.errors` is keyed by each issue's dotted path (`email`, `address.city`, `tags.0`). Issues without a path, such as an object-level `.refine()`, go under `FORM_ERROR_KEY` (`'_form'`):
 
 ```typescript

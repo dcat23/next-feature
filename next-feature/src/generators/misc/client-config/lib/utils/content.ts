@@ -11,11 +11,11 @@ export function clientContent(
   return `
 export const ${clientName} = new ApiClient({
   baseURL: ${envVar},
+  userAgent: '${userAgent}',
   // onAuthenticated: async (config) => {
   //   config.headers.Authorization = \`Bearer \${token}\`;
   // },
 });
-${clientName}.axios.defaults.headers.common['User-Agent'] = '${userAgent}';
 `;
 }
 

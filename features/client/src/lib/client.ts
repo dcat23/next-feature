@@ -6,26 +6,46 @@ import axios, {
   AxiosRequestConfig,
   AxiosResponse,
   InternalAxiosRequestConfig,
+  Method,
 } from 'axios';
-import type { ApiClientConfig } from './types/client';
+import type { ApiClientConfig, ApiClientLogger } from './types/client';
 import handleApiError from './utils/error';
 import { CLIENT_API_URL } from './config/env';
 
-/**
- * Pending request queue item
- */
-interface PendingRequest {
-  resolve: (token: string) => void;
-  reject: (error: any) => void;
-}
+type RetryableRequest = InternalAxiosRequestConfig & {
+  _retry?: boolean;
+  _retryCount?: number;
+};
+
+/** Retrying these can't repeat a side effect */
+const IDEMPOTENT_METHODS: Method[] = [
+  'get',
+  'head',
+  'options',
+  'put',
+  'delete',
+];
+
+const consoleLogger: ApiClientLogger = {
+  info: (obj, msg) => console.info(msg ?? '', obj),
+  warn: (obj, msg) => console.warn(msg ?? '', obj),
+  error: (obj, msg) => console.error(msg ?? '', obj),
+};
 
 /**
- * Axios wrapper with JWT/Refresh token handling
+ * Axios wrapper with retries, JWT refresh and ProblemDetail errors.
+ *
+ * Instances are usually module-level (lib/config/client.ts) and so shared by
+ * every request the server handles: per-request state such as an in-flight
+ * token refresh is keyed by the request's own token, never stored on the
+ * instance for all callers.
  */
 export class ApiClient {
   private readonly instance: AxiosInstance;
-  private isRefreshing = false;
-  private pendingRequests: PendingRequest[] = [];
+  /** In-flight refreshes, keyed by the expired Authorization header */
+  private readonly refreshes = new Map<string, Promise<string>>();
+  private readonly retryMethods: Set<string>;
+  private readonly logger: ApiClientLogger;
   private config: ApiClientConfig;
 
   constructor(config: ApiClientConfig) {
@@ -42,18 +62,29 @@ export class ApiClient {
       onRefreshTokenExpired: async () => {
         // no-op by default
       },
-      onAuthenticated: async (config) => {
+      onAuthenticated: async () => {
         // no-op by default
       },
-      onRefreshToken: async (originalRequest) => {
+      onRefreshToken: async () => {
         return '';
       },
       ...config,
     };
 
+    this.logger = this.config.logger ?? consoleLogger;
+    this.retryMethods = new Set(
+      (this.config.retryMethods ?? IDEMPOTENT_METHODS).map((method) =>
+        method.toLowerCase(),
+      ),
+    );
+
     this.instance = axios.create({
       baseURL: this.config.baseURL,
       timeout: this.config.timeout,
+      headers: {
+        ...this.config.headers,
+        ...(this.config.userAgent && { 'User-Agent': this.config.userAgent }),
+      },
     });
 
     this.setupInterceptors();
@@ -63,13 +94,11 @@ export class ApiClient {
    * Setup request and response interceptors
    */
   private setupInterceptors(): void {
-    // Request interceptor
     this.instance.interceptors.request.use(
       this.handleRequestFulfilled.bind(this),
       this.handleRequestRejected.bind(this),
     );
 
-    // Response interceptor
     this.instance.interceptors.response.use(
       this.handleResponseFulfilled.bind(this),
       this.handleResponseRejected.bind(this),
@@ -77,31 +106,28 @@ export class ApiClient {
   }
 
   /**
-   * Attach JWT token to request headers
+   * Run onAuthenticated (e.g. attach the session's token). A failing hook is
+   * logged and the request still goes out, as before.
    */
   private async handleRequestFulfilled(
     config: InternalAxiosRequestConfig,
   ): Promise<InternalAxiosRequestConfig> {
     try {
-      await this.config.onAuthenticated(config);
-      return config;
+      await this.config.onAuthenticated?.(config);
     } catch (error) {
-      console.error('onAuthenticated error on request:', error);
-      return config;
+      this.logger.error(
+        { err: error, method: config.method, url: config.url },
+        'onAuthenticated failed; sending the request without it',
+      );
     }
+    return config;
   }
 
-  /**
-   * Handle request errors
-   */
-  private handleRequestRejected(error: any): Promise<never> {
-    console.error('Request configuration error:', error);
+  private handleRequestRejected(error: unknown): Promise<never> {
+    this.logger.error({ err: error }, 'Request configuration error');
     return Promise.reject(error);
   }
 
-  /**
-   * Pass through successful responses
-   */
   private handleResponseFulfilled(response: AxiosResponse): AxiosResponse {
     return response;
   }
@@ -117,19 +143,15 @@ export class ApiClient {
   }
 
   /**
-   * Handle response errors with retry logic and token refresh
+   * Handle response errors with token refresh and retries
    */
-  private async handleResponseRejected(error: AxiosError): Promise<any> {
-    const originalRequest = error.config as InternalAxiosRequestConfig & {
-      _retry?: boolean;
-      _retryCount?: number;
-    };
+  private async handleResponseRejected(error: AxiosError): Promise<unknown> {
+    const originalRequest = error.config as RetryableRequest | undefined;
 
     if (!originalRequest) {
       return Promise.reject(handleApiError(error));
     }
 
-    // Handle 401 Unauthorized - attempt token refresh (skip for auth endpoints)
     if (
       error.response?.status === 401 &&
       this.config.enableRefreshToken &&
@@ -138,152 +160,128 @@ export class ApiClient {
       return this.handleUnauthorizedError(error, originalRequest);
     }
 
-    // Handle network errors and 5xx errors with retry logic
-    if (this.shouldRetry(error, originalRequest)) {
-      return this.retryRequest(originalRequest);
+    const delay = this.retryDelayFor(error, originalRequest);
+    if (delay !== null) {
+      return this.retryRequest(originalRequest, delay);
     }
 
-    // Create and reject with custom ApiError
     return Promise.reject(handleApiError(error));
   }
 
   /**
-   * Handle 401 errors with token refresh
+   * Refresh the token and retry. Concurrent requests holding the same expired
+   * token share one refresh; requests with a different token (another user
+   * on the same server) never receive this refresh's result.
    */
   private async handleUnauthorizedError(
     error: AxiosError,
-    originalRequest: InternalAxiosRequestConfig & { _retry?: boolean },
-  ): Promise<any> {
-    // Prevent infinite loops
+    originalRequest: RetryableRequest,
+  ): Promise<unknown> {
+    // Already retried with a refreshed token: give up
     if (originalRequest._retry) {
-      if (this.config.onRefreshTokenExpired) {
-        await this.config.onRefreshTokenExpired();
-      }
+      await this.config.onRefreshTokenExpired?.();
       return Promise.reject(handleApiError(error));
     }
 
     originalRequest._retry = true;
 
-    // If already refreshing, queue the request
-    if (this.isRefreshing) {
-      return new Promise((resolve, reject) => {
-        this.pendingRequests.push({ resolve, reject });
-      })
-        .then((token) => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return this.instance(originalRequest);
-        })
-        .catch((err) => {
-          return Promise.reject(handleApiError(err));
-        });
+    const expiredToken = String(originalRequest.headers?.Authorization ?? '');
+    const inFlight = expiredToken
+      ? this.refreshes.get(expiredToken)
+      : undefined;
+    const refresh = inFlight ?? this.refreshToken(originalRequest);
+
+    if (!inFlight && expiredToken) {
+      this.refreshes.set(expiredToken, refresh);
+      refresh.then(
+        () => this.refreshes.delete(expiredToken),
+        () => this.refreshes.delete(expiredToken),
+      );
     }
 
-    this.isRefreshing = true;
-
+    let token: string;
     try {
-      const newToken = await this.refreshToken(originalRequest);
-
-      // Update the original request with new token
-      originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
-      // Resolve all pending requests with new token
-      this.processPendingRequests(null, newToken);
-
-      // Retry the original request
-      return this.instance(originalRequest);
-    } catch (refreshError) {
-      // Reject all pending requests
-      this.processPendingRequests(refreshError, null);
-
-      if (this.config.onUnauthorized) {
-        await this.config.onUnauthorized();
-      }
-
+      token = await refresh;
+    } catch {
+      // Only the request that started the refresh reports it
+      if (!inFlight) await this.config.onUnauthorized?.();
       return Promise.reject(handleApiError(error));
-    } finally {
-      this.isRefreshing = false;
     }
+
+    originalRequest.headers.Authorization = `Bearer ${token}`;
+    return this.instance(originalRequest);
   }
 
   /**
-   * Refresh the JWT token using the refresh token
+   * Run onRefreshToken; an error or an empty token fails the refresh.
    */
   private async refreshToken(
-    originalRequest: InternalAxiosRequestConfig<any> & { _retry?: boolean },
+    originalRequest: RetryableRequest,
   ): Promise<string> {
     try {
-      return this.config.onRefreshToken(originalRequest);
+      const token = await this.config.onRefreshToken?.(originalRequest);
+      if (!token) throw new Error('onRefreshToken returned no token');
+      return token;
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      this.logger.error(
+        {
+          err: error,
+          method: originalRequest.method,
+          url: originalRequest.url,
+        },
+        'Token refresh failed',
+      );
       throw error;
     }
   }
 
   /**
-   * Process all pending requests after token refresh
+   * Delay before retrying, or null when the request shouldn't be retried:
+   * only retryMethods, on network errors, 5xx (except 501) and 429. Uses
+   * Retry-After when present, and gives up if it's longer than the timeout.
    */
-  private processPendingRequests(error: any, token: string | null): void {
-    this.pendingRequests.forEach((request) => {
-      if (error) {
-        request.reject(error);
-      } else if (token) {
-        request.resolve(token);
-      }
-    });
-
-    this.pendingRequests = [];
-  }
-
-  /**
-   * Determine if request should be retried
-   */
-  private shouldRetry(
+  private retryDelayFor(
     error: AxiosError,
-    config: InternalAxiosRequestConfig & { _retryCount?: number },
-  ): boolean {
-    const retryCount = config._retryCount || 0;
+    config: RetryableRequest,
+  ): number | null {
+    const retryCount = config._retryCount ?? 0;
+    if (retryCount >= (this.config.maxRetries ?? 0)) return null;
+    if (!this.retryMethods.has((config.method ?? 'get').toLowerCase()))
+      return null;
 
-    // Don't retry if max retries exceeded
-    if (retryCount >= this.config.maxRetries) {
-      return false;
-    }
+    const status = error.response?.status;
+    const retryable =
+      status === undefined ||
+      status === 429 ||
+      (status >= 500 && status !== 501);
+    if (!retryable) return null;
 
-    // Retry on network errors
-    if (!error.response) {
-      return true;
-    }
-
-    // Retry on 5xx server errors (except 501)
-    const status = error.response.status;
-    if (status >= 500 && status !== 501) {
-      return true;
-    }
-
-    // Retry on 429 (Too Many Requests)
-    if (status === 429) {
-      return true;
-    }
-
-    return false;
+    const backoff = (this.config.retryDelay ?? 0) * Math.pow(2, retryCount);
+    const retryAfter = parseRetryAfter(
+      error.response?.headers?.['retry-after'],
+    );
+    if (retryAfter === null) return backoff;
+    if (this.config.timeout && retryAfter > this.config.timeout) return null;
+    return retryAfter;
   }
 
-  /**
-   * Retry failed request with exponential backoff
-   */
   private async retryRequest(
-    config: InternalAxiosRequestConfig & { _retryCount?: number },
-  ): Promise<any> {
-    config._retryCount = (config._retryCount || 0) + 1;
+    config: RetryableRequest,
+    delay: number,
+  ): Promise<unknown> {
+    config._retryCount = (config._retryCount ?? 0) + 1;
 
-    const delay = this.config.retryDelay * Math.pow(2, config._retryCount - 1);
-
-    await this.sleep(delay);
-
-    console.log(
-      `Retrying request (attempt ${config._retryCount}):`,
-      config.url,
+    this.logger.warn(
+      {
+        method: config.method,
+        url: config.url,
+        attempt: config._retryCount,
+        delay,
+      },
+      'Retrying request',
     );
 
+    await this.sleep(delay);
     return this.instance(config);
   }
 
@@ -341,4 +339,13 @@ export class ApiClient {
   get axios(): AxiosInstance {
     return this.instance;
   }
+}
+
+/** Retry-After as milliseconds: delay-seconds or an HTTP date */
+function parseRetryAfter(value: unknown): number | null {
+  if (typeof value !== 'string' || !value.trim()) return null;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const date = Date.parse(value);
+  return Number.isNaN(date) ? null : Math.max(0, date - Date.now());
 }

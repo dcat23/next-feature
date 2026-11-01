@@ -112,7 +112,8 @@ describe('client-config generator', () => {
     const content = read(config);
     expect(content).not.toContain('require(');
     expect(content).not.toContain('Content-Type');
-    expect(content).toContain("api.axios.defaults.headers.common['User-Agent'] = 'orders';");
+    expect(content).toContain("userAgent: 'orders',");
+    expect(content).not.toContain('axios.defaults');
     // server-only file: client components import these from the client package
     expect(content).not.toContain('export { ApiError');
   });

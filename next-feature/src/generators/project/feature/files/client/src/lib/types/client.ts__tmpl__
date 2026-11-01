@@ -1,4 +1,14 @@
-import { InternalAxiosRequestConfig } from 'axios';
+import type { InternalAxiosRequestConfig, Method } from 'axios';
+
+/**
+ * Logger used by ApiClient for retries and hook errors. pino loggers fit
+ * as-is (`logger.child({ module: 'api' })`); defaults to the console.
+ */
+export interface ApiClientLogger {
+  info(obj: object, msg?: string): void;
+  warn(obj: object, msg?: string): void;
+  error(obj: object, msg?: string): void;
+}
 
 /**
  * Configuration options for the API client
@@ -12,7 +22,20 @@ export interface ApiClientConfig {
   timeout?: number;
   enableRefreshToken?: boolean;
   maxRetries?: number;
+  /** Base delay (ms) for exponential backoff between retries */
   retryDelay?: number;
+  /**
+   * Methods retried on network errors, 5xx (except 501) and 429. Defaults to
+   * the idempotent ones (GET, HEAD, OPTIONS, PUT, DELETE): retrying POST or
+   * PATCH can repeat side effects. A `Retry-After` header is honoured.
+   */
+  retryMethods?: Method[];
+  /** Sent as the User-Agent header, e.g. `orders/1.2.0` */
+  userAgent?: string;
+  /** Default headers sent with every request */
+  headers?: Record<string, string>;
+  /** Defaults to the console */
+  logger?: ApiClientLogger;
   /**
    * Paths that should skip the refresh token logic on 401.
    * Useful for login/register endpoints that expect 401 as a valid response.

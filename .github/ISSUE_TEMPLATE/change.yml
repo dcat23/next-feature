@@ -1,0 +1,59 @@
+name: Change
+description: Feature, refactor, docs, CI or release work
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Commit type
+      options: [feat, fix, refactor, docs, ci, chore, test]
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options: [client, logging, feature, application, action, component, hook, declaration, store, client-config, dotenv, shadcn, core, create-next-feature, release, ci, docs]
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What's wrong or missing today, with file references
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Approach and the files or templates it touches
+    validations:
+      required: true
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Breaking?
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: true
+  - type: textarea
+    id: migration
+    attributes:
+      label: Migration notes (if breaking)
+      description: Becomes the BREAKING CHANGE footer and the release note
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Verification plan
+      options:
+        - label: Specs for new or changed generator output
+        - label: Regenerate features/client and/or features/logging (keep version and repository in package.json)
+        - label: pnpm install (lockfile in sync, CI uses --frozen-lockfile)
+        - label: Build and lint the affected projects
+        - label: Local-registry e2e
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria

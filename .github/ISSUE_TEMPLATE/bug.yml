@@ -1,0 +1,67 @@
+name: Bug
+description: Something generated, published or released behaves incorrectly
+labels: [bug]
+body:
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Becomes the conventional commit scope, e.g. fix(client)
+      options: [client, logging, feature, application, action, component, hook, declaration, store, client-config, dotenv, shadcn, core, create-next-feature, release, ci, docs]
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Exact commands and any relevant nx.json generator defaults
+      placeholder: |
+        npx nx g next-feature:action getUsers -p users --useHook
+        # nx.json: generators["next-feature"].action = { ... }
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Output or error text, generated file excerpt
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      placeholder: next-feature 0.2.0-beta.0, @next-feature/client 0.2.0-beta.0, Nx 22.4.3, Next 16.0.9, Node 24
+    validations:
+      required: true
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Does the fix change generated output or a published API?
+      options:
+        - "No"
+        - "Yes: breaking (needs migration notes)"
+        - "Yes: additive only"
+    validations:
+      required: true
+  - type: textarea
+    id: migration
+    attributes:
+      label: Migration notes (if breaking)
+      description: Becomes the BREAKING CHANGE footer and the release note
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What a spec or check should prove
+      placeholder: |
+        - [ ] spec: ...
+        - [ ] regenerate features/client
+        - [ ] e2e

@@ -89,12 +89,16 @@ npx nx g next-feature:feature --name=myfeature
 import 'server-only';
 import { ApiClient } from '@next-feature/client/server';
 
-const apiClient = new ApiClient({
-  baseURL: process.env.NEXT_PUBLIC_API_URL
+import { USERS_API_URL } from './env';
+
+export const api = new ApiClient({
+  baseURL: USERS_API_URL, // <PROJECT>_API_URL in .env
 });
 
-export default apiClient;
+export default api;
 ```
+
+Need more than one API? `npx nx g next-feature:client-config payments -p users` adds `export const payments = ...` (reading `PAYMENTS_API_URL`) to the same file, and `--apiClient=payments` on an action calls it.
 
 Then use in actions. Generated actions are server-only; their request/response contract lives in a client-safe types file:
 

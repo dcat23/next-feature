@@ -10,10 +10,10 @@ import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { initializeProjectGenerator, updateDependencies } from '../../../lib/utils';
 import { externalizeDeclaredDependencies } from '../../../lib/utils/vite-config';
 import { FeatureGeneratorSchema } from './schema';
-import { asCaretRange, includeSourceInReleaseManifests, updatePackageJsonDependencies, updatePackageJsonExports } from './utils';
+import { asApiKeyName, asCaretRange, includeSourceInReleaseManifests, updatePackageJsonDependencies, updatePackageJsonExports } from './utils';
 import { addShadcnTarget } from '../../../lib/utils/shadcn';
 import { normalizeFeatureGenerator } from './utils/normalize';
-import { LOGGING } from '../../../lib/dotenv/constants/defaults';
+import { LOGGING, OPTIONAL_ENV_SCHEMA } from '../../../lib/dotenv/constants/defaults';
 
 export async function featureGenerator(
   tree: Tree,
@@ -41,7 +41,7 @@ export async function featureGenerator(
 
   tasks.push(await initializeProjectGenerator(tree, normalizedOptions, "feature"))
 
-  const { sourceRoot, importPath, type, projectRoot, apiKeyName } = normalizedOptions;
+  const { sourceRoot, importPath, type, projectRoot } = normalizedOptions;
 
   writeWildCardPathToTsConfig(tree, importPath, sourceRoot);
 
@@ -73,6 +73,8 @@ export async function featureGenerator(
   // Optional overrides with defaults in code: documented in .env.example and
   // typed as optional in lib/config/env.ts, never required in .env
   const optionalDotenv: Record<string, string> = {};
+  // client type: env var ApiClient falls back to when no baseURL is passed
+  const clientApiKeyName = asApiKeyName(normalizedOptions.name);
 
   switch (type) {
     case 'logging':
@@ -101,7 +103,9 @@ export async function featureGenerator(
         // ApiError checks axios/zod errors by shape, so an app on another
         // version doesn't need the same copy
 
-        setDotenv[apiKeyName] = 'http://localhost:8080';
+        // ApiClient's fallback baseURL only: projects pass their own
+        // <NAME>_API_URL from lib/config/client.ts (client-config generator)
+        optionalDotenv[clientApiKeyName] = 'http://localhost:8080';
       break;
     case 'auth':
       // Handle auth-specific logic
@@ -134,7 +138,7 @@ export async function featureGenerator(
   // Types without extra scaffolding (generic) have no template folder
   const typeFiles = path.join(__dirname, 'files', type);
   if (existsSync(typeFiles)) {
-    generateFiles(tree, typeFiles, projectRoot, normalizedOptions);
+    generateFiles(tree, typeFiles, projectRoot, { ...normalizedOptions, apiKeyName: clientApiKeyName });
   }
 
   updateDotenv(tree, { projectRoot, section: type }, {
@@ -152,7 +156,7 @@ export async function featureGenerator(
       skipExisting: true,
     });
     updateEnvConfig(tree, sourceRoot, {
-      set: Object.fromEntries(Object.keys(optionalDotenv).map((key) => [key, LOGGING.optionalSchema])),
+      set: Object.fromEntries(Object.keys(optionalDotenv).map((key) => [key, OPTIONAL_ENV_SCHEMA])),
     });
   }
 

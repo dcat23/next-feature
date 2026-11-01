@@ -1,3 +1,6 @@
+/** zod schema for env vars whose default lives in code (overrides only) */
+export const OPTIONAL_ENV_SCHEMA = 'z.string().optional()';
+
 /**
  * [logging]
  * Both vars are optional overrides: the logging library defaults the beacon
@@ -11,5 +14,4 @@ export const LOGGING = {
     beaconPathKey: 'NEXT_PUBLIC_LOGGING_BEACON_PATH',
     beaconPathValue: '/api/log',
     serviceNameKey: 'LOGGING_SERVICE_NAME',
-    optionalSchema: 'z.string().optional()',
 } as const;

@@ -80,7 +80,7 @@ features/[name]/src/
 └── server.ts               # Public server-side exports
 ```
 
-`env.ts` starts with just `NODE_ENV` typed. When `--env` is set (or `--type=client`), a `<NAME>_API_URL` var is added to it (and to `.env`/`.env.example`). It's kept up to date by the [dotenv generator](../../misc/dotenv/README.md)'s marker-based sync, so you can add/remove further vars later with `npx nx g next-feature:dotenv --projectName=[name] --set=KEY=VALUE` without disturbing what's already there.
+`env.ts` starts with just `NODE_ENV` typed. When `--env` is set, a `<NAME>_API_URL` var is added to it (and to `.env`/`.env.example`). `--type=client` adds `<NAME>_API_URL` as an optional var (`z.string().optional()`, `.env.example` only): it's only `ApiClient`'s fallback `baseURL`, since each project's `lib/config/client.ts` passes its own (see the [client-config generator](../../misc/client-config/README.md)). It's kept up to date by the [dotenv generator](../../misc/dotenv/README.md)'s marker-based sync, so you can add/remove further vars later with `npx nx g next-feature:dotenv --projectName=[name] --set=KEY=VALUE` without disturbing what's already there.
 
 ### `logging` type — additional files
 

@@ -162,4 +162,40 @@ describe('action generator', () => {
     const hookFile = 'features/base/src/hooks/use-submit-feedback.ts';
     expect(tree.exists(hookFile)).toBeFalsy();
   });
+
+  describe('api clients', () => {
+    it('should call the default client by default', async () => {
+      await actionGenerator(tree, { name: 'getUsers', actionType: 'api', projectName: 'base', skipFormat: true });
+      const action = read('features/base/src/lib/actions/user.ts');
+      expect(action).toContain("import api from '../config/client';");
+      expect(action).toContain('await api.get<GetUsersResponse>(');
+      expect(read('features/base/src/lib/config/client.ts')).toContain('export default api;');
+    });
+
+    it('should resolve the config import from a custom package', async () => {
+      await actionGenerator(tree, { name: 'getUsers', actionType: 'api', projectName: 'base', package: 'actions', skipFormat: true });
+      expect(read('features/base/src/actions/user.ts')).toContain("import api from '../lib/config/client';");
+
+      await actionGenerator(tree, { name: 'getOrders', actionType: 'api', projectName: 'base', package: 'lib/actions/orders', skipFormat: true });
+      expect(read('features/base/src/lib/actions/orders/order.ts')).toContain("import api from '../../config/client';");
+    });
+
+    it('should import and call a named client, creating it if missing', async () => {
+      await actionGenerator(tree, { name: 'getPayments', actionType: 'api', projectName: 'base', apiClient: 'payments', skipFormat: true });
+      const action = read('features/base/src/lib/actions/payment.ts');
+      expect(action).toContain("import { payments } from '../config/client';");
+      expect(action).not.toContain('import api from');
+      expect(action).toContain('await payments.get<GetPaymentsResponse>(');
+      expect(read('features/base/src/lib/config/client.ts')).toContain('export const payments = new ApiClient({');
+    });
+
+    it('should import each client when actions sharing a file call different clients', async () => {
+      await actionGenerator(tree, { name: 'getPayments', actionType: 'api', projectName: 'base', file: 'billing', apiClient: 'payments', skipFormat: true });
+      await actionGenerator(tree, { name: 'getInvoices', actionType: 'api', projectName: 'base', file: 'billing', skipFormat: true });
+      const action = read('features/base/src/lib/actions/billing.ts');
+      expect(action).toContain("import api, { payments } from '../config/client';");
+      expect(action.match(/from '\.\.\/config\/client'/g)).toHaveLength(1);
+      expect(action).toContain('await api.get<GetInvoicesResponse>(');
+    });
+  });
 });

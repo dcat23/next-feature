@@ -1,32 +1,45 @@
-import { readProjectConfiguration, Tree } from '@nx/devkit';
+import { names } from '@nx/devkit';
+import { normalizeCodeGenerator } from '../../../../../lib/utils/code-generator';
 import { asApiKeyName } from '../../../../project/feature/utils';
 import type {
   ClientConfigGeneratorSchema,
   NormalizedClientConfigGeneratorSchema,
 } from '../types';
 
+export const DEFAULT_CLIENT_NAME = 'api';
+export const CLIENT_CONFIG_PACKAGE = 'lib/config';
+export const CLIENT_CONFIG_FILE = 'client';
+
 /**
- * Normalize client-config generator options
+ * Env var holding a client's base URL. The default client keeps the
+ * project-based name (`<PROJECT>_API_URL`) earlier versions generated;
+ * named clients get their own (`<NAME>_API_URL`).
  */
-export async function normalize(
-  tree: Tree,
+export function asClientEnvVar(projectName: string, clientName: string, envVar?: string) {
+  if (envVar) return names(envVar).constantName;
+  return asApiKeyName(clientName === DEFAULT_CLIENT_NAME ? projectName : clientName);
+}
+
+/**
+ * Normalize client-config generator options. Every client lives in
+ * lib/config/client.ts, so `package` and `file` are fixed.
+ */
+export function normalize(
   options: ClientConfigGeneratorSchema
-): Promise<NormalizedClientConfigGeneratorSchema> {
-  if (!options.projectName) {
-    throw new Error('projectName is required for client-config generator');
-  }
+): NormalizedClientConfigGeneratorSchema {
+  const normalized = normalizeCodeGenerator({
+    ...options,
+    name: options.name || DEFAULT_CLIENT_NAME,
+    package: CLIENT_CONFIG_PACKAGE,
+    file: CLIENT_CONFIG_FILE,
+  });
 
-  const projectConfig = readProjectConfiguration(tree, options.projectName);
-  const sourceRoot = projectConfig.sourceRoot || `${projectConfig.root}/src`;
-  const projectPath = projectConfig.root;
-
-  const clientImportPath = options.clientPackage || '@next-feature/client';
+  const clientName = normalized.names.propertyName;
 
   return {
-    ...options,
-    projectPath,
-    sourceRoot,
-    clientImportPath,
-    apiKeyName: asApiKeyName(options.projectName),
+    ...normalized,
+    clientName,
+    isDefault: clientName === DEFAULT_CLIENT_NAME,
+    clientImportPath: options.clientPackage || '@next-feature/client',
   };
 }

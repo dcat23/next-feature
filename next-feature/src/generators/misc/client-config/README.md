@@ -1,219 +1,118 @@
 # Client Config Generator
 
-Generates a centralized client configuration file (`lib/config/client.ts`) for your project.
+Adds a configured `ApiClient` to a project's `lib/config/client.ts`, creating the file on first use. Each client is a named export with its own base URL env var. Run the generator again with another name to add more clients to the same file.
 
-## Purpose
-
-The client config file provides a single point to manage:
-- **Base API URL** configuration
-- **Request/response interceptors** for cross-cutting concerns
-- **Default HTTP headers** and authentication
-- **Error handling** and retry logic customization
-- **Re-exports** of commonly used API utilities
+The [action generator](../../code/action) runs it automatically: on a project's first action, and whenever an action names a client (`--apiClient`) that doesn't exist yet.
 
 ## Usage
 
-### Automatic Generation
-
-The **action generator automatically creates this config** if it doesn't already exist:
-
 ```bash
-npx nx g next-feature:action --name=getUsers --projectName=myfeature
+# Default client (`api`), also created by the first action in a project
+npx nx g next-feature:client-config -p orders
+
+# More clients in the same file
+npx nx g next-feature:client-config payments -p orders
+npx nx g next-feature:client-config search -p orders --envVar=ALGOLIA_URL
+
+# Export the clients from a library's server.ts
+npx nx g next-feature:client-config -p orders --export
 ```
 
-This will:
-1. Create `lib/config/client.ts` with default setup
-2. Generate your action file that imports from this config
-3. Allow you to customize the config later
+Like the other code generators, a `projectName` that doesn't exist yet is created as a feature library, and the value is recorded as the generator's `nx.json` default.
 
-### Manual Generation
-
-Generate a config explicitly:
-
-```bash
-npx nx g next-feature:client-config --projectName=myfeature
-npx nx g next-feature:client-config --projectName=myfeature --includeInterceptors=true
-```
-
-## Generated File Structure
-
-```
-src/
-├── lib/client/
-│   └── config.ts          # Your centralized client configuration
-└── [other files]
-```
-
-## Configuration Options
+## Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `projectName` | string | required | The project where config will be generated |
-| `clientPackage` | string | `@next-feature/client` | Client package to import from |
-| `baseUrl` | string | `process.env.NEXT_PUBLIC_API_URL` | Base URL for API requests |
-| `includeInterceptors` | boolean | `true` | Include example interceptor setup |
+| `name` | string | `api` | Client name: the exported const (positional) |
+| `projectName` (`-p`) | string | required | Target project, created as a feature if missing |
+| `envVar` | string | see below | Env var holding the client's base URL |
+| `clientPackage` | string | `@next-feature/client` | Package `ApiClient` is imported from (`<package>/server`) |
+| `export` (`-e`) | boolean | `false` | Export the clients from `server.ts` (libraries only) |
 | `skipFormat` | boolean | `false` | Skip prettier formatting |
 
-## Customization Examples
+`baseUrl` and `includeInterceptors` are still accepted but currently ignored.
 
-### Example 1: Custom Base URL
+## Env vars
 
-```bash
-npx nx g next-feature:client-config --projectName=myfeature --baseUrl="'https://api.example.com'"
-```
+Each client reads its base URL from its own var. The var is registered in `.env`/`.env.example` (under `### CLIENT ###`, unless it's already defined in another section) and in `lib/config/env.ts`:
 
-### Example 2: Use Custom Client Package
+| Client | Default var |
+|--------|-------------|
+| `api` (the default client) | `<PROJECT>_API_URL`, e.g. `ORDERS_API_URL` |
+| any other name | `<NAME>_API_URL`, e.g. `PAYMENTS_API_URL` |
 
-```bash
-npx nx g next-feature:client-config --projectName=myfeature --clientPackage="@myorg/http-client"
-```
+Pass `--envVar` to use a different name.
 
-### Example 3: Without Interceptor Comments
-
-```bash
-npx nx g next-feature:client-config --projectName=myfeature --includeInterceptors=false
-```
-
-## Generated Config File
-
-The generated `lib/config/client.ts` looks like:
+## Generated file
 
 ```typescript
+// lib/config/client.ts
 import 'server-only';
 
-import { type ApiResponse, ApiError } from '@next-feature/client';
 import { ApiClient } from '@next-feature/client/server';
-import { MYFEATURE_API_URL } from './env'; // <PROJECT>_API_URL, kept in sync by the dotenv generator
+import { ORDERS_API_URL, PAYMENTS_API_URL } from './env';
 
-const apiClient = new ApiClient({
-  baseURL: MYFEATURE_API_URL,
-  onAuthenticated: async (config) => {
-    // runs before every request: attach auth headers, log, ...
-  },
+export const api = new ApiClient({
+  baseURL: ORDERS_API_URL,
+  // onAuthenticated: async (config) => {
+  //   config.headers.Authorization = `Bearer ${token}`;
+  // },
 });
+api.axios.defaults.headers.common['User-Agent'] = 'orders';
 
-apiClient.axios.defaults.headers.common['Content-Type'] = 'application/json';
+export default api;
 
-// Re-export commonly used utilities
-export { ApiError, type ApiResponse };
-
-export default apiClient;
-```
-
-## How to Use in Actions
-
-Once generated, import the config in your server actions:
-
-```typescript
-// src/lib/actions/user.ts
-import 'server-only';
-
-import { type ApiResponse, ApiError } from "@next-feature/client"
-import api from '../config/client';  // Import from your config
-
-export async function getUsers(): Promise<ApiResponse<User[]>> {
-  try {
-    const response = await api.get<User[]>('/users');
-    return { success: true, data: response };
-  } catch (error) {
-    const apiError = ApiError.of(error);
-    return { success: false, error: apiError.problemDetail, message: apiError.message };
-  }
-}
-```
-
-> Actions are `server-only`: call them from server components, route handlers or other server code. Client components go through a `'use server'` wrapper (`<file>.action.ts`, generated with `--useHook`) or a form action (`<file>.form.ts`, generated with `--actionType=form`).
-
-## Customizing the Config
-
-### Add Request Interceptor
-
-```typescript
-// src/lib/config/client.ts
-apiClient.axios.interceptors.request.use((config) => {
-  // Add auth token
-  const token = getToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+export const payments = new ApiClient({
+  baseURL: PAYMENTS_API_URL,
 });
+payments.axios.defaults.headers.common['User-Agent'] = 'orders';
 ```
 
-### Add Response Interceptor
+- **Default export:** the first client in the file is also its default export, which actions import unless they name a client. Adding clients never changes the default export.
+- **User-Agent:** the project name, written at generation time.
+- **Content type:** not set globally. axios sends JSON for plain objects and multipart, with its boundary, for `FormData`.
+- **Server-only:** the file imports `'server-only'`. Client components import `ApiError` and the response types from `@next-feature/client` itself.
 
-```typescript
-// src/lib/config/client.ts
-apiClient.axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    // Handle 401 errors globally
-    if (error.response?.status === 401) {
-      redirectToLogin();
-    }
-    return Promise.reject(error);
-  }
-);
-```
+Files generated by earlier versions, with one unnamed `apiClient` default export, are treated as the default client: running the generator again leaves them unchanged, and named clients are added after them.
 
-### Custom Error Handling
-
-```typescript
-// src/lib/config/client.ts
-apiClient.axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    const apiError = ApiError.of(error);
-
-    if (apiError.isUnauthorized) {
-      // Handle unauthorized
-      redirectToLogin();
-    } else if (apiError.isServerError) {
-      // Log to error tracking service
-      logError(apiError);
-    }
-
-    return Promise.reject(error);
-  }
-);
-```
-
-## Integration with Action Generator
-
-When you create an action, it automatically:
-1. Checks if `lib/config/client.ts` exists
-2. Creates it if missing (using default settings)
-3. Imports the config in your action file
-4. Uses the configured API client
-
-Example:
+## Using a client in actions
 
 ```bash
-# First action in a project
-npx nx g next-feature:action --name=fetchUserProfile --projectName=myfeature
+# Calls the default export
+npx nx g next-feature:action getOrders -p orders
 
-# Output:
-# CREATE apps/myfeature/src/lib/config/client.ts (with defaults)
-# CREATE apps/myfeature/src/lib/types/user-profile.ts
-# CREATE apps/myfeature/src/lib/actions/user-profile.ts
+# Calls a named client, created first if it's missing
+npx nx g next-feature:action getPayments -p orders --apiClient=payments
 ```
 
-## When to Use Client Config vs Custom Client Package
+```typescript
+// lib/actions/payment.ts
+import 'server-only';
 
-| Use Case | Recommendation |
-|----------|---|
-| Simple API setup with interceptors | Use client-config generator |
-| Base URL and auth token handling | Use client-config generator |
-| Custom ApiClient/ApiError classes | Generate a custom client package |
-| Multiple clients per project | Generate multiple client packages |
-| Shared client across projects | Create a custom client package |
+import { withApi } from '@next-feature/client/server';
+import { payments } from '../config/client';
 
-## Files Modified
+export const getPayments = withApi(async (options?: GetPaymentsRequest) => {
+  const response = await payments.get<GetPaymentsResponse>('/payments');
+  return response;
+}, {});
+```
 
-The generator only creates:
-- `src/lib/config/client.ts`
+The import path is worked out from the action's `--package`, so `--package=actions` imports `../lib/config/client`.
 
-It does not modify:
-- Your action files
-- Your project configuration
-- Package dependencies
+## Customising a client
+
+Each client exposes its axios instance for interceptors:
+
+```typescript
+payments.axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // e.g. report to an error tracker
+    return Promise.reject(error);
+  }
+);
+```
+
+`ApiClient` options (`timeout`, `maxRetries`, `enableRefreshToken`, `onAuthenticated`, ...) are documented in the [feature generator README](../../project/feature/README.md) under the `client` type.

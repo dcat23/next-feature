@@ -9,7 +9,7 @@ import { writeCodeFile } from '../../../lib/write-file';
 import * as path from 'path';
 import { exportFile } from '../../../lib/export-file';
 import { initializeCodeGenerator } from '../../../lib/utils/code-generator';
-import { addNamedImports } from '../../../lib/utils/imports';
+import { addDefaultImport, addNamedImports } from '../../../lib/utils/imports';
 import declarationGenerator from '../declaration/declaration';
 import hookGenerator from '../hook/hook';
 import clientConfigGenerator from '../../misc/client-config/client-config';
@@ -50,12 +50,13 @@ export async function actionGenerator(
     "action"
   );
 
-  // Auto-generate client config if it doesn't exist
+  // Auto-generate the client config, or the named client the action calls
   const configPath = path.join(sourceRoot, 'lib/config/client.ts');
-  if (!tree.exists(configPath)) {
+  if (normalizedOptions.useNamedClient || !tree.exists(configPath)) {
     tasks.push(
       await clientConfigGenerator(tree, {
         projectName,
+        name: normalizedOptions.clientName,
         clientPackage: options.clientPackage,
         skipFormat: true,
       })
@@ -80,6 +81,12 @@ export async function actionGenerator(
   // Server-only action
   const outputFile = path.join(directory, normalizedOptions.outputFileName);
   ensureFile(tree, 'server', directory, outputFile, normalizedOptions);
+  // Actions sharing a file may call different clients
+  if (normalizedOptions.useNamedClient) {
+    addNamedImports(tree, outputFile, normalizedOptions.configImportPath, [normalizedOptions.clientName]);
+  } else {
+    addDefaultImport(tree, outputFile, normalizedOptions.configImportPath, 'api');
+  }
   addNamedImports(tree, outputFile, typesImportPath, [
     ...(hasRequestBody ? [schemaName] : []),
     `type ${requestType}`,

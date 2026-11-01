@@ -14,6 +14,5 @@ export interface FeatureGeneratorSchema extends ProjectGeneratorSchema {
 
 export interface NormalizedFeatureGeneratorSchema extends NormalizedProjectGeneratorSchema<FeatureGeneratorSchema> {
   directory: string;
-  apiKeyName: string;
   type: FeatureType;
 }

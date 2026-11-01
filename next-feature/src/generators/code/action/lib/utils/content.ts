@@ -31,7 +31,7 @@ export const ${options.methodName} = ${useApi ? "withApi" : ""}(async (options?:
   ${!hasRequestBody ? `const params = new URLSearchParams();
   const endpoint = "/${options.endpoint}?" + params.toString();
   ` : `const endpoint = "/${options.endpoint}";`}
-  const response = await api.${options.httpMethod}<${responseType}>(endpoint${hasRequestBody ? ", parsed.data" : ""});
+  const response = await ${options.clientName}.${options.httpMethod}<${responseType}>(endpoint${hasRequestBody ? ", parsed.data" : ""});
   return ${options.useMapper ? `${options.mapperName}(response)` : "response"};
 }${useApi ? ", {}": ""});
 `

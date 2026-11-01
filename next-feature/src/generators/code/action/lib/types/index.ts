@@ -45,6 +45,12 @@ export interface ActionGeneratorSchema extends CodeGeneratorSchema {
    * Defaults to @next-feature/client if not provided
    */
   clientPackage?: string;
+
+  /**
+   * Named client exported from lib/config/client.ts (e.g. payments).
+   * Defaults to the file's default export.
+   */
+  apiClient?: string;
 }
 
 /**
@@ -59,7 +65,9 @@ export interface NormalizedActionGeneratorSchema extends NormalizedCodeGenerator
   hasRequestBody: boolean;
   mapperName?: string;
   mapperImportPath: string; // relative to the action package
-  configImportPath: string
+  configImportPath: string // relative to the action package
+  clientName: string // identifier the action calls (`api` for the default export)
+  useNamedClient: boolean // import { <clientName> } instead of the default export
   useApi: boolean; // wrap in withApi (api/form only)
 
   // Request/Response contract, written to the data-type location

@@ -123,9 +123,9 @@ Client components never import this file directly. `--useHook` adds a `'use serv
 - Error utility functions
 
 ```typescript
-// Convert Zod validation errors automatically
+// ApiError.of() converts any error (ZodError, AxiosError, ProblemDetail, ...)
 if (!parsed.success) {
-  const apiError = ApiError.fromZodError(parsed.error);
+  const apiError = ApiError.of(parsed.error);
   return { success: false, error: apiError.problemDetail };
 }
 ```
@@ -204,7 +204,7 @@ npx nx graph
 Each package includes comprehensive documentation:
 
 - **[next-feature/README.md](./next-feature/README.md)** - Generator plugin overview and usage
-- **[clients/client/README.md](./clients/client/README.md)** - API client library features
+- **[Feature generator README](./next-feature/src/generators/project/feature/README.md)** - `client` and `logging` feature types (the source of `@next-feature/client` and `@next-feature/logging`)
 - **[create-next-feature/README.md](./create-next-feature/README.md)** - CLI tool usage
 
 Generator-specific documentation in generator directories:
@@ -303,7 +303,7 @@ npx nx g next-feature:client-config --projectName=api --includeInterceptors=true
 
 - Centralized API client setup
 - Eliminated boilerplate code duplication
-- Enhanced error handling with `ApiError.fromZodError()`
+- Enhanced error handling with `ApiError.of()`
 - Template re-exports from local implementations
 - Clear customization patterns
 

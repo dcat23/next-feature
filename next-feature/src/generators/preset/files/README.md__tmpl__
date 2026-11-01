@@ -221,7 +221,7 @@ export async function loginUser(
   })
 
   if (!result.success) {
-    const apiError = ApiError.fromZodError(result.error)
+    const apiError = ApiError.of(result.error)
     return {
       success: false,
       message: apiError.message,
@@ -488,7 +488,7 @@ npx nx g next-feature:init
 - **[Init Generator](../init/README.md)** - Plugin initialization
 - **[Preset Generator](../preset/README.md)** - Initial setup
 - **[Feature Generator](../project/feature/README.md)** - Feature libraries
-- **[@next-feature/client](../../../../clients/client/README.md)** - API client documentation
+- **[@next-feature/client](https://www.npmjs.com/package/@next-feature/client)** - API client documentation
 - **[Nx Documentation](https://nx.dev)** - Monorepo framework docs
 - **[Next.js Documentation](https://nextjs.org/docs)** - React framework docs
 

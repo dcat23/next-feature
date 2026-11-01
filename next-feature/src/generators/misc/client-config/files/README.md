@@ -111,7 +111,7 @@ const apiClient = new ApiClient({
 });
 
 // Add your custom interceptors
-apiClient.getAxiosInstance().interceptors.request.use((config) => {
+apiClient.axios.interceptors.request.use((config) => {
   // Add auth token from cookie or session
   const token = getCookie('accessToken');
   if (token) {
@@ -129,7 +129,7 @@ apiClient.getAxiosInstance().interceptors.request.use((config) => {
 // src/lib/config/client.ts
 import { getToken } from './auth';
 
-apiClient.getAxiosInstance().interceptors.request.use((config) => {
+apiClient.axios.interceptors.request.use((config) => {
   const token = getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -140,30 +140,28 @@ apiClient.getAxiosInstance().interceptors.request.use((config) => {
 
 ### Pattern 2: Global Error Handler
 
+`lib/config/client.ts` is server-only, so it can't touch `window`. Use the `ApiClient` hooks, and let the client component react to the returned `ProblemDetail` (e.g. `ApiError.of(response.error).isUnauthorized`).
+
 ```typescript
 // src/lib/config/client.ts
-apiClient.getAxiosInstance().interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Redirect to login
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
+const apiClient = new ApiClient({
+  baseURL,
+  onUnauthorized: async () => {
+    // 401 after a failed token refresh: clear the session, log, ...
+  },
+});
 ```
 
 ### Pattern 3: Request Logging
 
 ```typescript
 // src/lib/config/client.ts
-apiClient.getAxiosInstance().interceptors.request.use((config) => {
+apiClient.axios.interceptors.request.use((config) => {
   console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
   return config;
 });
 
-apiClient.getAxiosInstance().interceptors.response.use(
+apiClient.axios.interceptors.response.use(
   (response) => {
     console.log(`[API] ${response.status} ${response.config.url}`);
     return response;
@@ -184,7 +182,7 @@ const apiClient = new ApiClient({
   timeout: 30000,  // 30 seconds
 });
 
-apiClient.getAxiosInstance().interceptors.response.use(
+apiClient.axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.code === 'ECONNABORTED') {
@@ -230,7 +228,7 @@ The config file re-exports commonly used utilities:
 ```typescript
 // Available to import from anywhere
 import { ApiError, type ApiResponse } from "@next-feature/client"
-import { getErrorMessage, extractValidationErrors } from "@next-feature/client"
+import { getErrorMessage, isHttpStatus, isProblemDetail } from "@next-feature/client"
 ```
 
 You can extend the re-exports:

@@ -314,4 +314,4 @@ The generator:
 - [next-feature Plugin](../../README.md) - Complete generator overview
 - [Feature Generator](../project/feature/README.md) - Create feature libraries
 - [NextFeature](../../../README.md) - Main ecosystem documentation
-- [@next-feature/client](../../../clients/client/README.md) - API client library
+- [@next-feature/client](https://www.npmjs.com/package/@next-feature/client) - API client library

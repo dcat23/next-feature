@@ -142,8 +142,10 @@ Automatically handles form validation errors:
 ```typescript
 import { ApiError } from '@next-feature/client';
 
-if (!schema.safeParse(formData).success) {
-  const apiError = ApiError.fromZodError(parsed.error);
+const parsed = schema.safeParse(formData);
+if (!parsed.success) {
+  // ApiError.of() converts any error (ZodError, AxiosError, ProblemDetail, ...)
+  const apiError = ApiError.of(parsed.error);
   return { success: false, error: apiError.problemDetail };
 }
 ```
@@ -434,8 +436,8 @@ npx nx test next-feature
 
 ## See Also
 
-- [Root README](../../README.md) - Overview of NextFeature ecosystem
-- [@next-feature/client Documentation](../../clients/client/README.md) - API client library
+- [Root README](../README.md) - Overview of NextFeature ecosystem
+- [Feature generator README](src/generators/project/feature/README.md) - `client` and `logging` feature types (`@next-feature/client`, `@next-feature/logging`)
 - [Generator-specific READMEs](src/generators/) - Detailed generator documentation
 
 ## Contributing

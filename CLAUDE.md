@@ -63,12 +63,10 @@ The plugin follows an Nx plugin structure with generators organized by category:
 
 **Code Generators** (`src/generators/code/`)
 - `action` - Generates server-only actions (API, form, or database operations) plus a client-safe request/response contract, and `'use server'` wrappers only for calls that originate in client components (see Server Actions Architecture)
-- `component` - Generates React components (`kind=form` imports `ApiResponse` from `clientPackage`, default `@next-feature/client`). `componentType=hook` scaffolds a generic reusable hook (`use<Name>`) in `src/hooks/` instead of a component. `componentType=ui` adds a shadcn component to a `ui`-type feature library instead: no template is written, it invokes the shared shadcn CLI helper (`lib/utils/shadcn.ts`, also used by the `shadcn` executor) to run `npx shadcn@latest add <slug>` in the target project's root, skipping if the component file already exists
+- `component` - Generates React components (`kind=form` imports `ApiResponse` from `clientPackage`, default `@next-feature/client`). `componentType` is `component` (default), `page` (App Router route files) or `ui`; `kind` selects the file (`generic`, `modal`, `card`, `form` for components; `layout`, `loading`, `error`, `not-found`, `template`, `default`, `global-error`, `route` for pages). `componentType=ui` adds a shadcn component to a `ui`-type feature library instead: no template is written, it invokes the shared shadcn CLI helper (`lib/utils/shadcn.ts`, also used by the `shadcn` executor) to run `npx shadcn@latest add <slug>` in the target project's root, skipping if the component file already exists
 - `hook` - Generates a TanStack Query hook (`useQuery` for GET-derived actions, `useMutation` otherwise) that calls an action's `'use server'` wrapper (`<actionFile>.action.ts`) and imports its request type from `lib/types/<actionFile>`, in `src/hooks/`. Auto-invoked by the `action` generator when `useHook` is set
 - `store` - Generates Zustand stores
-- `data-type` - Generates TypeScript type definitions
-- `constant` - Generates constant definitions
-- `utility` - Generates utility functions
+- `declaration` - Generates a declaration by `kind`: `data-type` (TypeScript types), `constant` or `utility`. Data types and constants are exported from `index.ts`, utilities from `server.ts`
 
 **Misc Generators** (`src/generators/misc/`)
 - `client-config` - Creates centralized API client configuration (auto-invoked by action generator)
@@ -104,9 +102,9 @@ Unlike generators (which scaffold files once), executors run as Nx targets (`nx 
 - `updateDotenv()` / `syncDotenv()` (`dot-env.ts`) - Set/unset vars across a project's (or multiple projects') `.env`/`.env.example`/`.env.<suffix>` files, grouped under `### SECTION ###` headers, preserving comments/blank lines. Non-`.env.example` files touched this way are auto-gitignored.
 - `updateEnvConfig()` (`env-config.ts`) - Keeps a project's `lib/config/env.ts` zod schema and `process.env` accessors in sync with the same key set, via `/* schema start/end */` and `/* vars start/end */` markers. The schema property, exported accessor, and `.env` key are always the same name (e.g. `USERS_API_URL`). Called by `feature`/`application`/`client-config` generators directly, and exposed as a standalone generator via `misc/dotenv`.
 
-**Client Library** (`clients/client/src/`)
+**Client Library** (`features/client/src/`, generated from the `client` feature template)
 - `ApiError` - Custom error class with status helpers (isUnauthorized, isNotFound, etc.)
-- `ApiError.fromZodError()` - Converts Zod validation errors to API errors.
+- `ApiError.of()` - Converts any error (ApiError, AxiosError, ZodError, ProblemDetail) to an `ApiError`. Axios and zod errors are detected by shape (`isAxiosError()`, `isZodError()`), and a `ProblemDetail` (e.g. `ApiResponse.error`) is detected with `isProblemDetail()`.
 - `ApiErrorBuilder` - Fluent builder for creating API errors with ProblemDetail structure.
 - `ProblemDetail` - Spring Boot-compatible error response interface.
 
@@ -244,10 +242,17 @@ Executors are registered in `next-feature/executors.json` (currently just `shadc
 
 ## Git Integration
 
-Main branch: `main` (for PRs)
-Current version: `0.1.0` (migrating to Nx 22.0.3)
+Main branch: `main` (for PRs). Work is tracked in GitHub issues (bug/change forms) and milestones; branch as `<type>/<issue>-<slug>` and close issues with `Closes #<n>` in the PR.
 
-Use git tags for versioning: `v0.1.0`, etc.
+Versions come from conventional commits (`nx release`, fixed relationship across all four packages, tags `v<version>`). While the major is 0, a breaking change bumps the minor (`adjustSemverBumpsForZeroMajorVersion`). Release with the Release workflow:
+- beta: `specifier: auto` + `prerelease` (never `specifier: prerelease`, which ignores the commits)
+- graduate a beta: `specifier: patch`
+- stable notes only list commits since the last tag, so paste the migration table for breaking changes into the GitHub release
+
+Commit conventions:
+- `type(scope): subject`, scopes as in the issue forms; breaking changes use `type(scope)!:` plus a `BREAKING CHANGE:` footer with the migration
+- Nx reads a `BREAKING CHANGE:` note to the end of the message, so in breaking commits put the co-author line after a `---------` line (`Co-authored-by: ...`) to end the note there
+- `docs`, `chore`, `ci`, `test` commits are hidden from the changelog and don't bump the version
 
 Package manager: `pnpm` (use `pnpm install`, not npm or yarn)
 
@@ -280,7 +285,7 @@ Package manager: `pnpm` (use `pnpm install`, not npm or yarn)
 - `@next-feature/client` is generated from the `client` feature template into `features/client` (and `@next-feature/logging` from `logging` into `features/logging`); regenerate them after changing those templates
 - Client-safe exports from `features/client/src/index.ts` (`ApiError`, types, error utils)
 - Server-only exports from `features/client/src/server.ts` (`ApiClient`, `withApi`, `withForm`)
-- Use `ApiError.fromZodError()` for form validation errors
+- Use `ApiError.of(zodError)` for form validation errors (field messages land in `problemDetail.errors`, keyed by dotted path)
 - Use `ApiError.builder()` for custom error construction
 
 ## Server Actions Architecture
@@ -339,6 +344,6 @@ Built files go to `dist/next-feature/`:
 - `generators.json` and `executors.json` copied to root of dist
 - `.md` files included for documentation
 
-Client library output in `dist/clients/client/`:
-- Dual exports: `index.js` (browser) and `server.js` (Node.js)
+Feature library output in `dist/features/client/` and `dist/features/logging/`:
+- Dual exports: `index.js` (client-safe) and `server.js` (`server-only`)
 - Type definitions for all exports

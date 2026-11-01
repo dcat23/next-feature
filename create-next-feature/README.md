@@ -244,7 +244,7 @@ npm run nx -- g next-feature:axios --projectName=users
 After creation, comprehensive documentation is available:
 
 - **[next-feature Plugin](../next-feature/README.md)** - Generator reference
-- **[@next-feature/client](../clients/client/README.md)** - API client library
+- **[@next-feature/client](https://www.npmjs.com/package/@next-feature/client)** - API client library
 - **[NextFeature](../README.md)** - Complete ecosystem guide
 
 ## Troubleshooting

@@ -13,10 +13,10 @@ NextFeature is an Nx workspace containing a **generator plugin ecosystem** that 
 The plugin provides generators for creating projects, server actions (API, form, database), components, stores, and configurations (client-config).
 
 Key technologies:
-- **Nx 22.0.3** - Monorepo framework
-- **Next.js 15.2** - React framework with Server Actions
+- **Nx 22.4.3** - Monorepo framework
+- **Next.js 16** - React framework with Server Actions (`proxy.ts`, async request APIs, Turbopack builds)
 - **TypeScript** - Language
-- **Jest + Vitest** - Testing frameworks
+- **Jest** - Testing framework (every project, including the feature libraries)
 - **TailwindCSS** - Styling
 - **Zustand** - State management
 - **TanStack Query** - Data fetching
@@ -44,8 +44,8 @@ npx nx format:write
 # Run a specific generator (e.g., create a server action)
 npx nx g next-feature:action --name=getUser --actionType=api --projectName=myfeature
 
-# Run e2e tests
-npx nx test next-feature-e2e
+# Run e2e tests (local registry; restores nothing: afterwards `git restore` the four package.json versions it sets to 0.0.0-e2e)
+npx nx e2e next-feature-e2e
 
 # View the dependency graph
 npx nx graph
@@ -185,7 +185,7 @@ npx nx test next-feature -- --coverage
 # Watch mode
 npx nx test next-feature -- --watch
 
-# Test client library (uses Vitest)
+# Test client library (Jest)
 npx nx test client
 ```
 

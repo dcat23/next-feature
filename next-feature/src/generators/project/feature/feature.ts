@@ -8,7 +8,7 @@ import { updateDotenv } from '../../../lib/dotenv/dot-env';
 import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { initializeProjectGenerator, updateDependencies } from '../../../lib/utils';
-import { addRollupExternalPackages } from '../../../lib/utils/vite-config';
+import { externalizeDeclaredDependencies } from '../../../lib/utils/vite-config';
 import { FeatureGeneratorSchema } from './schema';
 import { asCaretRange, includeSourceInReleaseManifests, updatePackageJsonDependencies, updatePackageJsonExports } from './utils';
 import { addShadcnTarget } from '../../../lib/utils/shadcn';
@@ -54,8 +54,8 @@ export async function featureGenerator(
 
   const devDependencies: Record<string, string> = {};
 
-  // Packages the library's vite build leaves external, declared in the
-  // feature's own package.json (published) rather than inlined into dist/.
+  // Declared in the feature's own package.json (published), which also makes
+  // the vite build keep them external (externalizeDeclaredDependencies).
   // server-only: bundling it would bake in its throwing (non react-server)
   // build, so leave it for Next.js to resolve. zod: lib/config/env.ts.
   const libraryDependencies: Record<string, string> = {
@@ -66,7 +66,8 @@ export async function featureGenerator(
     react: REACT_PEER_VERSION,
     'react-dom': REACT_PEER_VERSION,
   };
-  addRollupExternalPackages(tree, projectRoot, ['server-only', 'zod']);
+  // External without being declared
+  const extraExternals: string[] = [];
 
   const setDotenv: Record<string, string> = {};
 
@@ -81,7 +82,7 @@ export async function featureGenerator(
       // thread-stream must be external too: pino-pretty's transport spawns it
       // as a worker thread, which needs the real on-disk worker.js rather than
       // a bundled copy.
-      addRollupExternalPackages(tree, projectRoot, ['pino', 'pino-http', 'pino-pretty', 'thread-stream']);
+      extraExternals.push('thread-stream');
       libraryDependencies['pino'] = PINO_VERSION;
       libraryDependencies['pino-http'] = PINO_HTTP_VERSION;
       libraryDependencies['pino-pretty'] = PINO_PRETTY_VERSION;
@@ -94,9 +95,8 @@ export async function featureGenerator(
         // Handle client-specific logic
         dependencies['axios'] = AXIOS_VERSION;
         libraryDependencies['axios'] = asCaretRange(AXIOS_VERSION);
-        // shared with the app's code: ApiError checks axios/zod errors by
-        // shape, so an app on another version doesn't need the same copy
-        addRollupExternalPackages(tree, projectRoot, ['axios']);
+        // ApiError checks axios/zod errors by shape, so an app on another
+        // version doesn't need the same copy
 
         setDotenv[apiKeyName] = 'http://localhost:8080';
       break;
@@ -104,13 +104,13 @@ export async function featureGenerator(
       // Handle auth-specific logic
       dependencies['next-auth'] = NEXTAUTH_VERSION;
       // peer: the app's SessionProvider (next-auth/react) must match the
-      // version this library's handlers/session code runs. The regex covers
-      // subpath imports (next-auth/jwt, next-auth/providers/*).
+      // version this library's handlers/session code runs. Subpath imports
+      // (next-auth/jwt, next-auth/providers/*) stay external with it.
       libraryPeerDependencies['next-auth'] = asCaretRange(NEXTAUTH_VERSION);
-      addRollupExternalPackages(tree, projectRoot, ['next-auth', /^next-auth\//]);
       break;
     case 'ui':
-      // shadcn init/add installs the packages its components need
+      // shadcn init/add installs the packages its components need into this
+      // project's package.json, which keeps them external automatically
       addShadcnTarget(tree, projectRoot);
       break;
   }
@@ -118,6 +118,7 @@ export async function featureGenerator(
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies))
   updatePackageJsonDependencies(tree, projectRoot, libraryDependencies, libraryPeerDependencies);
+  externalizeDeclaredDependencies(tree, projectRoot, extraExternals);
 
   /* Generate files */
   generateFiles(

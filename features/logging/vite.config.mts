@@ -3,8 +3,25 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
 import * as path from 'path';
+import { readFileSync } from 'fs';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
+
+// Everything declared in package.json (dependencies and peerDependencies)
+// stays external, including subpath imports (react/jsx-runtime,
+// next-auth/providers/github): it is installed alongside the published
+// package instead of being bundled into dist/. Packages that must stay
+// external without being declared go in extraExternals.
+const pkg = JSON.parse(
+  readFileSync(path.join(import.meta.dirname, 'package.json'), 'utf-8'),
+);
+const extraExternals: string[] = ['thread-stream'];
+const externals = [
+  ...Object.keys({ ...pkg.dependencies, ...pkg.peerDependencies }),
+  ...extraExternals,
+];
+const isExternal = (id: string) =>
+  externals.some((name) => id === name || id.startsWith(`${name}/`));
 
 export default defineConfig(() => ({
   root: import.meta.dirname,
@@ -46,17 +63,7 @@ export default defineConfig(() => ({
     },
     rollupOptions: {
       // External packages that should not be bundled into your library.
-      external: [
-        'react',
-        'react-dom',
-        'react/jsx-runtime',
-        'server-only',
-        'zod',
-        'pino',
-        'pino-http',
-        'pino-pretty',
-        'thread-stream',
-      ],
+      external: isExternal,
     },
   },
 }));

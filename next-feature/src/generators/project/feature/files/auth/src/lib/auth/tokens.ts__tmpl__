@@ -1,0 +1,108 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
+import type { JWT } from 'next-auth/jwt';
+import { refresh, type BackendTokens } from './backend';
+
+/** Refresh this long before the access token expires, to absorb clock skew */
+export const REFRESH_SKEW_MS = 30_000;
+
+/** Token fields for the JWT from a backend response */
+export function toTokenFields(tokens: BackendTokens, previousRefreshToken?: string) {
+  return {
+    accessToken: tokens.accessToken,
+    // Keep the old refresh token when the backend doesn't rotate it
+    refreshToken: tokens.refreshToken ?? previousRefreshToken,
+    accessTokenExpires: Date.now() + tokens.expiresIn * 1000,
+  };
+}
+
+export function isAccessTokenValid(token: JWT): boolean {
+  return !!token.accessToken && !!token.accessTokenExpires && Date.now() < token.accessTokenExpires - REFRESH_SKEW_MS;
+}
+
+export type AuthFlow = 'login' | 'refresh';
+
+/**
+ * Set while backend.ts obtains tokens (login() in authorize(), refresh() in
+ * the jwt callback and getAccessToken()), for every call made from there.
+ * getAccessToken() refuses to run inside it: the cookie doesn't hold the
+ * tokens being obtained, so it would deadlock on its own refresh or return a
+ * previous user's token.
+ */
+const authFlow = new AsyncLocalStorage<AuthFlow>();
+
+export function runAuthFlow<T>(flow: AuthFlow, fn: () => Promise<T>): Promise<T> {
+  return authFlow.run(flow, fn);
+}
+
+export function currentAuthFlow(): AuthFlow | undefined {
+  return authFlow.getStore();
+}
+
+type RefreshResult = ReturnType<typeof toTokenFields>;
+
+/**
+ * Refreshes keyed by the refresh token they used: in-flight ones, then the
+ * result until its access token expires.
+ *
+ * The same refresh token often reaches the server more than once: concurrent
+ * requests, and requests whose refreshed cookie was never saved (auth() in a
+ * server component can't set cookies, and a request's server components
+ * still see the cookie the proxy just replaced). Reusing the result means
+ * the backend only sees each refresh token once, which matters when it
+ * rotates refresh tokens and revokes the session on reuse.
+ *
+ * Per server instance: with several instances, give the backend a short
+ * reuse grace period too.
+ */
+const refreshes = new Map<string, { result: Promise<RefreshResult>; expires: number }>();
+
+function pruneRefreshes() {
+  const now = Date.now();
+  for (const [key, entry] of refreshes) {
+    if (entry.expires <= now) refreshes.delete(key);
+  }
+}
+
+/**
+ * The token with a refreshed access token, or with the tokens cleared and
+ * `error: 'RefreshTokenError'` when the backend refuses the refresh.
+ */
+export async function refreshAccessToken(token: JWT): Promise<JWT> {
+  const refreshToken = token.refreshToken;
+  if (!refreshToken) return failed(token);
+
+  pruneRefreshes();
+  let entry = refreshes.get(refreshToken);
+  if (!entry) {
+    const result = runAuthFlow('refresh', () => refresh(refreshToken)).then((tokens) =>
+      toTokenFields(tokens, refreshToken)
+    );
+    // Kept while in flight; after that, until the new access token expires
+    entry = { result, expires: Number.POSITIVE_INFINITY };
+    refreshes.set(refreshToken, entry);
+    const current = entry;
+    result.then(
+      (fields) => {
+        current.expires = fields.accessTokenExpires;
+      },
+      () => refreshes.delete(refreshToken)
+    );
+  }
+
+  try {
+    return { ...token, ...(await entry.result), error: undefined };
+  } catch (error) {
+    console.error('[auth] Token refresh failed', error);
+    return failed(token);
+  }
+}
+
+function failed(token: JWT): JWT {
+  return {
+    ...token,
+    accessToken: undefined,
+    refreshToken: undefined,
+    accessTokenExpires: undefined,
+    error: 'RefreshTokenError',
+  };
+}

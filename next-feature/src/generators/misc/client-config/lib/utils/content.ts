@@ -12,8 +12,11 @@ export function clientContent(
 export const ${clientName} = new ApiClient({
   baseURL: ${envVar},
   userAgent: '${userAgent}',
+  // Attach the signed-in user's token, e.g. with the auth feature's
+  // getAccessToken() (import it from the auth feature's /server entry):
   // onAuthenticated: async (config) => {
-  //   config.headers.Authorization = \`Bearer \${token}\`;
+  //   const token = await getAccessToken();
+  //   if (token) config.headers.Authorization = \`Bearer \${token}\`;
   // },
 });
 `;

@@ -432,22 +432,100 @@ describe('feature generator', () => {
       const content = tree.read('features/auth/src/lib/auth/index.ts', 'utf-8');
       expect(content).toContain("from 'next-auth/providers/github'");
       expect(content).toContain("from 'next-auth/providers/google'");
-      expect(content).toContain("from 'next-auth/providers/discord'");
-      expect(content).toContain("from 'next-auth/providers/facebook'");
       expect(content).toContain('CredentialsProvider');
     });
 
-    it('should export authConfig and augmented types from the root index.ts', async () => {
+    it('should only export types from the client-safe root index.ts', async () => {
       await featureGenerator(tree, options);
-      const content = tree.read('features/auth/src/index.ts', 'utf-8');
-      expect(content).toContain("export { authConfig } from './lib/auth/auth.config'");
-      expect(content).toContain("export type { JWT, Session, User } from './lib/types/next-auth'");
+      const content = tree.read('features/auth/src/index.ts', 'utf-8') ?? '';
+      // authConfig reaches backend.ts (server code): not exported to the client
+      expect(content).not.toContain('authConfig');
+      expect(content.match(/^export (?!type )/m)).toBeNull();
+      expect(content).toContain("export type { AuthError, JWT, Session, User } from './lib/types/next-auth'");
     });
 
     it('should export the server-only NextAuth instance from server.ts', async () => {
       await featureGenerator(tree, options);
       const content = tree.read('features/auth/src/server.ts', 'utf-8');
       expect(content).toContain("export { auth, handlers, signIn, signOut } from './lib/auth'");
+    });
+
+    it('should export the server-only getAccessToken() from server.ts', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.read('features/auth/src/server.ts', 'utf-8')).toContain(
+        "export { getAccessToken } from './lib/auth/access-token'"
+      );
+      const helper = tree.read('features/auth/src/lib/auth/access-token.ts', 'utf-8');
+      expect(helper).toMatch(/^import 'server-only';/);
+      expect(helper).toContain("import { getToken } from 'next-auth/jwt'");
+    });
+
+    it('should keep backend tokens out of the session', async () => {
+      await featureGenerator(tree, options);
+      const callbacks = tree.read('features/auth/src/lib/auth/callbacks.ts', 'utf-8') ?? '';
+      const sessionCallback = callbacks.slice(
+        callbacks.indexOf('export const session'),
+        callbacks.indexOf('export const redirect')
+      );
+      expect(sessionCallback).not.toMatch(/accessToken|refreshToken|jwtToken/);
+      const types = tree.read('features/auth/src/lib/types/next-auth.d.ts', 'utf-8') ?? '';
+      const sessionType = types.slice(types.indexOf('interface Session'), types.indexOf('interface User'));
+      expect(sessionType).not.toMatch(/accessToken|refreshToken|jwtToken/);
+    });
+
+    it('should refresh expired access tokens in the jwt callback', async () => {
+      await featureGenerator(tree, options);
+      const callbacks = tree.read('features/auth/src/lib/auth/callbacks.ts', 'utf-8');
+      expect(callbacks).toContain('if (isAccessTokenValid(token)) return token;');
+      expect(callbacks).toContain('return refreshAccessToken(token);');
+      expect(tree.read('features/auth/src/lib/auth/tokens.ts', 'utf-8')).toContain("error: 'RefreshTokenError'");
+    });
+
+    it('should make getAccessToken() throw inside the login/refresh backend calls', async () => {
+      await featureGenerator(tree, options);
+      const tokens = tree.read('features/auth/src/lib/auth/tokens.ts', 'utf-8');
+      expect(tokens).toContain("import { AsyncLocalStorage } from 'node:async_hooks';");
+      expect(tokens).toContain("runAuthFlow('refresh', () => refresh(refreshToken))");
+      expect(tree.read('features/auth/src/lib/auth/index.ts', 'utf-8')).toContain(
+        "runAuthFlow('login', () => login(parsed.data, { ip }))"
+      );
+      const helper = tree.read('features/auth/src/lib/auth/access-token.ts', 'utf-8');
+      expect(helper).toContain('const flow = currentAuthFlow();');
+      expect(helper).toContain('throw new Error(');
+    });
+
+    it('should keep next and node:async_hooks external in the library build', async () => {
+      await featureGenerator(tree, options);
+      expect(tree.read('features/auth/vite.config.mts', 'utf-8')).toContain(
+        "const extraExternals: string[] = ['next', 'node:async_hooks'];"
+      );
+    });
+
+    it('should reject sessions with a failed refresh in authorized', async () => {
+      await featureGenerator(tree, options);
+      const callbacks = tree.read('features/auth/src/lib/auth/callbacks.ts', 'utf-8');
+      expect(callbacks).toContain('return !!auth?.user && !auth.error;');
+    });
+
+    it('should keep the Auth.js cookie defaults', async () => {
+      await featureGenerator(tree, options);
+      const config = tree.read('features/auth/src/lib/auth/auth.config.ts', 'utf-8');
+      expect(config).not.toContain('cookies:');
+      expect(config).not.toContain('VERCEL_URL');
+    });
+
+    it('should validate credentials and call the backend login stub in authorize()', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/auth/src/lib/auth/index.ts', 'utf-8');
+      expect(content).toContain('credentialsSchema.safeParse(credentials)');
+      expect(content).toContain("await runAuthFlow('login', () => login(parsed.data, { ip }))");
+      const backend = tree.read('features/auth/src/lib/auth/backend.ts', 'utf-8');
+      expect(backend).toContain('export const credentialsSchema = z.object({');
+      expect(backend).toContain('export type BackendCredentials = z.infer<typeof credentialsSchema>;');
+      // examples use this library's ApiClient, configured for the feature's API URL
+      expect(backend).toContain('npx nx g next-feature:client-config -p auth');
+      expect(backend).toContain("api.post<BackendTokens>('/auth/refresh', { refreshToken })");
+      expect(backend).toContain('AUTH_API_URL');
     });
   });
 

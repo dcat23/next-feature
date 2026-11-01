@@ -9,7 +9,7 @@ Feature libraries are domain-scoped code modules (users, products, auth) created
 - **`generic`** (default) — Plain feature library with shared utilities only
 - **`logging`** — Adds pino-based server + browser logging with correlation ID support
 - **`client`** — Adds a reusable API client (Axios wrapper, `ApiError`, hooks, error boundary)
-- **`auth`** — Adds a NextAuth.js configuration with credential + OAuth providers
+- **`auth`** — Adds a NextAuth.js configuration with credential + OAuth providers, token refresh and a server-only `getAccessToken()`
 - **`ui`** — Adds a shadcn-ready component library (`components.json`, `cn()` util, Tailwind entry) plus a `shadcn` target for pulling in components
 
 Type is inferred automatically from the feature name: `--name=logging` sets `type=logging`, `--name=client` sets `type=client`, `--name=auth` sets `type=auth`, `--name=ui` sets `type=ui`.
@@ -202,6 +202,64 @@ errors[FORM_ERROR_KEY]; // e.g. "Passwords must match"
 ```
 
 Published package exports are rewritten so `.` and `./server` resolve without a `./dist/` prefix (see [`updatePackageJsonExports`](./utils/index.ts)), matching how the package root looks once built.
+
+### `auth` type — additional files
+
+A NextAuth.js (v5) setup for a Credentials provider backed by your own API, plus zero-config OAuth providers. The backend's tokens live in the encrypted session cookie and never reach the browser.
+
+```
+src/
+├── lib/auth/
+│   ├── index.ts           # NextAuth instance and providers; authorize() validates credentials and calls login()
+│   ├── auth.config.ts     # Shared options (pages, callbacks, session); providers are added in index.ts
+│   ├── callbacks.ts       # jwt, session, redirect, authorized
+│   ├── backend.ts         # credentialsSchema (BackendCredentials via z.infer), login() / refresh() stubs
+│   ├── tokens.ts          # Access token expiry check and deduplicated refresh
+│   └── access-token.ts    # 'server-only' getAccessToken()
+├── lib/types/next-auth.d.ts  # Session / User / JWT augmentation
+├── index.ts               # Client-safe: types only
+└── server.ts              # 'server-only': auth, handlers, signIn, signOut, getAccessToken
+```
+
+**Flow.**
+
+| Step | Where | What |
+|------|-------|------|
+| Sign-in | `authorize()` | Validates the credentials with zod, calls `login()` with the client IP (for rate limiting) and returns the user with `accessToken`, `refreshToken`, `accessTokenExpires`. Rejected sign-ins return `null` without saying why |
+| Every session read | `jwt` callback | Copies the tokens into the JWT on sign-in. Afterwards returns the token while the access token is valid (30s skew), otherwise refreshes it. A failed refresh clears the tokens and sets `error: 'RefreshTokenError'` |
+| Browser | `session` callback | Exposes `user.id`, `user.role` (and `error`) only. Never the tokens |
+| Proxy | `authorized` | `!!auth?.user && !auth.error`, when the proxy uses the default handler |
+| Server code | `getAccessToken()` | Reads the access token from the session cookie, refreshing it if expired |
+
+**Implementing `backend.ts`.** The stubs' examples call your API through an `ApiClient` in the feature's own `lib/config/client.ts` (`npx nx g next-feature:client-config -p auth`, base URL `AUTH_API_URL`). `login()` returns `null` when the client throws a 401 (`ApiError.of(error).isUnauthorized`); `refresh()` lets the client's `ApiError` propagate, which signs the user out. Don't add `getAccessToken()` to that client: these calls are how the tokens are obtained.
+
+**Calling your API as the user.** Attach the token in `lib/config/client.ts` ([client-config](../../misc/client-config/README.md)):
+
+```typescript
+import { getAccessToken } from '@feature/auth/server';
+
+export const api = new ApiClient({
+  baseURL: WEB_API_URL,
+  onAuthenticated: async (config) => {
+    const token = await getAccessToken();
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  },
+});
+```
+
+The `jwt` callback already refreshes tokens, so `ApiClient`'s `enableRefreshToken`/`onRefreshToken` aren't needed with NextAuth.
+
+**Refreshes are deduplicated.** The same refresh token can reach the server more than once: concurrent requests, `auth()` in server components (which can't save a refreshed cookie), and server components rendered in the same request as a proxy refresh (they still see the old cookie). `tokens.ts` keeps each refresh, in flight and then until its access token expires, keyed by the refresh token it used, so the backend sees each refresh token once. That matters when it rotates refresh tokens and revokes sessions on reuse. The cache is per server instance: with several instances, give the backend a short reuse grace period too.
+
+**Don't call `getAccessToken()` from `backend.ts`.** `login()` and `refresh()` obtain the tokens, so the session cookie doesn't hold them yet. Calling `getAccessToken()` there, directly or through a client's `onAuthenticated`, would deadlock on its own refresh, or return the previous user's token when someone signs in while signed in as another user. `authorize()` and the refresh run these calls inside an `AsyncLocalStorage` scope (`runAuthFlow()`, `tokens.ts`), and `getAccessToken()` throws inside it (`ApiClient` logs the error and sends the request without the token). Calls to other services during sign-in use the token `login()` received.
+
+The library build keeps `next` (`next/headers`) and `node:async_hooks` external.
+
+**Hardening notes.**
+- `useSession().update(data)` sends client-controlled data to the `jwt` callback (`trigger: 'update'`). Whitelist fields there; never copy the role or tokens from it.
+- Cookies keep the Auth.js defaults (`__Host-`/`__Secure-` prefixes, `secure` over https). Outside Vercel set `AUTH_URL` and `AUTH_TRUST_HOST=true`.
+- Keep `session.maxAge` at most the backend's refresh token lifetime.
+- OAuth sign-ins have no backend tokens or role until you exchange them with your backend (`signIn`/`jwt` callbacks).
 
 ### `ui` type — additional files
 

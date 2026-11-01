@@ -60,8 +60,11 @@ import { ORDERS_API_URL, PAYMENTS_API_URL } from './env';
 export const api = new ApiClient({
   baseURL: ORDERS_API_URL,
   userAgent: 'orders',
+  // Attach the signed-in user's token, e.g. with the auth feature's
+  // getAccessToken() (import it from the auth feature's /server entry):
   // onAuthenticated: async (config) => {
-  //   config.headers.Authorization = `Bearer ${token}`;
+  //   const token = await getAccessToken();
+  //   if (token) config.headers.Authorization = `Bearer ${token}`;
   // },
 });
 
@@ -118,5 +121,7 @@ payments.axios.interceptors.response.use(
   }
 );
 ```
+
+With the [auth feature](../../project/feature/README.md#auth-type--additional-files), `getAccessToken()` (from its `/server` entry) returns the signed-in user's backend token for `onAuthenticated`; NextAuth refreshes it, so `enableRefreshToken` isn't needed.
 
 `ApiClient` options (`timeout`, `maxRetries`, `retryMethods`, `headers`, `logger`, `enableRefreshToken`, `onAuthenticated`, ...) are documented in the [feature generator README](../../project/feature/README.md) under the `client` type.

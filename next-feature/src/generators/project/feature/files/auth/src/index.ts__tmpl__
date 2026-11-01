@@ -1,2 +1,3 @@
-export { authConfig } from './lib/auth/auth.config';
-export type { JWT, Session, User } from './lib/types/next-auth';
+// Client-safe entry: types only. The NextAuth instance, its config and
+// getAccessToken() are server code, exported from server.ts.
+export type { AuthError, JWT, Session, User } from './lib/types/next-auth';

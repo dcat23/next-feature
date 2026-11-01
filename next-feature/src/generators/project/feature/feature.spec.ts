@@ -563,7 +563,7 @@ describe('feature generator', () => {
 
     it('should make next-auth a peer for auth features, externalized through package.json', async () => {
       await featureGenerator(tree, { name: 'auth', type: 'auth', skipFormat: true });
-      expect(readLibPackageJson('auth').peerDependencies['next-auth']).toBe('^5.0.0-beta.27');
+      expect(readLibPackageJson('auth').peerDependencies['next-auth']).toBe('^5.0.0-beta.32');
       const vite = tree.read('features/auth/vite.config.mts', 'utf-8');
       expect(vite).toContain('external: isExternal');
       expect(vite).not.toContain("'next-auth'");

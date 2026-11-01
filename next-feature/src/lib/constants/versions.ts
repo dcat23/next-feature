@@ -2,7 +2,7 @@ export const PLUGIN_NAME = require("../../../package.json").name;
 export const PLUGIN_VERSION = require("../../../package.json").version;
 
 export const AXIOS_VERSION = "1.9.0"
-export const NEXTAUTH_VERSION = "5.0.0-beta.27"
+export const NEXTAUTH_VERSION = "5.0.0-beta.32"
 export const ZOD_VERSION = "3.24.4"
 export const ZUSTAND_VERSION = "^5.0.6"
 export const TANSTACK_VERSION = "5.75.7";

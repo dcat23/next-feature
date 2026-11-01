@@ -128,6 +128,47 @@ describe('client-config generator', () => {
     expect(readJson(tree, 'package.json').dependencies?.['@next-feature/client']).toBeDefined();
   });
 
+  it('should declare @next-feature/client in a feature library so its build keeps it external', async () => {
+    await clientConfigGenerator(tree, { projectName: 'orders', skipFormat: true });
+    const dependencies = readJson(tree, 'features/orders/package.json').dependencies;
+    expect(dependencies?.['@next-feature/client']).toMatch(/^\^/);
+    expect(dependencies?.['server-only']).toBeDefined();
+  });
+
+  it('should declare the dependency when re-run on a library that already has a client', async () => {
+    await clientConfigGenerator(tree, { projectName: 'orders', skipFormat: true });
+    tree.write('features/orders/package.json', JSON.stringify({ name: '@feature/orders', dependencies: {} }));
+    await clientConfigGenerator(tree, { projectName: 'orders', skipFormat: true });
+    expect(readJson(tree, 'features/orders/package.json').dependencies?.['@next-feature/client']).toBeDefined();
+  });
+
+  it('should not declare a custom clientPackage it has no version for', async () => {
+    await clientConfigGenerator(tree, { projectName: 'orders', clientPackage: '@myorg/http', skipFormat: true });
+    const dependencies = readJson(tree, 'features/orders/package.json').dependencies ?? {};
+    expect(dependencies['@myorg/http']).toBeUndefined();
+    expect(dependencies['@next-feature/client']).toBeUndefined();
+    expect(read(config)).toContain("from '@myorg/http/server'");
+  });
+
+  it('should not touch an application package.json', async () => {
+    await applicationGenerator(tree, { name: 'web', skipLogging: true, skipFormat: true });
+    await clientConfigGenerator(tree, { projectName: 'web', skipFormat: true });
+    expect(readJson(tree, 'apps/web/package.json').dependencies?.['@next-feature/client']).toBeUndefined();
+  });
+
+  it('should ignore the deprecated baseUrl and includeInterceptors options', async () => {
+    await clientConfigGenerator(tree, { projectName: 'orders', skipFormat: true });
+    const expected = read(config).replace(/\* .*(am|pm)\n/g, '');
+    tree.delete(config);
+    await clientConfigGenerator(tree, {
+      projectName: 'orders',
+      baseUrl: "'https://api.example.com'",
+      includeInterceptors: false,
+      skipFormat: true,
+    });
+    expect(read(config).replace(/\* .*(am|pm)\n/g, '')).toBe(expected);
+  });
+
   it('should work in an application without a src directory', async () => {
     await applicationGenerator(tree, { name: 'web', skipLogging: true, skipFormat: true });
     await clientConfigGenerator(tree, { projectName: 'web', skipFormat: true });

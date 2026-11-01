@@ -7,6 +7,7 @@ import type {
 } from '../types';
 
 export const DEFAULT_CLIENT_NAME = 'api';
+export const DEFAULT_CLIENT_PACKAGE = '@next-feature/client';
 export const CLIENT_CONFIG_PACKAGE = 'lib/config';
 export const CLIENT_CONFIG_FILE = 'client';
 
@@ -40,6 +41,6 @@ export function normalize(
     ...normalized,
     clientName,
     isDefault: clientName === DEFAULT_CLIENT_NAME,
-    clientImportPath: options.clientPackage || '@next-feature/client',
+    clientImportPath: options.clientPackage || DEFAULT_CLIENT_PACKAGE,
   };
 }

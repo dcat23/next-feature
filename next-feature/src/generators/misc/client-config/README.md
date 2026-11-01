@@ -31,7 +31,11 @@ Like the other code generators, a `projectName` that doesn't exist yet is create
 | `export` (`-e`) | boolean | `false` | Export the clients from `server.ts` (libraries only) |
 | `skipFormat` | boolean | `false` | Skip prettier formatting |
 
-`baseUrl` and `includeInterceptors` are still accepted but currently ignored.
+`baseUrl` and `includeInterceptors` are deprecated: still accepted, so existing commands keep working, but ignored. Each client reads its base URL from its env var (`envVar`).
+
+## Dependencies
+
+`@next-feature/client` is added to the workspace `package.json`. In a feature library it's also declared (caret range) in the library's own `package.json`, because the library's vite build only keeps declared packages external; otherwise it would be bundled into `dist/`. Re-running the generator adds the declaration to libraries created before this was done. A custom `clientPackage` isn't declared, since the generator doesn't know its version: add it to the library's `package.json` yourself.
 
 ## Env vars
 

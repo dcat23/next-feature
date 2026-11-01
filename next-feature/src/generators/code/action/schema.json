@@ -16,14 +16,14 @@
     },
     "actionType": {
       "type": "string",
-      "description": "Type of server action: 'api' for external API calls, 'db' for database operations, 'form' for form submission handling",
+      "description": "Type of server action: 'api' for external API calls, 'form' for form submission handling (also writes a 'use server' form action)",
       "$default": {
         "$source": "argv",
         "index": 1
       },
       "alias": "a",
       "default": "api",
-      "enum": ["api", "db", "form"],
+      "enum": ["api", "form"],
       "x-prompt": {
         "message": "What type of action would you like to generate?",
         "type": "list",
@@ -31,10 +31,6 @@
           {
             "value": "api",
             "label": "API - Call external API endpoints with error handling"
-          },
-          {
-            "value": "db",
-            "label": "DB - Perform database operations with Prisma"
           },
           {
             "value": "form",

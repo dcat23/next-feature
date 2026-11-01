@@ -90,13 +90,6 @@ describe('action generator', () => {
       expect(tree.exists('features/base/src/lib/types/account.ts')).toBeTruthy();
     });
 
-    it('should not import withApi for db actions', async () => {
-      await actionGenerator(tree, { name: 'getUsers', actionType: 'db', projectName: 'base', skipFormat: true });
-      const buffer = read('features/base/src/lib/actions/user.ts');
-      expect(buffer.startsWith("import 'server-only';\n\nimport api from '../config/prisma';")).toBeTruthy();
-      expect(buffer).not.toContain('withApi');
-    });
-
     it('should use the configured clientPackage for withApi', async () => {
       await actionGenerator(tree, { name: 'getUsers', actionType: 'api', projectName: 'base', clientPackage: '@myorg/client', skipFormat: true });
       expect(read('features/base/src/lib/actions/user.ts')).toContain("from '@myorg/client/server'");
@@ -161,6 +154,11 @@ describe('action generator', () => {
     });
     const hookFile = 'features/base/src/hooks/use-submit-feedback.ts';
     expect(tree.exists(hookFile)).toBeFalsy();
+  });
+
+  it('should reject the removed db action type', () => {
+    const schema = require('./schema.json');
+    expect(schema.properties.actionType.enum).toEqual(['api', 'form']);
   });
 
   describe('api clients', () => {

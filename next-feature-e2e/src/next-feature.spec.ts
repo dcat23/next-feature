@@ -87,6 +87,11 @@ describe('next-feature', () => {
       expect(output).toContain("'base' should be one of");
     });
 
+    it('should reject the removed db action type', () => {
+      const output = runFailing('pnpm exec nx g next-feature:action getUsers -p users --actionType=db --no-interactive');
+      expect(output).toContain("'db' should be one of");
+    });
+
     it(
       'should generate an api action with a hook into a new feature that builds',
       () => {

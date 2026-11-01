@@ -10,7 +10,7 @@
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "dependencies": {
-    "create-nx-workspace": "22.0.3",
+    "create-nx-workspace": "22.4.3",
     "yargs": "^17.7.2",
     "tslib": "^2.3.0"
   },

@@ -94,7 +94,7 @@ my-project/
 
 ### Nx Configuration
 
-- ✅ Nx 20.8.1
+- ✅ Nx 22.4.3
 - ✅ next-feature plugin
 - ✅ @nx/next integration
 - ✅ @nx/eslint configuration
@@ -102,7 +102,7 @@ my-project/
 
 ### Dependencies
 
-- ✅ **next** (~15.2.4) - React framework
+- ✅ **next** (~16.0.1) - React framework
 - ✅ **react** (^19.0.0) - UI library
 - ✅ **typescript** (^5) - Type safety
 - ✅ **tailwindcss** - Utility-first CSS
@@ -114,7 +114,7 @@ my-project/
 
 ### Dev Dependencies
 
-- ✅ Jest & Vitest - Testing frameworks
+- ✅ Jest - Testing framework
 - ✅ ESLint & Prettier - Code quality
 - ✅ TypeScript - Type checking
 

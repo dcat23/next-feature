@@ -245,8 +245,9 @@ Executors are registered in `next-feature/executors.json` (currently just `shadc
 Main branch: `main` (for PRs). Work is tracked in GitHub issues (bug/change forms) and milestones; branch as `<type>/<issue>-<slug>` and close issues with `Closes #<n>` in the PR.
 
 Versions come from conventional commits (`nx release`, fixed relationship across all four packages, tags `v<version>`). While the major is 0, a breaking change bumps the minor (`adjustSemverBumpsForZeroMajorVersion`). Release with the Release workflow:
-- beta: `specifier: auto` + `prerelease` (never `specifier: prerelease`, which ignores the commits)
+- beta: `specifier: auto` + `prerelease` (from a stable version: the commit-derived bump as a beta; from a beta: the next beta)
 - graduate a beta: `specifier: patch`
+- the workflow fails on inputs that would silently release something else (`prerelease` with a forced specifier; `auto` without `prerelease` when the latest tag is a beta) and writes the resolved version to the job summary, also on dry runs
 - stable notes only list commits since the last tag, so paste the migration table for breaking changes into the GitHub release
 
 Commit conventions:

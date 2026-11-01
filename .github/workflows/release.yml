@@ -4,16 +4,27 @@ name: Release
 # since the last v* tag unless a specifier is forced. Publishes with npm trusted
 # publishing (OIDC), so no npm token is stored anywhere. Use publish-only to
 # retry publishing the latest tag after a failed publish.
+#
+# Release paths (run with dry-run first; the resolved version is shown in the
+# job summary):
+#   beta      specifier: auto + prerelease. From a stable version, the
+#             commit-derived bump as a beta (breaking while 0.x -> next minor,
+#             e.g. 0.1.4 -> 0.2.0-beta.0); from a beta, the next beta
+#             (0.2.0-beta.0 -> 0.2.0-beta.1)
+#   graduate  specifier: patch (0.2.0-beta.1 -> 0.2.0)
+#   stable    specifier: auto from a stable version (fix -> patch, feat -> patch
+#             and breaking -> minor while 0.x)
+# Combinations that would silently do something else fail instead.
 on:
   workflow_dispatch:
     inputs:
       specifier:
-        description: 'auto = derive from conventional commits; otherwise force the bump (patch also graduates a prerelease)'
+        description: 'auto = from conventional commits (beta: tick prerelease). patch = graduate a beta (0.2.0-beta.1 -> 0.2.0) or force a patch. minor/major force the bump (adjusted while 0.x: major -> next minor)'
         type: choice
-        options: [auto, prerelease, patch, minor, major]
+        options: [auto, patch, minor, major]
         default: auto
       prerelease:
-        description: 'Release as a beta prerelease (applies to auto; implied by prerelease)'
+        description: 'Beta prerelease, only with specifier auto: stable -> beta of the commit-derived bump (0.1.4 -> 0.2.0-beta.0); beta -> next beta'
         type: boolean
         default: false
       dry-run:
@@ -91,14 +102,41 @@ jobs:
             exit 0
           fi
 
+          # Fail on inputs that would silently release something else
+          if [ "$PRERELEASE" = true ] && [ "$SPECIFIER" != auto ]; then
+            echo "::error::prerelease only applies with specifier 'auto' (a forced '$SPECIFIER' would ignore it). For a beta use auto + prerelease; to graduate a beta use patch without prerelease."
+            exit 1
+          fi
+          case "$before" in
+            v*-*)
+              if [ "$SPECIFIER" = auto ] && [ "$PRERELEASE" != true ]; then
+                echo "::error::The latest tag $before is a prerelease: specifier 'auto' would only cut the next beta. Use specifier 'patch' to graduate it to ${before%%-*}, or tick prerelease for another beta."
+                exit 1
+              fi
+              ;;
+          esac
+
           args=(--skip-publish)
           [ "$SPECIFIER" != auto ] && args=("$SPECIFIER" "${args[@]}")
-          if [ "$SPECIFIER" = prerelease ] || { [ "$SPECIFIER" = auto ] && [ "$PRERELEASE" = true ]; }; then
-            args+=(--preid beta)
-          fi
+          [ "$PRERELEASE" = true ] && args+=(--preid beta)
           [ "$DRY_RUN" = true ] && args+=(--dry-run)
 
-          pnpm exec nx release "${args[@]}"
+          set -o pipefail
+          log="${RUNNER_TEMP:-/tmp}/nx-release.log"
+          pnpm exec nx release "${args[@]}" 2>&1 | tee "$log"
+
+          # Projects are released together, so the first manifest line names the version
+          resolved=$(sed 's/\x1b\[[0-9;]*m//g' "$log" | grep -oE 'New version [^ ]+ written' | head -1 | awk '{print $3}')
+          {
+            echo "### Release ${resolved:-(no version change)}"
+            echo ""
+            echo "- previous tag: \`$before\`"
+            echo "- inputs: specifier \`$SPECIFIER\`, prerelease \`$PRERELEASE\`, dry-run \`$DRY_RUN\`"
+            case "$resolved" in
+              *-*) echo "- npm dist-tag: \`next\` (prerelease)" ;;
+              ?*) echo "- npm dist-tag: \`latest\`" ;;
+            esac
+          } >> "$GITHUB_STEP_SUMMARY"
 
           after=$(git describe --tags --abbrev=0 --match 'v*' 2>/dev/null || echo none)
           if [ "$DRY_RUN" = true ] || [ "$before" = "$after" ]; then

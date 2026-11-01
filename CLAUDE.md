@@ -285,7 +285,7 @@ Package manager: `pnpm` (use `pnpm install`, not npm or yarn)
 - `@next-feature/client` is generated from the `client` feature template into `features/client` (and `@next-feature/logging` from `logging` into `features/logging`); regenerate them after changing those templates
 - Client-safe exports from `features/client/src/index.ts` (`ApiError`, types, error utils)
 - Server-only exports from `features/client/src/server.ts` (`ApiClient`, `withApi`, `withForm`)
-- Use `ApiError.of(zodError)` for form validation errors (field messages land in `problemDetail.errors`, keyed by dotted path)
+- Use `ApiError.of(zodError)` for form validation errors (field messages land in `problemDetail.errors`, keyed by dotted path; issues without a path, e.g. an object-level `.refine()`, go under `FORM_ERROR_KEY` (`'_form'`))
 - Use `ApiError.builder()` for custom error construction
 
 ## Server Actions Architecture

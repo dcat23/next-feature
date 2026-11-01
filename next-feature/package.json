@@ -12,8 +12,7 @@
   "dependencies": {
     "@nx/devkit": "22.4.3",
     "@nx/next": "22.4.3",
-    "tslib": "^2.3.0",
-    "moment": "^2.30.1"
+    "tslib": "^2.3.0"
   },
   "generators": "./generators.json",
   "executors": "./executors.json"

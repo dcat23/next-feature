@@ -69,7 +69,7 @@ npx nx g next-feature:preset --name=web
 #### Option B: Full Application Control
 
 ```bash
-npx nx g next-feature:application --name=web --useAuth=true --env=true
+npx nx g next-feature:application --name=web --useAuth=true
 ```
 
 **Creates:**
@@ -223,7 +223,7 @@ Create app with auth, add features:
 
 ```bash
 # Setup
-npx nx g next-feature:application --name=web --useAuth=true --env=true
+npx nx g next-feature:application --name=web --useAuth=true
 
 # Create auth feature
 npx nx g next-feature:feature --name=auth
@@ -265,7 +265,7 @@ Create admin app with protected access:
 
 ```bash
 # Setup admin app with auth
-npx nx g next-feature:application --name=admin --useAuth=true --env=true
+npx nx g next-feature:application --name=admin --useAuth=true
 
 # Create dashboard feature
 npx nx g next-feature:feature --name=dashboard

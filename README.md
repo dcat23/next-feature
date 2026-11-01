@@ -1,4 +1,4 @@
-# NextFeature v0.1.0
+# NextFeature
 
 <a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
 
@@ -10,9 +10,12 @@
 
 | Package | Purpose | Version |
 |---------|---------|---------|
-| **next-feature** | Generator plugin for Nx | v0.1.0 |
-| **@next-feature/client** | API client library with error handling | v0.1.0 |
-| **create-next-feature** | CLI for creating new NextFeature workspaces | v0.1.0 |
+| **next-feature** | Generator plugin for Nx | [![npm](https://img.shields.io/npm/v/next-feature)](https://www.npmjs.com/package/next-feature) |
+| **@next-feature/client** | API client library with error handling | [![npm](https://img.shields.io/npm/v/@next-feature/client)](https://www.npmjs.com/package/@next-feature/client) |
+| **@next-feature/logging** | pino server and browser logging | [![npm](https://img.shields.io/npm/v/@next-feature/logging)](https://www.npmjs.com/package/@next-feature/logging) |
+| **create-next-feature** | CLI for creating new NextFeature workspaces | [![npm](https://img.shields.io/npm/v/create-next-feature)](https://www.npmjs.com/package/create-next-feature) |
+
+All four are released together with the same version.
 
 ## Quick Start
 
@@ -269,46 +272,26 @@ npx nx g next-feature:client-config --projectName=api --includeInterceptors=true
 ### Generator Categories
 
 **code/** - Individual code elements
-- `api` - API calls and server actions
-- `component` - React components
+- `action` - Server actions (API calls or forms)
+- `component` - React components and App Router files
+- `hook` - TanStack Query hooks for actions
 - `store` - State management
-- `types` - Type definitions
-- `constant` - Constants
-- `utility` - Utility functions
+- `declaration` - Data types, constants and utilities
 
 **project/** - Complete projects
-- `feature` - Feature libraries with setup
+- `feature` - Feature libraries (`generic`, `logging`, `client`, `auth`, `ui`)
 - `application` - Next.js applications
-- `client` - API client libraries
 
 **misc/** - Infrastructure setup
-- `client-config` - Centralized API configuration
-- `auth` - Authentication setup
-- `axios` - HTTP client configuration
-- `database` - Database setup
+- `client-config` - API clients (`lib/config/client.ts`)
+- `dotenv` - Environment variables
 
 **tool/** - Workspace utilities
 - `copy-deps` - Dependency management
 
-## Version History
+## Releases
 
-### v0.1.0 (Current)
-
-✨ **Major Features:**
-
-- **Client-Config Generator** - Auto-invoked by action generator
-- **Zod Validation Errors** - Proper error extraction for form validation
-- **Custom Client Support** - Use any client package with actions
-- **Self-Contained Templates** - Stable, independent implementations
-- **Comprehensive Documentation** - Detailed README files for all generators
-
-🔧 **Improvements:**
-
-- Centralized API client setup
-- Eliminated boilerplate code duplication
-- Enhanced error handling with `ApiError.of()`
-- Template re-exports from local implementations
-- Clear customization patterns
+See the [changelog](./CHANGELOG.md) and [GitHub releases](https://github.com/dcat23/next-feature/releases); both are generated on each release.
 
 ## Contributing
 

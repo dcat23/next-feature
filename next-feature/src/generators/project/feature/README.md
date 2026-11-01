@@ -41,10 +41,9 @@ npx nx g next-feature:feature --name=users --directory=libs/users
 | Option | Type | Default | Alias | Description |
 |--------|------|---------|-------|-------------|
 | `--name` | string | required | positional | Name of the feature library |
-| `--type` | `base \| logging \| client \| auth \| ui \| generic` | `generic` | `-t` | Type of feature library to scaffold |
+| `--type` | `logging \| client \| auth \| ui \| generic` | `generic` | `-t` | Type of feature library to scaffold |
 | `--directory` | string | `features/[name]` | `-d` | Override the output directory |
 | `--orgName` | string | — | `--org` | Organization prefix for import paths (`@myorg/[name]`) |
-| `--env` | boolean | `false` | `-e` | Add the axios dependency and register a `<NAME>_API_URL` variable in this feature's `.env`/`.env.example` |
 | `--skipFormat` | boolean | false | — | Skip prettier formatting (used internally for chained generators) |
 
 ### `type` Option
@@ -80,7 +79,7 @@ features/[name]/src/
 └── server.ts               # Public server-side exports
 ```
 
-`env.ts` starts with just `NODE_ENV` typed. When `--env` is set, a `<NAME>_API_URL` var is added to it (and to `.env`/`.env.example`). `--type=client` adds `<NAME>_API_URL` as an optional var (`z.string().optional()`, `.env.example` only): it's only `ApiClient`'s fallback `baseURL`, since each project's `lib/config/client.ts` passes its own (see the [client-config generator](../../misc/client-config/README.md)). It's kept up to date by the [dotenv generator](../../misc/dotenv/README.md)'s marker-based sync, so you can add/remove further vars later with `npx nx g next-feature:dotenv --projectName=[name] --set=KEY=VALUE` without disturbing what's already there.
+`env.ts` starts with just `NODE_ENV` typed. API URL vars are added by the [client-config generator](../../misc/client-config/README.md) (`<NAME>_API_URL`, also run by the first action). `--type=client` adds `<NAME>_API_URL` as an optional var (`z.string().optional()`, `.env.example` only): it's only `ApiClient`'s fallback `baseURL`, since each project's `lib/config/client.ts` passes its own (see the [client-config generator](../../misc/client-config/README.md)). It's kept up to date by the [dotenv generator](../../misc/dotenv/README.md)'s marker-based sync, so you can add/remove further vars later with `npx nx g next-feature:dotenv --projectName=[name] --set=KEY=VALUE` without disturbing what's already there.
 
 ### `logging` type — additional files
 

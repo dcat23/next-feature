@@ -51,16 +51,16 @@ The `nx.json` file is updated with next-feature plugin entry:
 
 ### 2. Dependencies Added
 
-After running init, your `package.json` will include:
+After running init, your `package.json` will include (at the version of the `next-feature` plugin you ran):
 
 ```json
 {
   "dependencies": {
-    "@next-feature/client": "^0.1.0",
-    "@next-feature/logging": "^0.1.0"
+    "@next-feature/client": "<version>",
+    "@next-feature/logging": "<version>"
   },
   "devDependencies": {
-    "next-feature": "^0.1.0"
+    "next-feature": "<version>"
   }
 }
 ```

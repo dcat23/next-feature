@@ -163,8 +163,8 @@ Generators can invoke other generators via `runTasksInSerial()`:
 - Action generator can chain data-type, constant, and utility declarations based on options. It passes the bare file name (declarations add `.ts`) and `package: 'lib'` for data-type/utility so they land in `lib/types/<file>.ts` / `lib/utils/<file>.ts`
 - Declaration exports follow `DECLARATION_KINDS[kind].exportFile`: data-type and constant go to `index.ts`, utility to `server.ts`
 - Action generator chains the `hook` generator when `useHook` is set (ignored for `actionType=form`), scaffolding a `useQuery`/`useMutation` hook that wraps the generated action
-- Feature generator adds the axios dependency and registers a `<NAME>_API_URL` var (in `.env`/`.env.example` and `lib/config/env.ts`) when `env` is set
-- Application generator does the same when `env` is set, and creates a sibling `auth`-type feature (if missing) when `useAuth` is set
+- `<NAME>_API_URL` vars come from `client-config` (one per client, also run by the first action); `feature`/`application` have no `env` option
+- Application generator creates a sibling `auth`-type feature (if missing) when `useAuth` is set
 - Application generator wires `@next-feature/logging` unless `skipLogging`: `instrumentation.ts` dynamically imports `registerPino` from `@next-feature/logging/server` on the `nodejs` runtime and passes the app's `lib/config/logging.ts` options (`createPinoOptions({ service: '<name>' })`, plus a server `logger`); `app/api/log/route.ts` receives browser beacons. These files, and the logger import in `error.tsx`, only exist when logging is enabled
 - This avoids duplication and ensures consistent setup
 

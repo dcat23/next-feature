@@ -1,6 +1,6 @@
 # Application Generator
 
-The Application generator creates a complete, production-ready Next.js application with full server-side rendering, API routes, TypeScript setup, and optional authentication and HTTP client configuration.
+The Application generator creates a complete, production-ready Next.js application with full server-side rendering, API routes, TypeScript setup, logging, and optional authentication.
 
 ## Overview
 
@@ -11,7 +11,7 @@ The Application generator creates a full Next.js application (not a library) tha
 - **Development Tools** - ESLint, Jest, Tailwind CSS pre-configured
 - **TypeScript Path Aliases** - Automatic `@app/[name]` import paths
 - **Development Dependencies** - Sonner (toasts), Zod (validation), TanStack Query
-- **Optional Setup** - Auth and Axios can be added during creation
+- **Optional Setup** - Auth can be added during creation; API clients come with the first action (see [API clients](#api-clients))
 - **Environment Configuration** - .env.local setup with auth secrets
 
 This is ideal for creating the main web application, admin panel, dashboard, or other production-grade applications.
@@ -31,12 +31,6 @@ npx nx g next-feature:application --name=web
 # Create with authentication
 npx nx g next-feature:application --name=web --useAuth=true
 
-# Create with HTTP client
-npx nx g next-feature:application --name=web --env=true
-
-# Both authentication and HTTP client
-npx nx g next-feature:application --name=web --useAuth=true --env=true
-
 # Custom directory
 npx nx g next-feature:application --name=admin --directory=apps
 ```
@@ -55,7 +49,6 @@ npx nx g next-feature:application --name=web --orgName=mycompany
 |--------|------|---------|-------------|
 | `--name` | string | required | Name of the application (e.g., web, admin, dashboard) |
 | `--directory` | string | "apps" | Directory where application is created |
-| `--env` | boolean | false | Add the axios dependency and register a `<NAME>_API_URL` variable in this app's `.env`/`.env.example` |
 | `--useAuth` | boolean | false | Setup NextAuth.js authentication |
 | `--skipLogging` | boolean | false | Skip the `@next-feature/logging` wiring (see [Logging](#logging)) |
 | `--orgName` | string | - | Organization name for scoped imports (@myorg/[name]) |
@@ -85,18 +78,14 @@ npx nx g next-feature:application --name=web
 npx nx g next-feature:application --name=web --directory=projects
 ```
 
-#### `env`
+#### API clients
 
-Add the axios dependency and register a `<NAME>_API_URL` variable in this app's `.env`/`.env.example`.
+There's no option for this on the application itself. The app's first action creates `lib/config/client.ts` with a default `api` client, registers `<NAME>_API_URL` in `.env`/`.env.example` and `lib/config/env.ts`, and adds `@next-feature/client` (which brings axios). To set it up before any action, or to add more clients, use the [client-config generator](../../misc/client-config/README.md):
 
 ```bash
-npx nx g next-feature:application --name=web --env=true
+npx nx g next-feature:client-config -p web            # WEB_API_URL
+npx nx g next-feature:client-config payments -p web   # PAYMENTS_API_URL
 ```
-
-This:
-- Adds the `axios` dependency
-- Writes a `<NAME>_API_URL` entry (grouped under an `axios` section) to `.env` and `.env.example`
-- Ready to use in server actions
 
 #### `useAuth`
 
@@ -210,12 +199,12 @@ All applications include:
 
 ### Optional Dependencies
 
-#### With `--env`
+#### With an API client (first action or `client-config`)
 
 ```json
 {
   "dependencies": {
-    "axios": "^1.x.x"
+    "@next-feature/client": "^0.x.x"
   }
 }
 ```
@@ -252,7 +241,7 @@ AUTH_SECRET=your-secret-here
 NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
-`lib/config/env.ts` is generated alongside these files with a typed `<NAME>_API_URL` accessor when `--env` is set, kept in sync by the [dotenv generator](../../misc/dotenv/README.md)'s marker-based sync. Add further vars later with `npx nx g next-feature:dotenv --projectName=[name] --set=KEY=VALUE`.
+`lib/config/env.ts` is generated alongside these files and gets a typed `<NAME>_API_URL` accessor once an API client exists (see [API clients](#api-clients)), kept in sync by the [dotenv generator](../../misc/dotenv/README.md)'s marker-based sync. Add further vars later with `npx nx g next-feature:dotenv --projectName=[name] --set=KEY=VALUE`.
 
 ### Logging
 
@@ -297,7 +286,7 @@ npx nx g next-feature:utility --name=helpers --projectName=web
 
 ```bash
 # 1. Create app with authentication
-npx nx g next-feature:application --name=web --useAuth=true --env=true
+npx nx g next-feature:application --name=web --useAuth=true
 
 # 2. Create feature for users
 npx nx g next-feature:feature --name=users --projectName=web
@@ -319,7 +308,7 @@ npx nx g next-feature:store --name=userStore --projectName=web
 
 ```bash
 # 1. Create admin app
-npx nx g next-feature:application --name=admin --useAuth=true --env=true
+npx nx g next-feature:application --name=admin --useAuth=true
 
 # 2. Create dashboard feature
 npx nx g next-feature:feature --name=dashboard --projectName=admin

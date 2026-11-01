@@ -1,0 +1,11 @@
+import pino from 'pino';
+import { createPinoOptions } from '@next-feature/logging/server';
+
+/**
+ * This app's pino options: shared by the request logger (`registerPino`, in
+ * instrumentation.ts) and `logger` below. Set `LOGGING_SERVICE_NAME` to
+ * override the service name per deployment.
+ */
+export const pinoOptions = createPinoOptions({ service: '<%= name %>' });
+
+export const logger = pino(pinoOptions);

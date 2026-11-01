@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
-import { logger } from '@next-feature/logging'
-
+<% if (!skipLogging) { %>import { logger } from '@next-feature/logging'
+<% } %>
 export default function Error({
   error,
   reset,
@@ -13,7 +13,7 @@ export default function Error({
 }) {
   useEffect(() => {
     if (error) {
-      logger.error(error.message)
+      <%= skipLogging ? 'console.error(error)' : 'logger.error(error.message)' %>
     }
   }, [error])
 

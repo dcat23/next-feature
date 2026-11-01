@@ -1,15 +1,20 @@
 import 'server-only';
 
+import type { LoggerOptions } from 'pino';
 import { pinoOptions } from '../../config';
 
-export const registerPino = async () => {
+/**
+ * Registers the pino-http request logger for the Node.js runtime. Call it from
+ * the app's `instrumentation.ts`, passing `createPinoOptions({ service })`.
+ */
+export const registerPino = async (options: LoggerOptions = pinoOptions) => {
     if (process.env.NEXT_RUNTIME === 'nodejs') {
     const [{ default: pinoHttp }, { default: pino }] = await Promise.all([
       import('pino-http'),
       import('pino'),
     ]);
 
-    const logger = pino(pinoOptions);
+    const logger = pino(options);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any).__httpLogger = pinoHttp({

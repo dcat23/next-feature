@@ -99,8 +99,8 @@ Unlike generators (which scaffold files once), executors run as Nx targets (`nx 
 - `exportFile()` (`lib/export-file.ts`) - Adds a sorted `export *` to `index.ts` or `server.ts`; for `server.ts` it also ensures `import 'server-only'` at the top.
 
 **Dotenv Utilities** (`src/lib/dotenv/`)
-- `updateDotenv()` / `syncDotenv()` (`dot-env.ts`) - Set/unset vars across a project's (or multiple projects') `.env`/`.env.example`/`.env.<suffix>` files, grouped under `### SECTION ###` headers, preserving comments/blank lines. Non-`.env.example` files touched this way are auto-gitignored.
-- `updateEnvConfig()` (`env-config.ts`) - Keeps a project's `lib/config/env.ts` zod schema and `process.env` accessors in sync with the same key set, via `/* schema start/end */` and `/* vars start/end */` markers. The schema property, exported accessor, and `.env` key are always the same name (e.g. `USERS_API_URL`). Called by `feature`/`application`/`client-config` generators directly, and exposed as a standalone generator via `misc/dotenv`.
+- `updateDotenv()` / `syncDotenv()` (`dot-env.ts`) - Set/unset vars across a project's (or multiple projects') `.env`/`.env.example`/`.env.<suffix>` files (only `.env.example` with `exampleOnly`, for optional overrides whose default lives in code), grouped under `### SECTION ###` headers, preserving comments/blank lines. Non-`.env.example` files touched this way are auto-gitignored.
+- `updateEnvConfig()` (`env-config.ts`) - Keeps a project's `lib/config/env.ts` zod schema and `process.env` accessors in sync with the same key set. `set` is a key list (`z.string()`, an existing key keeps its schema) or a `{ KEY: schema }` record (e.g. `z.string().optional()`), via `/* schema start/end */` and `/* vars start/end */` markers. The schema property, exported accessor, and `.env` key are always the same name (e.g. `USERS_API_URL`). Called by `feature`/`application`/`client-config` generators directly, and exposed as a standalone generator via `misc/dotenv`.
 
 **Client Library** (`features/client/src/`, generated from the `client` feature template)
 - `ApiError` - Custom error class with status helpers (isUnauthorized, isNotFound, etc.)
@@ -163,6 +163,7 @@ Generators can invoke other generators via `runTasksInSerial()`:
 - Action generator chains the `hook` generator when `useHook` is set (ignored for `actionType=form`), scaffolding a `useQuery`/`useMutation` hook that wraps the generated action
 - Feature generator adds the axios dependency and registers a `<NAME>_API_URL` var (in `.env`/`.env.example` and `lib/config/env.ts`) when `env` is set
 - Application generator does the same when `env` is set, and creates a sibling `auth`-type feature (if missing) when `useAuth` is set
+- Application generator wires `@next-feature/logging` unless `skipLogging`: `instrumentation.ts` dynamically imports `registerPino` from `@next-feature/logging/server` on the `nodejs` runtime and passes the app's `lib/config/logging.ts` options (`createPinoOptions({ service: '<name>' })`, plus a server `logger`); `app/api/log/route.ts` receives browser beacons. These files, and the logger import in `error.tsx`, only exist when logging is enabled
 - This avoids duplication and ensures consistent setup
 
 **Important:** When chaining generators, pass `skipFormat: true` to avoid multiple formatting passes.
@@ -289,6 +290,8 @@ Package manager: `pnpm` (use `pnpm install`, not npm or yarn)
 - Use `ApiError.of(zodError)` for form validation errors (field messages land in `problemDetail.errors`, keyed by dotted path; issues without a path, e.g. an object-level `.refine()`, go under `FORM_ERROR_KEY` (`'_form'`))
 - Use `ApiError.builder()` for custom error construction
 
+**Logging env vars are optional overrides:** defaults live in code, so `NEXT_PUBLIC_LOGGING_BEACON_PATH` (default `DEFAULT_LOGGING_BEACON_PATH`, `/api/log`, the route the application generator creates) and `LOGGING_SERVICE_NAME` (overrides the `service` passed to `createPinoOptions()`) are typed `z.string().optional()` and written to `.env.example` only (`LOGGING` in `lib/dotenv/constants/defaults.ts`). Don't make them required again; the route's URL comes from its file location, so the log route must not read the beacon var.
+
 ## Server Actions Architecture
 
 The action generator separates server and client code so server modules never reach a client bundle, and only calls that originate in client components become server action endpoints.
@@ -307,7 +310,7 @@ Rules:
 - Action files never carry `'use server'`; they import `'server-only'`
 - `'use server'` wrappers exist only for client-originated calls and use the `Action` suffix (`<name>Action`, `<name>FormAction`), distinct from the `form` action type
 - Every feature `server.ts` and `lib/config/client.ts` starts with `import 'server-only'`; `server-only` is a declared feature dependency (so also external)
-- In the `client`/`logging` feature templates, modules that read server env or only run on the server also import `'server-only'` and are exported only from `server.ts`: `ApiClient` (`lib/client.ts`), `withApi`/`withForm` (`lib/actions/with-api.ts`), and `pinoOptions` (`config.ts`), the server `logger` (`lib/server.ts`) and `registerPino` (`lib/utils`). `index.ts` stays client-safe
+- In the `client`/`logging` feature templates, modules that read server env or only run on the server also import `'server-only'` and are exported only from `server.ts`: `ApiClient` (`lib/client.ts`), `withApi`/`withForm` (`lib/actions/with-api.ts`), and `createPinoOptions`/`pinoOptions` (`config.ts`), the server `logger` (`lib/server.ts`) and `registerPino` (`lib/utils`). `index.ts` stays client-safe
 - Applications get the same files but no `index.ts`/`server.ts` exports
 
 **Action Types:**

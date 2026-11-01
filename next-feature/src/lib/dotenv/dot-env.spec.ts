@@ -24,6 +24,18 @@ describe('updateDotenv', () => {
     );
   });
 
+  it('only writes .env.example when exampleOnly is true', () => {
+    updateDotenv(
+      tree,
+      { projectRoot: '', exampleOnly: true, files: ['local'] },
+      { set: { LOG_PATH: '/api/log' } }
+    );
+
+    expect(tree.read('.env.example', 'utf-8')).toContain('LOG_PATH=/api/log');
+    expect(tree.exists('.env')).toBeFalsy();
+    expect(tree.exists('.env.local')).toBeFalsy();
+  });
+
   it('groups the variable under the requested section', () => {
     updateDotenv(
       tree,

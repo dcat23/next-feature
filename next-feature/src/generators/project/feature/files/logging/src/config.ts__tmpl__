@@ -1,16 +1,41 @@
 import 'server-only';
 
-import { LOGGING_SERVICE_NAME } from "./lib/config/env";
+import type { LevelWithSilent, LoggerOptions } from 'pino';
+import { LOGGING_SERVICE_NAME } from './lib/config/env';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
-export const pinoOptions = {
-  base: { service: LOGGING_SERVICE_NAME },
-  level: 'info' as const,
-  ...(isDev && {
-    transport: {
-      target: 'pino-pretty',
-      options: { colorize: true, translateTime: 'SYS:standard', ignore: 'pid,hostname' },
-    },
-  }),
-};
+export interface CreatePinoOptions {
+  /**
+   * Service name added to every log line as `service`. `LOGGING_SERVICE_NAME`
+   * overrides it per deployment; with neither set the field is omitted.
+   */
+  service?: string;
+  level?: LevelWithSilent;
+}
+
+/**
+ * Builds the pino options shared by the server logger and `registerPino`.
+ * Apps pass their own name in code (`createPinoOptions({ service: 'web' })`),
+ * so `LOGGING_SERVICE_NAME` is only needed to override it.
+ */
+export function createPinoOptions({
+  service,
+  level = 'info',
+}: CreatePinoOptions = {}): LoggerOptions {
+  const serviceName = LOGGING_SERVICE_NAME || service;
+
+  return {
+    ...(serviceName && { base: { service: serviceName } }),
+    level,
+    ...(isDev && {
+      transport: {
+        target: 'pino-pretty',
+        options: { colorize: true, translateTime: 'SYS:standard', ignore: 'pid,hostname' },
+      },
+    }),
+  };
+}
+
+/** Options without a code-level service name (`LOGGING_SERVICE_NAME` only). */
+export const pinoOptions = createPinoOptions();

@@ -13,7 +13,8 @@ const ROOT_GITIGNORE_DIRECTORY = '.';
 
 /**
  * [resolve-file-names]
- * `.env` and `.env.example` are always included. `target.files` adds
+ * `.env` and `.env.example` are always included (only `.env.example` with
+ * `target.exampleOnly`). `target.files` adds
  * `.env.<suffix>` files by name, or, when set to 'all', discovers every
  * `.env*` file that already exists in `projectRoot`.
  * January 30th 2026
@@ -21,8 +22,11 @@ const ROOT_GITIGNORE_DIRECTORY = '.';
 function resolveFileNames(
   tree: Tree,
   projectRoot: string,
-  files?: DotenvTarget['files']
+  files?: DotenvTarget['files'],
+  exampleOnly?: boolean
 ): string[] {
+  if (exampleOnly) return ['.env.example'];
+
   const fileNames = new Set<string>(['.env', '.env.example']);
 
   if (files === 'all') {
@@ -50,7 +54,7 @@ export function updateDotenv(
   change: DotenvChange
 ): void {
   const section = asSectionName(target.section ?? DEFAULT_SECTION);
-  const fileNames = resolveFileNames(tree, target.projectRoot, target.files);
+  const fileNames = resolveFileNames(tree, target.projectRoot, target.files, target.exampleOnly);
 
   for (const fileName of fileNames) {
     const filePath = joinPathFragments(target.projectRoot, fileName);

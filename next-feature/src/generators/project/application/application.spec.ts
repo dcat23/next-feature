@@ -76,11 +76,37 @@ describe('application generator', () => {
   });
 
   describe('logging', () => {
-    it('should wire registerPino into instrumentation.ts by default', async () => {
+    it('should call registerPino from @next-feature/logging/server in instrumentation.ts', async () => {
       await applicationGenerator(tree, { name: 'test' });
       const instrumentation = tree.read('apps/test/instrumentation.ts', 'utf-8');
-      expect(instrumentation).toContain("import { registerPino } from './lib/config/logging'");
-      expect(instrumentation).toContain('await registerPino();');
+      expect(instrumentation).toContain("process.env.NEXT_RUNTIME === 'nodejs'");
+      expect(instrumentation).toContain("import('@next-feature/logging/server')");
+      expect(instrumentation).toContain('await registerPino(pinoOptions);');
+    });
+
+    it('should configure the app as the service in lib/config/logging.ts instead of copying registerPino', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const logging = tree.read('apps/test/lib/config/logging.ts', 'utf-8');
+      expect(logging).toContain("import { createPinoOptions } from '@next-feature/logging/server'");
+      expect(logging).toContain("createPinoOptions({ service: 'test' })");
+      expect(logging).not.toContain('pinoHttp');
+    });
+
+    it('should not tie the log route to the beacon path env var', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const route = tree.read('apps/test/app/api/log/route.ts', 'utf-8');
+      expect(route).not.toContain('NEXT_PUBLIC_LOGGING_BEACON_PATH');
+      expect(route).toContain('request.nextUrl.pathname');
+      expect(route).toContain("/lib/config/logging'");
+    });
+
+    it('should document the logging vars as optional overrides in .env.example only', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const example = tree.read('apps/test/.env.example', 'utf-8');
+      expect(example).toContain('NEXT_PUBLIC_LOGGING_BEACON_PATH=/api/log');
+      expect(example).toContain('LOGGING_SERVICE_NAME=test');
+      expect(tree.read('apps/test/.env', 'utf-8') ?? '').not.toContain('LOGGING');
+      expect(tree.read('apps/test/lib/config/env.ts', 'utf-8')).not.toContain('LOGGING');
     });
 
     it('should add @next-feature/logging as an installed dependency by default', async () => {
@@ -103,6 +129,16 @@ describe('application generator', () => {
       expect(packageJson.dependencies?.['@next-feature/logging']).toBeUndefined();
       const nextConfig = tree.read('apps/test/next.config.js', 'utf-8');
       expect(nextConfig).not.toContain('serverExternalPackages');
+    });
+
+    it('should not generate files that import @next-feature/logging when skipLogging is true', async () => {
+      await applicationGenerator(tree, { name: 'test', skipLogging: true });
+      expect(tree.exists('apps/test/app/api/log/route.ts')).toBeFalsy();
+      expect(tree.exists('apps/test/lib/config/logging.ts')).toBeFalsy();
+      const error = tree.read('apps/test/app/error.tsx', 'utf-8');
+      expect(error).not.toContain('@next-feature/logging');
+      expect(error).toContain('console.error(error)');
+      expect(tree.read('apps/test/.env.example', 'utf-8') ?? '').not.toContain('LOGGING');
     });
   });
 });

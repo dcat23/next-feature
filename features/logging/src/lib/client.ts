@@ -3,6 +3,11 @@
 import pino from 'pino';
 import { getCorrelationId } from './correlation';
 import { NEXT_PUBLIC_LOGGING_BEACON_PATH } from './config/env';
+import { DEFAULT_LOGGING_BEACON_PATH } from './constants';
+
+// Optional override, inlined by Next.js at build time
+const beaconPath =
+  NEXT_PUBLIC_LOGGING_BEACON_PATH || DEFAULT_LOGGING_BEACON_PATH;
 
 const browserLogger = pino({
   browser: {
@@ -19,9 +24,9 @@ const browserLogger = pino({
         });
 
         if (typeof navigator !== 'undefined' && 'sendBeacon' in navigator) {
-          navigator.sendBeacon(NEXT_PUBLIC_LOGGING_BEACON_PATH, body);
+          navigator.sendBeacon(beaconPath, body);
         } else {
-          fetch(NEXT_PUBLIC_LOGGING_BEACON_PATH, {
+          fetch(beaconPath, {
             method: 'POST',
             body,
             headers: { 'Content-Type': 'application/json' },

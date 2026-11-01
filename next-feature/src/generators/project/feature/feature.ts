@@ -70,6 +70,9 @@ export async function featureGenerator(
   const extraExternals: string[] = [];
 
   const setDotenv: Record<string, string> = {};
+  // Optional overrides with defaults in code: documented in .env.example and
+  // typed as optional in lib/config/env.ts, never required in .env
+  const optionalDotenv: Record<string, string> = {};
 
   switch (type) {
     case 'logging':
@@ -87,8 +90,8 @@ export async function featureGenerator(
       libraryDependencies['pino-http'] = PINO_HTTP_VERSION;
       libraryDependencies['pino-pretty'] = PINO_PRETTY_VERSION;
       
-      setDotenv[LOGGING.beaconPathKey] = LOGGING.beaconPathValue;
-      setDotenv[LOGGING.serviceNameKey] = normalizedOptions.name;
+      optionalDotenv[LOGGING.beaconPathKey] = LOGGING.beaconPathValue;
+      optionalDotenv[LOGGING.serviceNameKey] = normalizedOptions.name;
 
       break;
     case 'client':
@@ -142,6 +145,16 @@ export async function featureGenerator(
   updateEnvConfig(tree, sourceRoot, { 
     set: Object.keys(setDotenv) 
   });
+
+  if (Object.keys(optionalDotenv).length) {
+    updateDotenv(tree, { projectRoot, section: type, exampleOnly: true }, {
+      set: optionalDotenv,
+      skipExisting: true,
+    });
+    updateEnvConfig(tree, sourceRoot, {
+      set: Object.fromEntries(Object.keys(optionalDotenv).map((key) => [key, LOGGING.optionalSchema])),
+    });
+  }
 
   /* Clean up */
   tree.delete(path.join(sourceRoot, "lib", "hello-server.tsx"));

@@ -57,6 +57,7 @@ npx nx g next-feature:application --name=web --orgName=mycompany
 | `--directory` | string | "apps" | Directory where application is created |
 | `--env` | boolean | false | Add the axios dependency and register a `<NAME>_API_URL` variable in this app's `.env`/`.env.example` |
 | `--useAuth` | boolean | false | Setup NextAuth.js authentication |
+| `--skipLogging` | boolean | false | Skip the `@next-feature/logging` wiring (see [Logging](#logging)) |
 | `--orgName` | string | - | Organization name for scoped imports (@myorg/[name]) |
 | `--skipFormat` | boolean | false | Skip prettier code formatting |
 
@@ -135,13 +136,17 @@ apps/[name]/
 │   ├── app/
 │   │   ├── layout.tsx             # Root layout
 │   │   ├── page.tsx               # Home page
+│   │   ├── error.tsx              # Error boundary (reports via the browser logger)
 │   │   ├── api/
+│   │   │   ├── log/route.ts       # Browser log beacon endpoint (unless --skipLogging)
 │   │   │   └── auth/              # NextAuth routes (if --useAuth)
 │   │   │       └── [...nextauth]/route.ts
 │   │   ├── middleware.ts          # Edge middleware
 │   │   └── [slug]/
 │   │       └── page.tsx           # Dynamic routes
+│   ├── instrumentation.ts         # registerPino() on the Node.js runtime
 │   ├── lib/
+│   │   ├── config/logging.ts      # createPinoOptions({ service: '[name]' }) + server logger
 │   │   ├── actions/               # Server actions
 │   │   ├── components/            # React components
 │   │   ├── stores/                # Zustand stores
@@ -248,6 +253,26 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
 `lib/config/env.ts` is generated alongside these files with a typed `<NAME>_API_URL` accessor when `--env` is set, kept in sync by the [dotenv generator](../../misc/dotenv/README.md)'s marker-based sync. Add further vars later with `npx nx g next-feature:dotenv --projectName=[name] --set=KEY=VALUE`.
+
+### Logging
+
+Unless `--skipLogging` is set, the app is wired to the published [`@next-feature/logging`](../feature/README.md#logging-type--additional-files) library:
+
+| File | Purpose |
+|------|---------|
+| `instrumentation.ts` | On the Node.js runtime only, calls the library's `registerPino()` with this app's options (pino-http request logging) |
+| `lib/config/logging.ts` | This app's pino options, `createPinoOptions({ service: '[name]' })`, and a server `logger` built from them. Customise the level or service here |
+| `app/api/log/route.ts` | Receives the browser logger's beacons and writes them to the server logger |
+| `app/error.tsx` | Reports render errors with the browser logger (`console.error` with `--skipLogging`) |
+
+Both logging env vars are **optional overrides**. Their defaults live in code, so they are only listed in `.env.example` under `### LOGGING ###`, not set in `.env`:
+
+| Variable | Default | Set it when |
+|----------|---------|-------------|
+| `NEXT_PUBLIC_LOGGING_BEACON_PATH` | `/api/log` (`DEFAULT_LOGGING_BEACON_PATH`) | you move or rename `app/api/log/route.ts`. Inlined at build time, so rebuild after changing it |
+| `LOGGING_SERVICE_NAME` | the `service` passed in `lib/config/logging.ts` (the app name) | one build is deployed as several services, or the name should differ per environment. Read at runtime |
+
+The route's URL comes from its file location, not from the env var: if you set `NEXT_PUBLIC_LOGGING_BEACON_PATH`, move the route to match.
 
 ## Common Workflows
 

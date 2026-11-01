@@ -149,7 +149,10 @@ describe('next-feature', () => {
         // instrumentation reaches @next-feature/logging/server ('server-only'),
         // error.tsx uses the client-safe browser logger: next build fails on
         // a broken server/client boundary
-        expect(read('apps/web/instrumentation.ts')).toContain('registerPino');
+        expect(read('apps/web/instrumentation.ts')).toContain("import('@next-feature/logging/server')");
+        expect(read('apps/web/lib/config/logging.ts')).toContain("createPinoOptions({ service: 'web' })");
+        // logging env vars are optional overrides: documented, never required
+        expect(read('apps/web/.env.example')).toContain('NEXT_PUBLIC_LOGGING_BEACON_PATH=/api/log');
         expect(readJson('package.json').dependencies['@next-feature/logging']).toBe('0.0.0-e2e');
 
         run('pnpm exec nx build web');

@@ -123,8 +123,8 @@ export async function applicationGenerator(
   }
 
   if (!normalizedOptions.skipLogging) {
-    // lib/config/logging.ts (generated above, called from instrumentation.ts)
-    // imports pinoOptions from the published @next-feature/logging package.
+    // instrumentation.ts calls the published package's registerPino with
+    // this app's lib/config/logging.ts options.
     dependencies['@next-feature/logging'] = PLUGIN_VERSION;
     dependencies['pino'] = PINO_VERSION;
     dependencies['pino-http'] = PINO_HTTP_VERSION;
@@ -132,16 +132,23 @@ export async function applicationGenerator(
 
     addServerExternalPackages(tree, projectRoot, ['pino', 'pino-http', 'pino-pretty', 'thread-stream']);
 
-    updateDotenv(tree, { projectRoot, section: 'logging' }, {
+    generateFiles(
+      tree,
+      path.join(__dirname, 'files/logging'),
+      sourceRoot,
+      normalizedOptions
+    );
+
+    // Optional overrides: the library defaults the beacon path to the route
+    // generated above and lib/config/logging.ts passes this app's name as the
+    // service, so neither is set in .env, only documented in .env.example.
+    updateDotenv(tree, { projectRoot, section: 'logging', exampleOnly: true }, {
       set: {
         [LOGGING.beaconPathKey]: LOGGING.beaconPathValue,
         [LOGGING.serviceNameKey]: normalizedOptions.name,
       },
+      skipExisting: true,
     });
-    updateEnvConfig(tree, sourceRoot, {
-      set: [LOGGING.beaconPathKey, LOGGING.serviceNameKey], 
-    });
-
   }
 
   updateDotenv(tree,

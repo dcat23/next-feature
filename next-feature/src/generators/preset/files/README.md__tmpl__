@@ -122,7 +122,7 @@ npx nx g next-feature:component --name=MainLayout --componentType=layout --proje
 
 ### 2. Create Server Actions
 
-Server actions handle API calls, database operations, and form submissions:
+Server actions handle API calls and form submissions:
 
 ```bash
 # API action (with types and constants)
@@ -131,9 +131,6 @@ npx nx g next-feature:action --name=getUser --actionType=api --projectName=<%= n
 
 # Form submission action
 npx nx g next-feature:action --name=loginUser --actionType=form --projectName=<%= name %>
-
-# Database operation action
-npx nx g next-feature:action --name=getUserFromDb --actionType=db --projectName=<%= name %>
 
 # With custom client package
 npx nx g next-feature:action --name=getUser --actionType=api --projectName=<%= name %> \

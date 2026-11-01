@@ -239,15 +239,7 @@ or enable it on an application, which creates the `auth` library automatically i
 npx nx g next-feature:application --name=web --useAuth=true
 ```
 
-### 3. Add Database Operations
-
-For database-driven features (expects Prisma configured in the project):
-
-```bash
-npx nx g next-feature:action --name=getUsers --actionType=db --projectName=[name]
-```
-
-### 4. Customize Configuration
+### 3. Customize Configuration
 
 Update configuration files as needed:
 

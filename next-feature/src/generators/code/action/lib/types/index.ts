@@ -8,7 +8,7 @@ import {
 /**
  * Action types - determines what kind of action to generate
  */
-export type ActionType = 'api' | 'db' | 'form' | 'none'; // none added to skip withApi usage
+export type ActionType = 'api' | 'form' | 'none'; // none added to skip withApi usage
 
 /**
  * Action Generator Schema - extends CodeGeneratorSchema

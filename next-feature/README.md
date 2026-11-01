@@ -35,7 +35,7 @@ npx nx g next-feature:feature --name=ui --type=ui
 ### Code Generators
 
 ```bash
-# Server actions for API calls, forms, or database operations
+# Server actions for API calls or forms
 npx nx g next-feature:action --name=getUser --projectName=users
 
 # React components
@@ -165,7 +165,7 @@ npx nx g next-feature:action --name=getUser --projectName=myapp \
 
 Generate self-contained pieces of functionality:
 
-- **action** - Server actions (API, form, database operations)
+- **action** - Server actions (API calls or forms)
 - **component** - React components (`--componentType=component`) or Next.js App Router route files (`--componentType=page`), with `--kind` selecting the specific file (modal/card/form, or page/layout/loading/error/route etc.)
 - **hook** - TanStack Query hook (`useQuery`/`useMutation`) wrapping an existing server action; auto-invoked by `action` when `--useHook` is set
 - **store** - Zustand state management hooks
@@ -234,19 +234,6 @@ npx nx g next-feature:action --name=login --actionType=form --projectName=auth
 
 # Create user store
 npx nx g next-feature:store --name=userStore --projectName=auth
-```
-
-### Workflow: Add Database Operations
-
-```bash
-# Create data feature
-npx nx g next-feature:feature --name=data
-
-# Create database action (expects Prisma configured in the project)
-npx nx g next-feature:action --name=getUserFromDb --actionType=db --projectName=data
-
-# Create database utilities
-npx nx g next-feature:utility --name=dbHelpers --projectName=data
 ```
 
 ## Development

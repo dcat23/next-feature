@@ -62,7 +62,7 @@ The plugin follows an Nx plugin structure with generators organized by category:
 - `application` - Creates a Next.js application
 
 **Code Generators** (`src/generators/code/`)
-- `action` - Generates server-only actions (API, form, or database operations) plus a client-safe request/response contract, and `'use server'` wrappers only for calls that originate in client components (see Server Actions Architecture)
+- `action` - Generates server-only actions (API calls or forms) plus a client-safe request/response contract, and `'use server'` wrappers only for calls that originate in client components (see Server Actions Architecture)
 - `component` - Generates React components (`kind=form` imports `ApiResponse` from `clientPackage`, default `@next-feature/client`). `componentType` is `component` (default), `page` (App Router route files) or `ui`; `kind` selects the file (`generic`, `modal`, `card`, `form` for components; `layout`, `loading`, `error`, `not-found`, `template`, `default`, `global-error`, `route` for pages). `componentType=ui` adds a shadcn component to a `ui`-type feature library instead: no template is written, it invokes the shared shadcn CLI helper (`lib/utils/shadcn.ts`, also used by the `shadcn` executor) to run `npx shadcn@latest add <slug>` in the target project's root, skipping if the component file already exists
 - `hook` - Generates a TanStack Query hook (`useQuery` for GET-derived actions, `useMutation` otherwise) that calls an action's `'use server'` wrapper (`<actionFile>.action.ts`) and imports its request type from `lib/types/<actionFile>`, in `src/hooks/`. Auto-invoked by the `action` generator when `useHook` is set
 - `store` - Generates Zustand stores
@@ -138,7 +138,7 @@ All generators follow a consistent pattern:
 - `skipFormat` - Skip prettier formatting (used for chained generators)
 
 **Action Generator Specific:**
-- `actionType` - Type of action: 'api', 'form', or 'db'. `form` also writes a `<file>.form.ts` `'use server'` form action
+- `actionType` - Type of action: 'api' or 'form'. `form` also writes a `<file>.form.ts` `'use server'` form action
 - `clientPackage` - Custom API client package (default: '@next-feature/client'); `withApi`/`withForm` are imported from `<clientPackage>/server`
 - `useTypes` - Auto-generate a data-type interface, appended to the contract file `lib/types/<file>.ts`
 - `useConstant` - Auto-generate constants
@@ -318,7 +318,6 @@ Rules:
 **Action Types:**
 - `api` - HTTP API calls using configured client (default: @next-feature/client)
 - `form` - Same server-only action, plus a `<file>.form.ts` form action for `useActionState`
-- `db` - Database operations (typically with Prisma)
 
 **Client Configuration Pattern:**
 - First action in a project auto-creates `lib/config/client.ts`

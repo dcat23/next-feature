@@ -53,7 +53,7 @@ Create Next.js applications and feature libraries:
 
 Generate code within projects:
 
-- **action** - Server actions (API, form, or database operations)
+- **action** - Server actions (API calls or forms)
 - **component** - React components with TypeScript
 - **store** - Zustand state management
 - **types** - TypeScript type definitions
@@ -67,7 +67,6 @@ Setup project infrastructure:
 - **client-config** - Centralized API client configuration
 - **auth** - NextAuth.js authentication
 - **axios** - Axios HTTP client setup
-- **database** - Prisma database configuration
 
 ## Key Features
 

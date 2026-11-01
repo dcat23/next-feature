@@ -1,4 +1,6 @@
-# create-next-feature v0.1.0
+# create-next-feature
+
+[![npm](https://img.shields.io/npm/v/create-next-feature)](https://www.npmjs.com/package/create-next-feature)
 
 Interactive CLI tool for scaffolding new NextFeature workspaces with all necessary project structure and configuration.
 

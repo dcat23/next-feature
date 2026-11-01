@@ -287,7 +287,7 @@ Package manager: `pnpm` (use `pnpm install`, not npm or yarn)
 
 **Working with the client library:**
 - `@next-feature/client` is generated from the `client` feature template into `features/client` (and `@next-feature/logging` from `logging` into `features/logging`); regenerate them after changing those templates
-- Client-safe exports from `features/client/src/index.ts` (`ApiError`, types, error utils)
+- Client-safe exports from `features/client/src/index.ts` (`ApiError`, types, error utils, and the `'use client'` `ApiErrorBoundary`/`useApiError`)
 - Server-only exports from `features/client/src/server.ts` (`ApiClient`, `withApi`, `withForm`)
 - Use `ApiError.of(zodError)` for form validation errors (field messages land in `problemDetail.errors`, keyed by dotted path; issues without a path, e.g. an object-level `.refine()`, go under `FORM_ERROR_KEY` (`'_form'`))
 - Use `ApiError.builder()` for custom error construction
@@ -351,4 +351,5 @@ Built files go to `dist/next-feature/`:
 
 Feature library output in `dist/features/client/` and `dist/features/logging/`:
 - Dual exports: `index.js` (client-safe) and `server.js` (`server-only`)
+- One file per source module (`preserveModules`): the `preserveUseClient` plugin in each feature's `vite.config.mts` (added by `preserveUseClientBoundaries()`, `lib/utils/vite-config.ts`) re-adds `'use client'` to modules whose source starts with it, since Rollup drops module-level directives. That's what lets server components render `GlobalErrorHandler` etc. from the package
 - Type definitions for all exports

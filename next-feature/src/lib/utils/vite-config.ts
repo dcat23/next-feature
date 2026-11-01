@@ -132,3 +132,80 @@ export function externalizeDeclaredDependenciesOnDisk(
   writeFileSync(configPath, next);
   return true;
 }
+
+const USE_CLIENT_PLUGIN_NAME = 'preserve-use-client';
+const VITE_IMPORT = "import { defineConfig } from 'vite';";
+const REACT_PLUGIN = 'react(),';
+const EXTERNAL_OPTION = /external: isExternal,?/;
+
+const useClientBlock = `// Rollup drops module-level directives such as 'use client'. Keep every
+// module in its own file (preserveModules) and put the directive back on the
+// files whose source starts with it, so client components and hooks stay
+// client boundaries in dist/ and can be imported from server components.
+const USE_CLIENT = /^\\s*(?:\\/\\/[^\\n]*\\n\\s*|\\/\\*[\\s\\S]*?\\*\\/\\s*)*['"]use client['"]/;
+const preserveUseClient = (): Plugin => {
+  const clientModules = new Set<string>();
+  return {
+    name: '${USE_CLIENT_PLUGIN_NAME}',
+    enforce: 'pre',
+    transform(code, id) {
+      if (USE_CLIENT.test(code)) clientModules.add(id);
+      return null;
+    },
+    renderChunk(code, chunk) {
+      return chunk.facadeModuleId && clientModules.has(chunk.facadeModuleId)
+        ? { code: \`'use client';\\n\${code}\`, map: null }
+        : null;
+    },
+  };
+};
+`;
+
+const preserveModulesOptions = `external: isExternal,
+      // One output file per module, so 'use client' stays per module
+      output: { preserveModules: true, preserveModulesRoot: 'src' },
+      onwarn(warning, warn) {
+        // directives are re-added by preserveUseClient
+        if (warning.code !== 'MODULE_LEVEL_DIRECTIVE') warn(warning);
+      },`;
+
+/**
+ * Adds the preserveUseClient plugin and preserveModules to a vite.config.mts
+ * whose externals were already converted (externalizeDeclaredDependencies).
+ * Returns the new content, or null when it's already there or the config
+ * doesn't have the expected shape (left untouched).
+ */
+export function toUseClientBoundariesConfig(content: string): string | null {
+  if (content.includes(USE_CLIENT_PLUGIN_NAME)) return null;
+  if (
+    ![VITE_IMPORT, REACT_PLUGIN, DEFINE_CONFIG].every((part) => content.includes(part)) ||
+    !EXTERNAL_OPTION.test(content)
+  ) {
+    return null;
+  }
+
+  return content
+    .replace(VITE_IMPORT, "import { defineConfig, type Plugin } from 'vite';")
+    .replace(REACT_PLUGIN, `${REACT_PLUGIN}\n    preserveUseClient(),`)
+    .replace(EXTERNAL_OPTION, preserveModulesOptions)
+    .replace(DEFINE_CONFIG, `${useClientBlock}\n${DEFINE_CONFIG}`);
+}
+
+/**
+ * [preserve-use-client-boundaries]
+ * Makes a feature library's build keep 'use client' on the modules that
+ * declare it. Without it, vite bundles each entry into one file and drops the
+ * directive, so a client component exported by the library (e.g. logging's
+ * GlobalErrorHandler) can't be rendered from a server component.
+ */
+export function preserveUseClientBoundaries(
+  tree: Tree,
+  projectRoot: string,
+  fileName = 'vite.config.mts'
+): void {
+  const configPath = joinPathFragments(projectRoot, fileName);
+  if (!tree.exists(configPath)) return;
+
+  const next = toUseClientBoundariesConfig(tree.read(configPath, 'utf-8') ?? '');
+  if (next !== null) tree.write(configPath, next);
+}

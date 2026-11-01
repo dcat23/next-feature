@@ -8,7 +8,7 @@ import { updateDotenv } from '../../../lib/dotenv/dot-env';
 import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { initializeProjectGenerator, updateDependencies } from '../../../lib/utils';
-import { externalizeDeclaredDependencies } from '../../../lib/utils/vite-config';
+import { externalizeDeclaredDependencies, preserveUseClientBoundaries } from '../../../lib/utils/vite-config';
 import { FeatureGeneratorSchema } from './schema';
 import { asApiKeyName, asCaretRange, includeSourceInReleaseManifests, updatePackageJsonDependencies, updatePackageJsonExports } from './utils';
 import { addShadcnTarget } from '../../../lib/utils/shadcn';
@@ -126,6 +126,7 @@ export async function featureGenerator(
   tasks.push(updateDependencies(tree, dependencies, devDependencies))
   updatePackageJsonDependencies(tree, projectRoot, libraryDependencies, libraryPeerDependencies);
   externalizeDeclaredDependencies(tree, projectRoot, extraExternals);
+  preserveUseClientBoundaries(tree, projectRoot);
 
   /* Generate files */
   generateFiles(

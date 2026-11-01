@@ -1,3 +1,4 @@
+import { LOGGING } from '../../../lib/dotenv/constants/defaults';
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { Tree, readProjectConfiguration, readJson } from '@nx/devkit';
 import { featureGenerator } from './feature';
@@ -194,6 +195,43 @@ describe('feature generator', () => {
       const content = tree.read('features/logger/src/config.ts', 'utf-8');
       expect(content).toContain('pinoOptions');
       expect(content).toContain('pino-pretty');
+    });
+
+    it('should let LOGGING_SERVICE_NAME override the service passed to createPinoOptions', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/logger/src/config.ts', 'utf-8');
+      expect(content).toContain('export function createPinoOptions(');
+      expect(content).toContain('LOGGING_SERVICE_NAME || service');
+      expect(content).toContain('export const pinoOptions = createPinoOptions();');
+      const server = tree.read('features/logger/src/server.ts', 'utf-8');
+      expect(server).toContain('createPinoOptions');
+    });
+
+    it('should accept pino options in registerPino', async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/logger/src/lib/utils/index.ts', 'utf-8');
+      expect(content).toContain('registerPino = async (options: LoggerOptions = pinoOptions)');
+    });
+
+    it('should default the browser beacon path to the route the application generator creates', async () => {
+      await featureGenerator(tree, options);
+      const constants = tree.read('features/logger/src/lib/constants.ts', 'utf-8');
+      expect(constants).toContain(`DEFAULT_LOGGING_BEACON_PATH = '${LOGGING.beaconPathValue}'`);
+      const client = tree.read('features/logger/src/lib/client.ts', 'utf-8');
+      expect(client).toContain('NEXT_PUBLIC_LOGGING_BEACON_PATH || DEFAULT_LOGGING_BEACON_PATH');
+      expect(client).not.toContain('sendBeacon(NEXT_PUBLIC_LOGGING_BEACON_PATH');
+      expect(tree.read('features/logger/src/index.ts', 'utf-8')).toContain("export * from './lib/constants'");
+    });
+
+    it('should make the logging env vars optional and only document them in .env.example', async () => {
+      await featureGenerator(tree, options);
+      const env = tree.read('features/logger/src/lib/config/env.ts', 'utf-8');
+      expect(env).toContain('NEXT_PUBLIC_LOGGING_BEACON_PATH: z.string().optional(),');
+      expect(env).toContain('LOGGING_SERVICE_NAME: z.string().optional(),');
+      const example = tree.read('features/logger/.env.example', 'utf-8');
+      expect(example).toContain('NEXT_PUBLIC_LOGGING_BEACON_PATH=/api/log');
+      expect(example).toContain('LOGGING_SERVICE_NAME=logger');
+      expect(tree.read('features/logger/.env', 'utf-8') ?? '').not.toContain('LOGGING_');
     });
 
     it('should generate index.ts exporting browser logger and correlation', async () => {

@@ -134,6 +134,8 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 DATABASE_URL=postgresql://...
 ```
 
+Logging variables are optional: applications default the browser beacon path to `/api/log` and the service name to the app name in `lib/config/logging.ts`. The generated workspace README's **Logging** section lists the files and the `NEXT_PUBLIC_LOGGING_BEACON_PATH` / `LOGGING_SERVICE_NAME` overrides (see also the [application generator](../project/application/README.md#logging)).
+
 ### TailwindCSS Configuration
 
 A base TailwindCSS configuration is generated with:

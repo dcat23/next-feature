@@ -86,14 +86,15 @@ features/[name]/src/
 
 ```
 features/[name]/src/
-├── config.ts               # pino options (pinoOptions export; server-only)
+├── config.ts               # createPinoOptions() / pinoOptions (server-only)
 ├── lib/
 │   ├── server.ts           # Server-side pino logger (Node.js; server-only)
 │   ├── client.ts           # Browser pino logger ('use client', transmit config)
+│   ├── constants.ts        # DEFAULT_LOGGING_BEACON_PATH ('/api/log')
 │   ├── correlation.ts      # getCorrelationId / setCorrelationId (sessionStorage)
-│   └── utils/index.ts      # registerPino() for instrumentation.ts (server-only)
-├── index.ts                # Client-safe: browser logger, GlobalErrorHandler, correlation utilities
-└── server.ts               # 'server-only': server logger, pinoOptions, registerPino
+│   └── utils/index.ts      # registerPino(options?) for instrumentation.ts (server-only)
+├── index.ts                # Client-safe: browser logger, GlobalErrorHandler, constants, correlation utilities
+└── server.ts               # 'server-only': server logger, createPinoOptions, pinoOptions, registerPino
 ```
 
 **Additional dependencies added:**
@@ -108,6 +109,21 @@ features/[name]/src/
 **Browser logger** (`lib/client.ts`) uses pino's browser transport with correlation ID injection. Marked `'use client'` for Next.js.
 
 **Server logger** (`lib/server.ts`) uses pino with pino-pretty in development (`NODE_ENV !== 'production'`).
+
+**Configuration** follows "defaults in code, env vars as overrides". Neither var is required: both are typed `z.string().optional()` in `lib/config/env.ts` and only documented in `.env.example`.
+
+| Variable | Used by | Default |
+|----------|---------|---------|
+| `NEXT_PUBLIC_LOGGING_BEACON_PATH` | browser logger (`lib/client.ts`), inlined by Next.js at build time | `DEFAULT_LOGGING_BEACON_PATH` (`/api/log`), the route the [application generator](../application/README.md#logging) creates |
+| `LOGGING_SERVICE_NAME` | `createPinoOptions()` (server), read at runtime | the `service` passed in code; omitted from log lines if neither is set |
+
+```typescript
+import { createPinoOptions, registerPino } from '@feature/logging/server';
+
+// The app's name goes in code; LOGGING_SERVICE_NAME overrides it per deployment
+const pinoOptions = createPinoOptions({ service: 'web', level: 'debug' });
+await registerPino(pinoOptions); // defaults to pinoOptions (env-only service) when omitted
+```
 
 ### `client` type — additional files
 
@@ -226,7 +242,7 @@ import { logger } from '@feature/logging';
 import { getCorrelationId } from '@feature/logging';
 
 // Server (server components, actions, route handlers, instrumentation)
-import { logger, pinoOptions, registerPino } from '@feature/logging/server';
+import { logger, createPinoOptions, pinoOptions, registerPino } from '@feature/logging/server';
 ```
 
 ## Default Dependencies

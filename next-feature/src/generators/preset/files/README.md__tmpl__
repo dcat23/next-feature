@@ -291,6 +291,8 @@ DATABASE_URL=postgresql://user:password@localhost:5432/dbname
 
 **Important:** Never commit `.env.local` to version control.
 
+Logging needs no env vars: the `### LOGGING ###` entries in `.env.example` are optional overrides (see [Logging](#-logging)).
+
 ### TypeScript Configuration
 
 Paths are configured in `tsconfig.json`:
@@ -322,6 +324,33 @@ module.exports = {
   }
 }
 ```
+
+## 📈 Logging
+
+Applications created with `npx nx g next-feature:application` log through [`@next-feature/logging`](https://www.npmjs.com/package/@next-feature/logging) (pino) unless created with `--skipLogging`. For an app at `apps/<%= name %>/`:
+
+| File | What to change there |
+|------|----------------------|
+| `apps/<%= name %>/lib/config/logging.ts` | Service name and level: `createPinoOptions({ service: '<%= name %>', level: 'info' })`. Exports the server `logger` |
+| `apps/<%= name %>/instrumentation.ts` | Registers pino-http request logging (`registerPino`) on the Node.js runtime |
+| `apps/<%= name %>/app/api/log/route.ts` | Endpoint the browser logger posts to (`/api/log`) |
+
+```typescript
+// Server components, route handlers, server actions
+import { logger } from '@app/<%= name %>/lib/config/logging'
+logger.info({ userId }, 'user loaded')
+
+// Client components
+import { logger } from '@next-feature/logging'
+logger.error('checkout failed')
+```
+
+Both env vars are **optional**. Defaults live in code, so only set them to override:
+
+| Variable | Default | Set it when |
+|----------|---------|-------------|
+| `NEXT_PUBLIC_LOGGING_BEACON_PATH` | `/api/log` | you move `app/api/log/route.ts` (move the route too; rebuild, it's inlined at build time) |
+| `LOGGING_SERVICE_NAME` | the `service` in `lib/config/logging.ts` | the service name should differ per deployment (read at runtime) |
 
 ## 📝 Development Workflows
 
@@ -489,6 +518,7 @@ npx nx g next-feature:init
 - **[Preset Generator](../preset/README.md)** - Initial setup
 - **[Feature Generator](../project/feature/README.md)** - Feature libraries
 - **[@next-feature/client](https://www.npmjs.com/package/@next-feature/client)** - API client documentation
+- **[@next-feature/logging](https://www.npmjs.com/package/@next-feature/logging)** - Logging library documentation
 - **[Nx Documentation](https://nx.dev)** - Monorepo framework docs
 - **[Next.js Documentation](https://nextjs.org/docs)** - React framework docs
 

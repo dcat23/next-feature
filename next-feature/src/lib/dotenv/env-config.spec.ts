@@ -41,6 +41,30 @@ describe('updateEnvConfig', () => {
     expect(text).toContain('export const AUTH_SECRET = process.env.AUTH_SECRET;');
   });
 
+  it('uses the schema given for each key when set is a record', () => {
+    updateEnvConfig(tree, '', { set: { LOG_PATH: 'z.string().optional()' } });
+
+    const text = envConfig();
+    expect(text).toContain('LOG_PATH: z.string().optional(),');
+    expect(text).toContain('export const LOG_PATH = process.env.LOG_PATH;');
+  });
+
+  it('keeps an existing schema when the key is set again as a bare key', () => {
+    updateEnvConfig(tree, '', { set: { LOG_PATH: 'z.string().optional()' } });
+    updateEnvConfig(tree, '', { set: ['LOG_PATH'] });
+
+    const text = envConfig();
+    expect(text).toContain('LOG_PATH: z.string().optional(),');
+    expect(text.match(/LOG_PATH:/g)).toHaveLength(1);
+  });
+
+  it('replaces an existing schema when set as a record', () => {
+    updateEnvConfig(tree, '', { set: ['LOG_PATH'] });
+    updateEnvConfig(tree, '', { set: { LOG_PATH: 'z.string().optional()' } });
+
+    expect(envConfig()).toContain('LOG_PATH: z.string().optional(),');
+  });
+
   it('removes both the schema entry and the accessor on unset', () => {
     updateEnvConfig(tree, '', { set: ['API_URL'] });
     updateEnvConfig(tree, '', { unset: ['API_URL'] });

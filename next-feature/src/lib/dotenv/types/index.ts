@@ -30,6 +30,11 @@ export interface DotenvTarget {
    * include every `.env*` file that already exists in `projectRoot`.
    */
   files?: string[] | 'all';
+  /**
+   * Only write `.env.example`: for optional vars whose default lives in code,
+   * documented as overrides without being set in `.env`. Ignores `files`.
+   */
+  exampleOnly?: boolean;
 }
 
 /**

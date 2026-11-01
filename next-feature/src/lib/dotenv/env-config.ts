@@ -66,12 +66,14 @@ function parseKeyedLines(lines: string[], identifier: RegExp): SectionLine[] {
 
 /**
  * [env-config-change]
- * Every var is typed as `z.string()`, so only the key is needed — unlike
- * `DotenvChange.set`, there's no per-key value to provide.
+ * `set` as a list of keys registers each as `z.string()`, keeping the schema
+ * of a key that is already declared (e.g. one made optional). As a record it
+ * maps each key to its zod schema source, e.g. `{ KEY: 'z.string().optional()' }`,
+ * replacing any existing schema for that key.
  * January 30th 2026
  */
 export interface EnvConfigChange {
-  set?: string[];
+  set?: string[] | Record<string, string>;
   unset?: string[];
 }
 
@@ -93,12 +95,15 @@ export function updateEnvConfig(
   const text = tree.read(filePath, 'utf-8') ?? BASE_ENV_CONFIG;
   let lines = text.split(NEWLINE_SEPARATOR);
 
-  const set = Object.fromEntries((change.set ?? []).map((key) => [key, DEFAULT_ENV_VAR_SCHEMA]));
+  const keys = Array.isArray(change.set) ? change.set : Object.keys(change.set ?? {});
+  const set = Object.fromEntries(keys.map((key) => [key, DEFAULT_ENV_VAR_SCHEMA]));
+  // A bare key list keeps an existing key's schema; a record replaces it
+  const schemaSet = Array.isArray(change.set) ? set : (change.set ?? {});
 
   const schemaBlock = findBlock(lines, SCHEMA_START, SCHEMA_END);
   const schemaLines = applySectionChange(
     parseKeyedLines(lines.slice(schemaBlock.startIndex + 1, schemaBlock.endIndex), SCHEMA_LINE_IDENTIFIER),
-    { set, unset: change.unset },
+    { set: schemaSet, unset: change.unset, skipExisting: Array.isArray(change.set) },
     (key, schema) => `  ${key}: ${schema},`
   );
   lines = replaceBlock(lines, schemaBlock.startIndex, schemaBlock.endIndex, schemaLines.map((line) => line.raw));

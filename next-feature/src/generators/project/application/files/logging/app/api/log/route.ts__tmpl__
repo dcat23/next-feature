@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@next-feature/logging/server';
-import { NEXT_PUBLIC_LOGGING_BEACON_PATH } from "<%= importPath %>/lib/config/env";
+import { logger } from '<%= importPath %>/lib/config/logging';
 
 interface ClientLogPayload {
   level: string;
@@ -37,7 +36,7 @@ export async function POST(request: NextRequest) {
   const responseTime = Math.round(performance.now() - start);
   logger.info(
     { responseTime, correlationId },
-    `POST ${NEXT_PUBLIC_LOGGING_BEACON_PATH} 200`,
+    `POST ${request.nextUrl.pathname} 200`,
   );
 
   return NextResponse.json({ ok: true });

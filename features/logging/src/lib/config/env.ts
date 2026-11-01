@@ -3,8 +3,8 @@ import { z } from 'zod';
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production']),
   /* schema start */
-  NEXT_PUBLIC_LOGGING_BEACON_PATH: z.string(),
-  LOGGING_SERVICE_NAME: z.string(),
+  NEXT_PUBLIC_LOGGING_BEACON_PATH: z.string().optional(),
+  LOGGING_SERVICE_NAME: z.string().optional(),
   /* schema end */
 });
 

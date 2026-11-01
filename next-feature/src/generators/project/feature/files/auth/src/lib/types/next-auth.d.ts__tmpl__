@@ -25,7 +25,7 @@ declare module 'next-auth' {
     error?: AuthError;
   }
 
-  /** Returned by authorize(); only seen by the jwt callback at sign-in */
+  /** Returned by authorize() or the signIn exchange; only seen by the jwt callback at sign-in */
   interface User extends DefaultUser {
     role?: Role;
     accessToken?: string;

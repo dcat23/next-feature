@@ -109,6 +109,18 @@ export async function applicationGenerator(
       },
     });
 
+    // Credentials for the auth feature's zero-config OAuth providers (only
+    // needed for the providers kept in lib/auth/index.ts)
+    updateDotenv(tree, { projectRoot, section: 'auth', exampleOnly: true }, {
+      set: {
+        AUTH_GITHUB_ID: '',
+        AUTH_GITHUB_SECRET: '',
+        AUTH_GOOGLE_ID: '',
+        AUTH_GOOGLE_SECRET: '',
+      },
+      skipExisting: true,
+    });
+
     try {
       readProjectConfiguration(tree, 'auth');
     } catch {

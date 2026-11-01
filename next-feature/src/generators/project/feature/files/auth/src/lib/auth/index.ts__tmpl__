@@ -9,10 +9,10 @@ import { runAuthFlow, toTokenFields } from './tokens';
 const nextAuth: NextAuthResult = NextAuth({
   ...authConfig,
   providers: [
-    // Zero-config OAuth providers — reads AUTH_<PROVIDER>_ID / AUTH_<PROVIDER>_SECRET
-    // from the environment. Remove any providers you don't need. OAuth users
-    // have no backend tokens or role unless you exchange their sign-in with
-    // your backend (signIn/jwt callbacks).
+    // Zero-config OAuth providers: read AUTH_<PROVIDER>_ID / AUTH_<PROVIDER>_SECRET
+    // from the environment. Their sign-ins are exchanged with your backend by
+    // exchangeOAuth() (backend.ts) and refused until it's implemented. Remove
+    // any providers you don't need.
     GitHub,
     Google,
     CredentialsProvider({

@@ -100,6 +100,15 @@ describe('application generator', () => {
       expect(dotenv).toContain('AUTH_SECRET');
       expect(dotenv).toContain('NEXTAUTH_URL');
     });
+
+    it('should document the OAuth provider credentials in .env.example only', async () => {
+      await applicationGenerator(tree, { name: 'test', useAuth: true });
+      const example = tree.read('apps/test/.env.example', 'utf-8');
+      for (const key of ['AUTH_GITHUB_ID', 'AUTH_GITHUB_SECRET', 'AUTH_GOOGLE_ID', 'AUTH_GOOGLE_SECRET']) {
+        expect(example).toMatch(new RegExp(`^${key}=$`, 'm'));
+      }
+      expect(tree.read('apps/test/.env', 'utf-8')).not.toContain('AUTH_GITHUB_ID');
+    });
   });
 
   describe('logging', () => {

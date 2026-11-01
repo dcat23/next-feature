@@ -185,6 +185,42 @@ const uncountables = [
   'pok[eé]mon',
 ];
 
+const uncountableWords = new Set(uncountables);
+/** plural -> singular, from irregulars (invariant words map to themselves) */
+const singularsByPlural = irregulars;
+/** singular -> plural */
+const pluralsBySingular: Record<string, string> = Object.fromEntries(
+  Object.entries(irregulars).map(([plural, singular]) => [singular, plural])
+);
+
+/** Splits off the last word of a compound name: "UserNews" -> ["User", "News"] */
+function splitLastWord(word: string): [string, string] {
+  const match = word.match(/[A-Z]?[a-z0-9]+$/);
+  if (!match || match.index === undefined) return ['', word];
+  return [word.slice(0, match.index), match[0]];
+}
+
+/** Gives `replacement` the capitalisation of `source`'s first letter */
+function matchCase(source: string, replacement: string): string {
+  const first = source.charAt(0);
+  return first === first.toUpperCase() && first !== first.toLowerCase()
+    ? replacement.charAt(0).toUpperCase() + replacement.slice(1)
+    : replacement;
+}
+
+/**
+ * Applies the word lists to the last word of `word`: uncountables are
+ * returned unchanged, irregulars are looked up in `map`. Undefined when the
+ * last word isn't listed (the pattern rules apply).
+ */
+function fromWordLists(word: string, map: Record<string, string>): string | undefined {
+  const [head, last] = splitLastWord(word);
+  const lower = last.toLowerCase();
+  if (uncountableWords.has(lower)) return word;
+  const listed = map[lower];
+  return listed === undefined ? undefined : head + matchCase(last, listed);
+}
+
 /**
  * Singularize an English word by removing plural suffixes
  * Ensures words ending with 's' are only singular when grammatically correct
@@ -202,6 +238,9 @@ export function singularize(word: string): string {
   if (!word || word.length <= 1) {
     return word;
   }
+
+  const listed = fromWordLists(word, singularsByPlural);
+  if (listed !== undefined) return listed;
 
   // Words ending in -ies -> change to -y
   if (word.endsWith('ies') && word.length > 3) {
@@ -258,6 +297,9 @@ export function pluralize(word: string): string {
   if (!word || word.length <= 1) {
     return word;
   }
+
+  const listed = fromWordLists(word, pluralsBySingular);
+  if (listed !== undefined) return listed;
 
   const lower = word.toLowerCase();
 

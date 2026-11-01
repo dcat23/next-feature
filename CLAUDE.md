@@ -93,7 +93,7 @@ Unlike generators (which scaffold files once), executors run as Nx targets (`nx 
 
 **Project Generator Utilities** (`src/lib/utils/index.ts`)
 - `initializeProjectGenerator()` - Initializes project generators and updates Nx configuration.
-- `updateDependencies()` - Updates package.json dependencies.
+- `updateDependencies()` - Adds package.json dependencies (workspace root by default, or `{ projectRoot }`; a string still works) and returns the install task. Installed packages keep their version unless `{ updateExistingVersions: true }`, which raises (never lowers) them: used for `@next-feature/client`/`@next-feature/logging`, whose generated code needs this release's API.
 - `addToGitignore()` - Adds entries to .gitignore files (idempotent - safe to call repeatedly).
 - `addNamedImports()` / `addDefaultImport()` (`lib/utils/imports.ts`) - Adds named specifiers / a default import to a file, merging into an existing import from the same module (including `Default, { named }` forms). Used to accumulate per-action imports when several actions share one file.
 - `exportFile()` (`lib/export-file.ts`) - Adds a sorted `export *` to `index.ts` or `server.ts`; for `server.ts` it also ensures `import 'server-only'` at the top.
@@ -218,7 +218,7 @@ updateDependencies(
   tree,
   { 'zustand': '^5.0.6' },  // regular dependencies
   { '@types/node': '^20.0.0' },  // dev dependencies
-  projectRoot  // optional: project-specific path
+  { projectRoot, updateExistingVersions }  // optional: <projectRoot>/package.json; raise installed versions
 );
 ```
 

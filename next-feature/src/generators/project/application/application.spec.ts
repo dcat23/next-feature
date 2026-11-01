@@ -115,6 +115,13 @@ describe('application generator', () => {
       expect(packageJson.dependencies?.['@next-feature/logging']).toBeDefined();
     });
 
+    it('should raise an older installed @next-feature/logging', async () => {
+      const root = readJson(tree, 'package.json');
+      tree.write('package.json', JSON.stringify({ ...root, dependencies: { ...root.dependencies, '@next-feature/logging': '0.1.0' } }));
+      await applicationGenerator(tree, { name: 'test' });
+      expect(readJson(tree, 'package.json').dependencies['@next-feature/logging']).not.toBe('0.1.0');
+    });
+
     it('should mark pino packages as serverExternalPackages in next.config.js by default', async () => {
       await applicationGenerator(tree, { name: 'test' });
       const nextConfig = tree.read('apps/test/next.config.js', 'utf-8');

@@ -85,11 +85,11 @@ export async function clientConfigGenerator(
 
   // Before the early return, so re-running fixes libraries created before
   // the dependency was declared
+  // The generated client.ts uses this release's ApiClient options
+  // (e.g. userAgent), so raise an older @next-feature/client
   tasks.push(
-    updateDependencies(tree, {
-      '@next-feature/client': PLUGIN_VERSION,
-      'server-only': SERVER_ONLY_VERSION,
-    }, {})
+    updateDependencies(tree, { [DEFAULT_CLIENT_PACKAGE]: PLUGIN_VERSION }, {}, { updateExistingVersions: true }),
+    updateDependencies(tree, { 'server-only': SERVER_ONLY_VERSION }, {})
   );
   if (projectType === 'library') {
     declareClientDependency(tree, projectRoot, normalizedOptions.clientImportPath);

@@ -1,8 +1,10 @@
 /**
  * Client package exports (client-safe)
  *
- * This entry point is safe to import from client components: ApiError,
- * response/error types and error helpers. Server-only code lives in
+ * This entry point is safe to import from client and server components:
+ * ApiError, response/error types, error helpers, and the 'use client'
+ * ApiErrorBoundary / useApiError (kept as client modules in the build).
+ * Server-only code lives in
  * './server' (import from '<package>/server'):
  *   - ApiClient (reads server env, used by lib/config/client.ts)
  *   - withApi / withForm (used by generated server actions)
@@ -20,13 +22,17 @@
  *    - The changes are immediately reflected in all imports
  *
  * 3. For project-specific hooks/components:
- *    - Import directly: import { useApiError } from './hooks/use-api-error'
  *    - Customize src/hooks/use-api-error.tsx
  *    - Customize src/components/api-error-boundary.tsx
  */
 
 // Core API utilities
 export { ApiError } from './lib/error';
+
+// Client components and hooks: kept as 'use client' modules in the build,
+// so server components can import them from this entry too
+export { ApiErrorBoundary } from './components/api-error-boundary';
+export { useApiError } from './hooks/use-api-error';
 
 export * from './lib/types/client';
 export * from './lib/types/index';

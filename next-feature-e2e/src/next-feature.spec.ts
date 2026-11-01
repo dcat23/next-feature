@@ -163,6 +163,11 @@ describe('next-feature', () => {
         expect(read('apps/web/lib/config/logging.ts')).toContain("createPinoOptions({ service: 'web' })");
         // logging env vars are optional overrides: documented, never required
         expect(read('apps/web/.env.example')).toContain('NEXT_PUBLIC_LOGGING_BEACON_PATH=/api/log');
+        // the server-component root layout renders the package's client
+        // component: only builds if 'use client' survived the library build
+        expect(read('apps/web/app/layout.tsx')).toContain('<GlobalErrorHandler />');
+        expect(read('node_modules/@next-feature/logging/components/global-error-handler.js')).toMatch(/^["']use client["'];/);
+        expect(read('node_modules/@next-feature/client/hooks/use-api-error.js')).toMatch(/^["']use client["'];/);
 
         // two API clients in an app without src/: the default (from the
         // first action) and a named one, each with its own base URL var

@@ -4,7 +4,8 @@ import { ReactNode } from 'react';
 import './global.css';
 import Providers from './providers';
 import { Layout } from '../components/layout';
-
+<% if (!skipLogging) { %>import { GlobalErrorHandler } from '@next-feature/logging';
+<% } %>
 
 export const metadata: Metadata = {
   title: {
@@ -52,7 +53,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <Providers>
+<% if (!skipLogging) { %>        {/* 'use client' component: reports window errors and unhandled rejections */}
+        <GlobalErrorHandler />
+<% } %>        <Providers>
           <Layout>
             {children}
           </Layout>

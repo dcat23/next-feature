@@ -1,5 +1,5 @@
 /// <reference types='vitest' />
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
 import * as path from 'path';
@@ -23,11 +23,35 @@ const externals = [
 const isExternal = (id: string) =>
   externals.some((name) => id === name || id.startsWith(`${name}/`));
 
+// Rollup drops module-level directives such as 'use client'. Keep every
+// module in its own file (preserveModules) and put the directive back on the
+// files whose source starts with it, so client components and hooks stay
+// client boundaries in dist/ and can be imported from server components.
+const USE_CLIENT =
+  /^\s*(?:\/\/[^\n]*\n\s*|\/\*[\s\S]*?\*\/\s*)*['"]use client['"]/;
+const preserveUseClient = (): Plugin => {
+  const clientModules = new Set<string>();
+  return {
+    name: 'preserve-use-client',
+    enforce: 'pre',
+    transform(code, id) {
+      if (USE_CLIENT.test(code)) clientModules.add(id);
+      return null;
+    },
+    renderChunk(code, chunk) {
+      return chunk.facadeModuleId && clientModules.has(chunk.facadeModuleId)
+        ? { code: `'use client';\n${code}`, map: null }
+        : null;
+    },
+  };
+};
+
 export default defineConfig(() => ({
   root: import.meta.dirname,
   cacheDir: '../../node_modules/.vite/features/logging',
   plugins: [
     react(),
+    preserveUseClient(),
     nxViteTsPaths(),
     nxCopyAssetsPlugin(['*.md']),
     dts({
@@ -64,6 +88,12 @@ export default defineConfig(() => ({
     rollupOptions: {
       // External packages that should not be bundled into your library.
       external: isExternal,
+      // One output file per module, so 'use client' stays per module
+      output: { preserveModules: true, preserveModulesRoot: 'src' },
+      onwarn(warning, warn) {
+        // directives are re-added by preserveUseClient
+        if (warning.code !== 'MODULE_LEVEL_DIRECTIVE') warn(warning);
+      },
     },
   },
 }));

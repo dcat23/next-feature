@@ -6,6 +6,7 @@ import * as path from 'path';
 import {
   externalizeDeclaredDependencies,
   externalizeDeclaredDependenciesOnDisk,
+  toUseClientBoundariesConfig,
 } from './vite-config';
 
 // Shape of the vite.config.mts written by @nx/next's library generator
@@ -152,5 +153,63 @@ describe('externalizeDeclaredDependenciesOnDisk', () => {
   it('does nothing for projects without a vite config', () => {
     rmSync(path.join(workspaceRoot, CONFIG));
     expect(externalizeDeclaredDependenciesOnDisk(workspaceRoot, ROOT)).toBe(false);
+  });
+});
+
+describe('toUseClientBoundariesConfig', () => {
+  const config = [
+    "import { defineConfig } from 'vite';",
+    "import react from '@vitejs/plugin-react';",
+    '',
+    'export default defineConfig(() => ({',
+    '  plugins: [',
+    '    react(),',
+    '  ],',
+    '  build: {',
+    '    rollupOptions: {',
+    '      external: isExternal',
+    '    },',
+    '  },',
+    '}));',
+    '',
+  ].join('\n');
+
+  it('adds the plugin and preserveModules', () => {
+    const next = toUseClientBoundariesConfig(config) ?? '';
+    expect(next).toContain("import { defineConfig, type Plugin } from 'vite';");
+    expect(next).toContain('    react(),\n    preserveUseClient(),');
+    expect(next).toContain("name: 'preserve-use-client',");
+    expect(next).toContain("output: { preserveModules: true, preserveModulesRoot: 'src' },");
+    expect(next).toContain("if (warning.code !== 'MODULE_LEVEL_DIRECTIVE') warn(warning);");
+    expect(next.indexOf('const preserveUseClient')).toBeLessThan(next.indexOf('export default defineConfig('));
+  });
+
+  it('is idempotent', () => {
+    expect(toUseClientBoundariesConfig(toUseClientBoundariesConfig(config) ?? '')).toBeNull();
+  });
+
+  it('leaves configs of another shape untouched', () => {
+    expect(toUseClientBoundariesConfig(config.replace('external: isExternal', "external: ['react']"))).toBeNull();
+  });
+
+  describe('generated plugin', () => {
+    // Evaluate the USE_CLIENT pattern the plugin is generated with
+    const pattern = (() => {
+      const source = (toUseClientBoundariesConfig(config) ?? '').match(/const USE_CLIENT = (\/.*\/);/)?.[1] ?? '';
+      return new Function(`return ${source}`)() as RegExp;
+    })();
+
+    it.each([
+      ["'use client';\nexport const a = 1;"],
+      ['"use client"\nexport const a = 1;'],
+      ["// header\n'use client';\n"],
+      ["/* license */\n'use client';\n"],
+    ])('detects %j', (code) => {
+      expect(pattern.test(code)).toBe(true);
+    });
+
+    it.each([["import 'server-only';\n'use client';"], ["const s = 'use client';"]])('ignores %j', (code) => {
+      expect(pattern.test(code)).toBe(false);
+    });
   });
 });

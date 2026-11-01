@@ -107,6 +107,17 @@ features/[name]/src/
 
 **Browser logger** (`lib/client.ts`) uses pino's browser transport with correlation ID injection. Marked `'use client'` for Next.js.
 
+**`GlobalErrorHandler`** (`'use client'`) logs `window` errors and unhandled rejections through the browser logger. It can be rendered straight from a server component, e.g. the root layout (the application generator does this):
+
+```tsx
+import { GlobalErrorHandler } from '@feature/logging';
+
+<body>
+  <GlobalErrorHandler />
+  {children}
+</body>
+```
+
 **Server logger** (`lib/server.ts`) uses pino with pino-pretty in development (`NODE_ENV !== 'production'`).
 
 **Configuration** follows "defaults in code, env vars as overrides". Neither var is required: both are typed `z.string().optional()` in `lib/config/env.ts` and only documented in `.env.example`.
@@ -123,6 +134,10 @@ import { createPinoOptions, registerPino } from '@feature/logging/server';
 const pinoOptions = createPinoOptions({ service: 'web', level: 'debug' });
 await registerPino(pinoOptions); // defaults to pinoOptions (env-only service) when omitted
 ```
+
+### `'use client'` in the build
+
+A feature's `vite.config.mts` builds with `preserveModules` (one output file per source module) and a small `preserveUseClient` plugin that puts `'use client'` back on the files whose source starts with it; Rollup would otherwise drop the directive. Client components and hooks exported from `index.ts` (`GlobalErrorHandler`, `ApiErrorBoundary`, `useApiError`, ...) therefore stay client boundaries in the published package and can be imported from server components.
 
 ### `client` type — additional files
 
@@ -144,7 +159,7 @@ features/[name]/src/
 │       ├── axios.ts             # Axios error -> ProblemDetail extraction
 │       ├── zod.ts                # Zod error -> ApiError conversion (FORM_ERROR_KEY)
 │       └── error.ts              # getErrorMessage, isHttpStatus, handleApiError
-├── index.ts                     # Client-safe: ApiError, ApiErrorBuilder, types, error utils
+├── index.ts                     # Client-safe: ApiError, ApiErrorBuilder, types, error utils, ApiErrorBoundary, useApiError
 └── server.ts                    # 'server-only': ApiClient, withApi / withForm
 ```
 

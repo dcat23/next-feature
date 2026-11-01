@@ -253,6 +253,7 @@ Unless `--skipLogging` is set, the app is wired to the published [`@next-feature
 | `lib/config/logging.ts` | This app's pino options, `createPinoOptions({ service: '[name]' })`, and a server `logger` built from them. Customise the level or service here |
 | `app/api/log/route.ts` | Receives the browser logger's beacons and writes them to the server logger |
 | `app/error.tsx` | Reports render errors with the browser logger (`console.error` with `--skipLogging`) |
+| `app/layout.tsx` | Renders `GlobalErrorHandler` (a `'use client'` component from the package) to log `window` errors and unhandled rejections |
 
 Both logging env vars are **optional overrides**. Their defaults live in code, so they are only listed in `.env.example` under `### LOGGING ###`, not set in `.env`:
 

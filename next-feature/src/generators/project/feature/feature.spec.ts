@@ -163,6 +163,14 @@ describe('feature generator', () => {
       expect(content).toContain('pinoOptions');
     });
 
+    it("should keep 'use client' modules as client boundaries in the build", async () => {
+      await featureGenerator(tree, options);
+      const content = tree.read('features/logger/vite.config.mts', 'utf-8');
+      expect(content).toContain("import { defineConfig, type Plugin } from 'vite';");
+      expect(content).toContain('preserveUseClient(),');
+      expect(content).toContain("output: { preserveModules: true, preserveModulesRoot: 'src' },");
+    });
+
     it('should externalize pino packages in the vite build so the wrong browser/node build is not bundled in', async () => {
       await featureGenerator(tree, options);
       const content = tree.read('features/logger/vite.config.mts', 'utf-8');

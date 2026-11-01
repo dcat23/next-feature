@@ -138,8 +138,16 @@ describe('application generator', () => {
       expect(nextConfig).not.toContain('serverExternalPackages');
     });
 
+    it('should render GlobalErrorHandler from @next-feature/logging in the root layout', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const layout = tree.read('apps/test/app/layout.tsx', 'utf-8');
+      expect(layout).toContain("import { GlobalErrorHandler } from '@next-feature/logging';");
+      expect(layout).toContain('<GlobalErrorHandler />');
+    });
+
     it('should not generate files that import @next-feature/logging when skipLogging is true', async () => {
       await applicationGenerator(tree, { name: 'test', skipLogging: true });
+      expect(tree.read('apps/test/app/layout.tsx', 'utf-8')).not.toContain('GlobalErrorHandler');
       expect(tree.exists('apps/test/app/api/log/route.ts')).toBeFalsy();
       expect(tree.exists('apps/test/lib/config/logging.ts')).toBeFalsy();
       const error = tree.read('apps/test/app/error.tsx', 'utf-8');

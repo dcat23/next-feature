@@ -2,6 +2,7 @@ import { detectPackageManager, getPackageManagerCommand } from '@nx/devkit';
 import { execSync, spawnSync } from 'child_process';
 import { readFileSync, writeFileSync } from 'fs';
 import { runShadcnCli, syncShadcnDependencies } from './shadcn';
+import { externalizeDeclaredDependenciesOnDisk } from './vite-config';
 
 jest.mock('child_process', () => ({
   spawnSync: jest.fn(),
@@ -16,6 +17,11 @@ jest.mock('fs', () => ({
 jest.mock('@nx/devkit', () => ({
   detectPackageManager: jest.fn(),
   getPackageManagerCommand: jest.fn(),
+  logger: { info: jest.fn() },
+}));
+
+jest.mock('./vite-config', () => ({
+  externalizeDeclaredDependenciesOnDisk: jest.fn(),
 }));
 
 describe('runShadcnCli', () => {
@@ -72,6 +78,15 @@ describe('syncShadcnDependencies', () => {
     mockedExecSync.mockReset();
     mockedDetectPackageManager.mockReset().mockReturnValue('pnpm');
     mockedGetPackageManagerCommand.mockReset().mockReturnValue({ install: 'pnpm install' });
+    (externalizeDeclaredDependenciesOnDisk as jest.Mock).mockReset().mockReturnValue(false);
+  });
+
+  it('converts the project\'s vite config to externalize its declared dependencies', () => {
+    mockPackageJsons({ dependencies: {} }, { dependencies: {} });
+
+    syncShadcnDependencies(workspaceRoot, projectRoot);
+
+    expect(externalizeDeclaredDependenciesOnDisk).toHaveBeenCalledWith(workspaceRoot, projectRoot);
   });
 
   function mockPackageJsons(projectPkgJson: object, rootPkgJson: object) {

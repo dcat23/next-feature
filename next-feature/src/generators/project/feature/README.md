@@ -165,7 +165,7 @@ features/[name]/
 
 Unlike the other types, `components.json` is generated at the **project root**, not under `src/` — the shadcn CLI expects it next to `package.json`.
 
-No component dependencies are added up front: `shadcn init` writes the `cn()` helper and installs `clsx`/`tailwind-merge`, and `shadcn add` installs whatever each component needs (e.g. `class-variance-authority`, `lucide-react`).
+No component dependencies are added up front: `shadcn init` writes the `cn()` helper and installs `clsx`/`tailwind-merge`, and `shadcn add` installs whatever each component needs (e.g. `class-variance-authority`, `lucide-react`). They're installed into this project's own `package.json`, and every feature's `vite.config.mts` externalizes whatever its `package.json` declares, so they're published as dependencies instead of being bundled into `dist/`. The `shadcn` target also mirrors them into the workspace root and, for projects generated before 0.2.0, converts the old static `external: [...]` list.
 
 A `shadcn` target is also registered on the project so components can be pulled in later:
 

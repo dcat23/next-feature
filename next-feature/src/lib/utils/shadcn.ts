@@ -1,7 +1,8 @@
-import { detectPackageManager, getPackageManagerCommand, joinPathFragments, Tree, updateJson } from '@nx/devkit';
+import { detectPackageManager, getPackageManagerCommand, joinPathFragments, logger, Tree, updateJson } from '@nx/devkit';
 import { execSync, spawnSync } from 'child_process';
 import { readFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
+import { externalizeDeclaredDependenciesOnDisk } from './vite-config';
 
 // Registers the `shadcn` target (next-feature:shadcn executor) on a project's
 // project.json, so components can be pulled in later via `npx nx run <name>:shadcn`.
@@ -75,7 +76,15 @@ const DEPENDENCY_FIELDS = ['dependencies', 'devDependencies'] as const;
 // dependencies never reach the root package.json or its install. Mirror
 // anything new into the root package.json and reinstall there so the rest
 // of the workspace can resolve it too.
+//
+// The project's own vite build externalizes whatever its package.json
+// declares, so these dependencies stay out of its dist/. Projects generated
+// before that (static `external: [...]` array) are converted here.
 export function syncShadcnDependencies(workspaceRoot: string, projectRoot: string): void {
+  if (externalizeDeclaredDependenciesOnDisk(workspaceRoot, projectRoot)) {
+    logger.info(`shadcn: ${projectRoot}/vite.config.mts now externalizes everything declared in its package.json`);
+  }
+
   const projectPkgJsonPath = path.join(workspaceRoot, projectRoot, 'package.json');
   const rootPkgJsonPath = path.join(workspaceRoot, 'package.json');
 

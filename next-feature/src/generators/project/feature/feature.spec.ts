@@ -1,7 +1,6 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { Tree, readProjectConfiguration, readJson } from '@nx/devkit';
 import { featureGenerator } from './feature';
-import { addRollupExternalPackages } from '../../../lib/utils/vite-config';
 import { FeatureGeneratorSchema } from './schema';
 import { normalizeFeatureGenerator } from './utils/normalize';
 
@@ -56,8 +55,9 @@ describe('feature generator', () => {
       await featureGenerator(tree, options);
       const packageJson = readJson(tree, 'package.json');
       expect(packageJson.dependencies['server-only']).toBeDefined();
+      expect(readJson(tree, 'features/test/package.json').dependencies['server-only']).toBeDefined();
       const viteConfig = tree.read('features/test/vite.config.mts', 'utf-8');
-      expect(viteConfig).toContain("'server-only'");
+      expect(viteConfig).toContain('external: isExternal');
     });
   });
 
@@ -165,7 +165,14 @@ describe('feature generator', () => {
     it('should externalize pino packages in the vite build so the wrong browser/node build is not bundled in', async () => {
       await featureGenerator(tree, options);
       const content = tree.read('features/logger/vite.config.mts', 'utf-8');
-      expect(content).toContain("external: ['react','react-dom','react/jsx-runtime','server-only','zod','pino','pino-http','pino-pretty','thread-stream']");
+      // pino* are declared (externalized via package.json); thread-stream isn't
+      expect(content).toContain('external: isExternal');
+      expect(content).toContain("const extraExternals: string[] = ['thread-stream'];");
+      expect(readJson(tree, 'features/logger/package.json').dependencies).toMatchObject({
+        pino: expect.any(String),
+        'pino-http': expect.any(String),
+        'pino-pretty': expect.any(String),
+      });
     });
 
     it('should generate browser client logger with use client directive', async () => {
@@ -485,14 +492,16 @@ describe('feature generator', () => {
       const pkg = readLibPackageJson('test');
       expect(pkg.dependencies).toEqual({ 'server-only': '^0.0.1', zod: '^3.24.4' });
       expect(pkg.peerDependencies).toEqual({ react: '^19.0.0', 'react-dom': '^19.0.0' });
-      expect(tree.read('features/test/vite.config.mts', 'utf-8')).toContain("'server-only','zod'");
+      const vite = tree.read('features/test/vite.config.mts', 'utf-8');
+      expect(vite).toContain('external: isExternal');
+      expect(vite).toContain('const extraExternals: string[] = [];');
     });
 
     it('should externalize and declare axios for client features', async () => {
       await featureGenerator(tree, { name: 'apiClient', type: 'client', skipFormat: true });
       const pkg = readLibPackageJson('apiClient');
       expect(pkg.dependencies).toEqual({ axios: '^1.9.0', 'server-only': '^0.0.1', zod: '^3.24.4' });
-      expect(tree.read('features/apiClient/vite.config.mts', 'utf-8')).toContain("'server-only','zod','axios'");
+      expect(tree.read('features/apiClient/vite.config.mts', 'utf-8')).toContain('external: isExternal');
     });
 
     it('should declare pino packages for logging features', async () => {
@@ -506,18 +515,20 @@ describe('feature generator', () => {
       });
     });
 
-    it('should make next-auth a peer for auth features and externalize its subpath imports', async () => {
+    it('should make next-auth a peer for auth features, externalized through package.json', async () => {
       await featureGenerator(tree, { name: 'auth', type: 'auth', skipFormat: true });
       expect(readLibPackageJson('auth').peerDependencies['next-auth']).toBe('^5.0.0-beta.27');
       const vite = tree.read('features/auth/vite.config.mts', 'utf-8');
-      expect(vite).toContain("'next-auth',/^next-auth\\//]");
+      expect(vite).toContain('external: isExternal');
+      expect(vite).not.toContain("'next-auth'");
     });
 
-    it('should keep regex externals intact when more packages are added later', async () => {
-      await featureGenerator(tree, { name: 'auth', type: 'auth', skipFormat: true });
-      addRollupExternalPackages(tree, 'features/auth', ['extra', /^next-auth\//]);
-      const vite = tree.read('features/auth/vite.config.mts', 'utf-8');
-      expect(vite).toContain("'next-auth',/^next-auth\\//,'extra']");
+    it('should not hard-code ui dependencies: whatever shadcn installs into package.json stays external', async () => {
+      await featureGenerator(tree, { name: 'ui', type: 'ui', skipFormat: true });
+      const vite = tree.read('features/ui/vite.config.mts', 'utf-8');
+      expect(vite).toContain('external: isExternal');
+      expect(vite).toContain("readFileSync(path.join(import.meta.dirname, 'package.json'), 'utf-8')");
+      expect(vite).toContain('...Object.keys({ ...pkg.dependencies, ...pkg.peerDependencies })');
     });
 
     it('should key zod field errors by their full dotted path and path-less issues under FORM_ERROR_KEY', async () => {

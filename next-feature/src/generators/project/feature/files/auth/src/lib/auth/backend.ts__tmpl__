@@ -1,7 +1,9 @@
 import { z } from 'zod';
 
 /**
- * Calls to your backend's auth endpoints. Replace the stubs below.
+ * Calls to your backend's auth endpoints. Replace the stubs below: until
+ * they're implemented, every sign-in is refused (login() and exchangeOAuth()
+ * return null).
  *
  * Only the server runs this code (authorize() and the jwt callback), and
  * nothing it returns reaches the browser except what the session callback
@@ -45,6 +47,22 @@ export interface BackendSession extends BackendTokens {
   };
 }
 
+/**
+ * An OAuth/OIDC sign-in for the backend to verify itself. Never trust the
+ * provider profile alone: send the provider's credential and let the backend
+ * check it.
+ */
+export interface OAuthExchange {
+  /** Provider id, e.g. 'google', 'github' */
+  provider: string;
+  /** The user's id at the provider */
+  providerAccountId: string;
+  /** OIDC providers (Google): verify the signature, issuer and audience */
+  idToken?: string;
+  /** OAuth-only providers (GitHub): fetch the identity from the provider's API with it */
+  accessToken?: string;
+}
+
 export interface LoginContext {
   /** Client IP, forwarded so the backend can rate-limit login attempts */
   ip?: string;
@@ -75,6 +93,36 @@ export interface LoginContext {
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- stub: replace with your backend call
 export async function login(credentials: BackendCredentials, context: LoginContext): Promise<BackendSession | null> {
+  return null;
+}
+
+/**
+ * Exchange an OAuth/OIDC sign-in for a backend session. Return null to refuse
+ * the sign-in (the user lands on the error page with ?error=AccessDenied);
+ * throwing refuses it too.
+ *
+ * The backend decides which account the identity belongs to: link or create
+ * accounts by an existing provider link or a verified email only (Google's
+ * `email_verified`; GitHub's verified primary email from /user/emails).
+ * Linking on an unverified email lets anyone who registers that address at
+ * the provider take over the account.
+ *
+ * @example
+ * import { ApiError } from '@next-feature/client';
+ * import api from '../config/client';
+ *
+ * try {
+ *   return await api.post<BackendSession>('/auth/oauth', input);
+ * } catch (error) {
+ *   if (ApiError.of(error).isUnauthorized) return null;
+ *   throw error;
+ * }
+ */
+export async function exchangeOAuth(input: OAuthExchange): Promise<BackendSession | null> {
+  console.warn(
+    `[auth] ${input.provider} sign-in refused: implement exchangeOAuth() in lib/auth/backend.ts, ` +
+      'or remove the provider from lib/auth/index.ts'
+  );
   return null;
 }
 

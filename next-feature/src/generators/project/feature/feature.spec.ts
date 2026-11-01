@@ -406,8 +406,8 @@ describe('feature generator', () => {
     it('should assemble callbacks as named methods in auth.config.ts', async () => {
       await featureGenerator(tree, options);
       const content = tree.read('features/auth/src/lib/auth/auth.config.ts', 'utf-8');
-      expect(content).toContain("import { authorized, jwt, redirect, session } from './callbacks'");
-      expect(content).toContain('callbacks: {\n    authorized,\n    jwt,\n    session,\n    redirect,\n  }');
+      expect(content).toContain("import { authorized, jwt, redirect, session, signIn } from './callbacks'");
+      expect(content).toContain('callbacks: {\n    authorized,\n    signIn,\n    jwt,\n    session,\n    redirect,\n  }');
     });
 
     it('should export named callback functions from callbacks.ts', async () => {
@@ -417,6 +417,21 @@ describe('feature generator', () => {
       expect(content).toContain('export const session');
       expect(content).toContain('export const redirect');
       expect(content).toContain('export const authorized');
+      expect(content).toContain('export const signIn');
+    });
+
+    it('should exchange OAuth sign-ins with the backend and refuse them by default', async () => {
+      await featureGenerator(tree, options);
+      const callbacks = tree.read('features/auth/src/lib/auth/callbacks.ts', 'utf-8');
+      // inside the login flow, so getAccessToken() is guarded
+      expect(callbacks).toContain("runAuthFlow('login', () =>\n      exchangeOAuth({");
+      expect(callbacks).toContain('idToken: account.id_token,');
+      expect(callbacks).toContain('if (!result) return false;');
+      // a provider sign-in without backend tokens never becomes a session
+      expect(callbacks).toContain('if (isProviderSignIn(account) && !user.accessToken) return null;');
+      const backend = tree.read('features/auth/src/lib/auth/backend.ts', 'utf-8') ?? '';
+      const stub = backend.slice(backend.indexOf('export async function exchangeOAuth'));
+      expect(stub).toMatch(/^export async function exchangeOAuth\(input: OAuthExchange\): Promise<BackendSession \| null> \{\n {2}console\.warn\([\s\S]*?\n {2}return null;\n\}/);
     });
 
     it('should have index.ts spread authConfig and only define providers', async () => {

@@ -100,6 +100,7 @@ This adds:
 - `SessionProvider` in `app/providers.tsx`
 - `proxy.ts` wrapped in the auth feature's `auth()` (see [Proxy](#proxy))
 - `.env` entries for `NEXTAUTH_URL` and `AUTH_SECRET` (generated). Outside Vercel, also set `AUTH_URL` and `AUTH_TRUST_HOST=true`
+- `.env.example` entries for the OAuth providers' `AUTH_GITHUB_ID`/`AUTH_GITHUB_SECRET` and `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`. OAuth sign-ins are refused until the auth feature's `exchangeOAuth()` is implemented
 
 #### `orgName`
 

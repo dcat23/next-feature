@@ -212,8 +212,8 @@ src/
 ├── lib/auth/
 │   ├── index.ts           # NextAuth instance and providers; authorize() validates credentials and calls login()
 │   ├── auth.config.ts     # Shared options (pages, callbacks, session); providers are added in index.ts
-│   ├── callbacks.ts       # jwt, session, redirect, authorized
-│   ├── backend.ts         # credentialsSchema (BackendCredentials via z.infer), login() / refresh() stubs
+│   ├── callbacks.ts       # signIn (OAuth exchange), jwt, session, redirect, authorized
+│   ├── backend.ts         # credentialsSchema (BackendCredentials via z.infer), login() / exchangeOAuth() / refresh() stubs
 │   ├── tokens.ts          # Access token expiry check and deduplicated refresh
 │   └── access-token.ts    # 'server-only' getAccessToken()
 ├── lib/types/next-auth.d.ts  # Session / User / JWT augmentation
@@ -226,6 +226,7 @@ src/
 | Step | Where | What |
 |------|-------|------|
 | Sign-in | `authorize()` | Validates the credentials with zod, calls `login()` with the client IP (for rate limiting) and returns the user with `accessToken`, `refreshToken`, `accessTokenExpires`. Rejected sign-ins return `null` without saying why |
+| OAuth sign-in | `signIn` callback | Calls `exchangeOAuth()` with the provider, its account id and the provider's `id_token`/`access_token`, and gives the user the backend's id, role and tokens. A `null` result or an error refuses the sign-in (`?error=AccessDenied`) |
 | Every session read | `jwt` callback | Copies the tokens into the JWT on sign-in. Afterwards returns the token while the access token is valid (30s skew), otherwise refreshes it. A failed refresh clears the tokens and sets `error: 'RefreshTokenError'` |
 | Browser | `session` callback | Exposes `user.id`, `user.role` (and `error`) only. Never the tokens |
 | Proxy | `authorized` | `!!auth?.user && !auth.error`, when the proxy uses the default handler |
@@ -259,7 +260,8 @@ The library build keeps `next` (`next/headers`) and `node:async_hooks` external.
 - `useSession().update(data)` sends client-controlled data to the `jwt` callback (`trigger: 'update'`). Whitelist fields there; never copy the role or tokens from it.
 - Cookies keep the Auth.js defaults (`__Host-`/`__Secure-` prefixes, `secure` over https). Outside Vercel set `AUTH_URL` and `AUTH_TRUST_HOST=true`.
 - Keep `session.maxAge` at most the backend's refresh token lifetime.
-- OAuth sign-ins have no backend tokens or role until you exchange them with your backend (`signIn`/`jwt` callbacks).
+- OAuth sign-ins are refused until `exchangeOAuth()` is implemented (it logs a warning). The backend should verify the provider credential itself (the `id_token` for OIDC providers like Google; the `access_token` against the provider's API for GitHub), never the profile alone, and link accounts by an existing provider link or a verified email only. Linking on an unverified email is an account-takeover path. The `jwt` callback also refuses a provider sign-in that arrives without backend tokens.
+- The providers read `AUTH_GITHUB_ID`/`AUTH_GITHUB_SECRET` and `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` (listed in the app's `.env.example` with `--useAuth`). Remove the providers you don't use from `lib/auth/index.ts`.
 
 ### `ui` type — additional files
 

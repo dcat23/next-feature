@@ -1,5 +1,5 @@
 import type { NextAuthConfig } from 'next-auth';
-import { authorized, jwt, redirect, session } from './callbacks';
+import { authorized, jwt, redirect, session, signIn } from './callbacks';
 
 // Shared NextAuth options; providers are added in ./index.ts. Server code only:
 // the callbacks reach backend.ts.
@@ -12,6 +12,7 @@ export const authConfig: NextAuthConfig = {
   },
   callbacks: {
     authorized,
+    signIn,
     jwt,
     session,
     redirect,

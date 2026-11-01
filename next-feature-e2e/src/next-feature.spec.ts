@@ -195,6 +195,9 @@ describe('next-feature', () => {
         const callbacks = read('features/auth/src/lib/auth/callbacks.ts');
         const sessionCallback = callbacks.slice(callbacks.indexOf('export const session'), callbacks.indexOf('export const redirect'));
         expect(sessionCallback).not.toMatch(/accessToken|refreshToken/);
+        // OAuth sign-ins are exchanged with the backend, refused until implemented
+        expect(read('features/auth/src/lib/auth/auth.config.ts')).toContain('signIn,');
+        expect(read('apps/portal/.env.example')).toMatch(/^AUTH_GOOGLE_ID=$/m);
 
         run('pnpm exec nx g next-feature:action getProfile -p portal --no-interactive');
         const configPath = 'apps/portal/lib/config/client.ts';

@@ -1,16 +1,53 @@
-import type { NextAuthConfig } from 'next-auth';
-import { isAccessTokenValid, refreshAccessToken } from './tokens';
+import type { Account, NextAuthConfig } from 'next-auth';
+import { exchangeOAuth } from './backend';
+import { isAccessTokenValid, refreshAccessToken, runAuthFlow, toTokenFields } from './tokens';
 
 type Callbacks = NonNullable<NextAuthConfig['callbacks']>;
+
+/** OAuth/OIDC sign-ins; Credentials users already went through login() */
+const isProviderSignIn = (account: Account | null | undefined): account is Account =>
+  !!account && account.type !== 'credentials';
+
+/**
+ * OAuth/OIDC sign-ins are exchanged with the backend before they're allowed:
+ * the user gets the backend's id, role and tokens, like a Credentials user.
+ * Returning false refuses the sign-in (?error=AccessDenied).
+ */
+export const signIn: Callbacks['signIn'] = async ({ user, account }) => {
+  if (!isProviderSignIn(account)) return true;
+
+  let result;
+  try {
+    result = await runAuthFlow('login', () =>
+      exchangeOAuth({
+        provider: account.provider,
+        providerAccountId: account.providerAccountId,
+        idToken: account.id_token,
+        accessToken: account.access_token,
+      })
+    );
+  } catch (error) {
+    console.error(`[auth] ${account.provider} sign-in exchange failed`, error);
+    return false;
+  }
+  if (!result) return false;
+
+  // next-auth passes this same user object to the jwt callback
+  Object.assign(user, { ...result.user, ...toTokenFields(result) });
+  return true;
+};
 
 /**
  * Runs on sign-in and whenever the session is read. The returned token is
  * stored encrypted in the session cookie (AUTH_SECRET) and never sent to
  * the browser as-is: the session callback decides what is.
  */
-export const jwt: Callbacks['jwt'] = async ({ token, user, trigger }) => {
-  // Sign-in: `user` is what authorize() returned (only set this once)
+export const jwt: Callbacks['jwt'] = async ({ token, user, account, trigger }) => {
+  // Sign-in: `user` is what authorize() or the signIn exchange returned
   if (user) {
+    // Never create a session for a provider sign-in the backend didn't
+    // exchange (e.g. if the signIn callback's user changes stopped reaching here)
+    if (isProviderSignIn(account) && !user.accessToken) return null;
     return {
       ...token,
       sub: user.id ?? token.sub,
@@ -31,7 +68,7 @@ export const jwt: Callbacks['jwt'] = async ({ token, user, trigger }) => {
   // A failed refresh stays failed until the user signs in again
   if (token.error) return token;
 
-  // No backend tokens (e.g. an OAuth sign-in): nothing to refresh
+  // No backend tokens: nothing to refresh
   if (!token.refreshToken && !token.accessToken) return token;
 
   if (isAccessTokenValid(token)) return token;

@@ -127,7 +127,7 @@ features/[name]/src/
 │   │   └── client.ts            # ApiClientConfig
 │   └── utils/
 │       ├── axios.ts             # Axios error -> ProblemDetail extraction
-│       ├── zod.ts                # Zod error -> ApiError conversion
+│       ├── zod.ts                # Zod error -> ApiError conversion (FORM_ERROR_KEY)
 │       └── error.ts              # getErrorMessage, isHttpStatus, handleApiError
 ├── index.ts                     # Client-safe: ApiError, ApiErrorBuilder, types, error utils
 └── server.ts                    # 'server-only': ApiClient, withApi / withForm
@@ -139,6 +139,16 @@ features/[name]/src/
 {
   "dependencies": { "axios": "^1.x.x" }
 }
+```
+
+**Validation errors.** `ApiError.of(zodError)` (and `withApi`, when an action throws a `ZodError`) returns a 400 whose `problemDetail.errors` is keyed by each issue's dotted path (`email`, `address.city`, `tags.0`). Issues without a path, such as an object-level `.refine()`, go under `FORM_ERROR_KEY` (`'_form'`):
+
+```typescript
+import { ApiError, FORM_ERROR_KEY } from '@feature/apiClient';
+
+const errors = ApiError.of(response.error).problemDetail.errors ?? {};
+errors['address.city']; // field error
+errors[FORM_ERROR_KEY]; // e.g. "Passwords must match"
 ```
 
 Published package exports are rewritten so `.` and `./server` resolve without a `./dist/` prefix (see [`updatePackageJsonExports`](./utils/index.ts)), matching how the package root looks once built.

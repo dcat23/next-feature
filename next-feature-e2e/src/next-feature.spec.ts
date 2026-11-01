@@ -1,11 +1,50 @@
 import { execSync } from 'child_process';
 import { join, dirname } from 'path';
-import { mkdirSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'fs';
 // pnpm 11 fails installs on unapproved dependency build scripts (e.g. nx's
 // postinstall), which the generated test workspace doesn't approve
 process.env.pnpm_config_strict_dep_builds = 'false';
+// pnpm 11 only installs versions published more than a day ago by default
+// (minimum-release-age: 1440 minutes) and otherwise falls back to an older
+// one, so the just-published 0.0.0-e2e packages would be replaced by an old
+// npm release
+process.env.pnpm_config_minimum_release_age = '0';
+// The local registry reuses one address across runs, so pnpm's metadata cache
+// for it goes stale (it re-publishes 0.0.0-e2e each run, and proxied packages
+// age), and pnpm trusts the cache. Use a fresh cache per run; the package
+// store is separate, so tarballs are still reused.
+const pnpmCacheDir = join(process.cwd(), 'tmp', 'e2e-pnpm-cache');
+rmSync(pnpmCacheDir, { recursive: true, force: true });
+process.env.pnpm_config_cache_dir = pnpmCacheDir;
+
+// Generating, installing and building in the test workspace is slow
+const SLOW = 10 * 60 * 1000;
+
 describe('next-feature', () => {
   let projectDirectory: string;
+
+  /** Runs a command in the test workspace; throws (with its output) on failure. */
+  const run = (command: string) =>
+    execSync(command, {
+      cwd: projectDirectory,
+      stdio: 'inherit',
+      env: process.env,
+    });
+
+  /** Runs a command that must fail, returning its combined output. */
+  const runFailing = (command: string): string => {
+    try {
+      execSync(command, { cwd: projectDirectory, stdio: 'pipe', env: process.env });
+    } catch (error) {
+      const { stdout, stderr } = error as { stdout: Buffer; stderr: Buffer };
+      return `${stdout}${stderr}`;
+    }
+    throw new Error(`Expected "${command}" to fail`);
+  };
+
+  const read = (path: string) => readFileSync(join(projectDirectory, path), 'utf-8');
+  const readJson = (path: string) => JSON.parse(read(path));
+
   beforeAll(() => {
     projectDirectory = createTestProject();
     // The plugin has been built and published to a local registry in the jest globalSetup
@@ -17,7 +56,8 @@ describe('next-feature', () => {
     });
   });
   afterAll(() => {
-    if (projectDirectory) {
+    // E2E_KEEP=1 keeps the workspace for debugging a failed run
+    if (projectDirectory && !process.env.E2E_KEEP) {
       // Cleanup the test project
       rmSync(projectDirectory, {
         recursive: true,
@@ -31,8 +71,113 @@ describe('next-feature', () => {
       cwd: projectDirectory,
       stdio: 'inherit',
     });
+    // the build from this repo, not a published release
+    expect(readJson('node_modules/next-feature/package.json').version).toBe('0.0.0-e2e');
+  });
+
+  describe('code generators', () => {
+    it('should require projectName instead of falling back to a base project', () => {
+      const output = runFailing('pnpm exec nx g next-feature:client-config --no-interactive');
+      expect(output).toContain("Required property 'projectName' is missing");
+      expect(existsSync(join(projectDirectory, 'features/base'))).toBe(false);
+    });
+
+    it('should reject the removed base feature type', () => {
+      const output = runFailing('pnpm exec nx g next-feature:feature demo --type=base --no-interactive');
+      expect(output).toContain("'base' should be one of");
+    });
+
+    it(
+      'should generate an api action with a hook into a new feature that builds',
+      () => {
+        run('pnpm exec nx g next-feature:action getUsers -p users --useHook --no-interactive');
+
+        // server-only action, client-safe contract, 'use server' wrapper
+        expect(read('features/users/src/lib/actions/user.ts')).toMatch(/^import 'server-only';/);
+        expect(read('features/users/src/lib/actions/user.ts')).toContain("from '@next-feature/client/server'");
+        expect(read('features/users/src/lib/actions/user.action.ts')).toMatch(/^'use server';/);
+        expect(existsSync(join(projectDirectory, 'features/users/src/lib/types/user.ts'))).toBe(true);
+        // client config imports ApiClient from the server entry
+        const config = read('features/users/src/lib/config/client.ts');
+        expect(config).toMatch(/^import 'server-only';/);
+        expect(config).toContain("import { ApiClient } from '@next-feature/client/server';");
+        expect(read('features/users/src/server.ts')).toMatch(/^import 'server-only';/);
+
+        run('pnpm exec nx build users');
+      },
+      SLOW
+    );
+  });
+
+  describe('ui feature', () => {
+    // Skipped until #35: `shadcn add` without `init` installs the unrelated
+    // `cn` package and not the component's dependencies, and `init` prompts to
+    // overwrite the generated components.json, so neither runs in CI
+    it.skip(
+      'should keep the packages shadcn installs external and declared',
+      () => {
+        run('pnpm exec nx g next-feature:feature ui --type=ui --no-interactive');
+        expect(read('features/ui/vite.config.mts')).toContain('external: isExternal');
+
+        run('pnpm exec nx run ui:shadcn --args="button --yes"');
+        run('pnpm exec nx build ui');
+
+        const declared = (() => {
+          const pkg = readJson('features/ui/package.json');
+          return Object.keys({ ...pkg.dependencies, ...pkg.peerDependencies });
+        })();
+        const imports = bareImports(join(projectDirectory, 'dist/features/ui'));
+        const undeclared = imports.filter(
+          (id) => !declared.some((name) => id === name || id.startsWith(`${name}/`))
+        );
+
+        // shadcn installed something for the button, and none of it was bundled
+        expect(declared.length).toBeGreaterThan(4);
+        expect(imports.length).toBeGreaterThan(0);
+        expect(undeclared).toEqual([]);
+      },
+      SLOW
+    );
+  });
+
+  describe('application', () => {
+    it(
+      'should generate an application with logging that passes next build',
+      () => {
+        run('pnpm exec nx g next-feature:application web --no-interactive');
+
+        // instrumentation reaches @next-feature/logging/server ('server-only'),
+        // error.tsx uses the client-safe browser logger: next build fails on
+        // a broken server/client boundary
+        expect(read('apps/web/instrumentation.ts')).toContain('registerPino');
+        expect(readJson('package.json').dependencies['@next-feature/logging']).toBe('0.0.0-e2e');
+
+        run('pnpm exec nx build web');
+      },
+      SLOW
+    );
   });
 });
+
+/** Bare module specifiers imported by the built JS files under `dir`. */
+function bareImports(dir: string): string[] {
+  const ids = new Set<string>();
+  const walk = (current: string) => {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const path = join(current, entry.name);
+      if (entry.isDirectory()) walk(path);
+      else if (entry.name.endsWith('.js')) {
+        const source = readFileSync(path, 'utf-8');
+        for (const [, id] of source.matchAll(/(?:from|import)\s*\(?\s*["']([^"'.][^"']*)["']/g)) {
+          ids.add(id);
+        }
+      }
+    }
+  };
+  walk(dir);
+  return [...ids].sort();
+}
+
 /**
  * Creates a test project with create-nx-workspace and installs the plugin
  * @returns The directory where the test project was created

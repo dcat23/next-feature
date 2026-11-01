@@ -124,6 +124,13 @@ describe('client-config generator', () => {
     expect(read('features/orders/src/index.ts')).not.toContain('config/client');
   });
 
+  it('should raise an older installed @next-feature/client', async () => {
+    const root = readJson(tree, 'package.json');
+    tree.write('package.json', JSON.stringify({ ...root, dependencies: { ...root.dependencies, '@next-feature/client': '0.1.0' } }));
+    await clientConfigGenerator(tree, { projectName: 'orders', skipFormat: true });
+    expect(readJson(tree, 'package.json').dependencies['@next-feature/client']).not.toBe('0.1.0');
+  });
+
   it('should add @next-feature/client as a dependency', async () => {
     await clientConfigGenerator(tree, { projectName: 'orders', skipFormat: true });
     expect(readJson(tree, 'package.json').dependencies?.['@next-feature/client']).toBeDefined();

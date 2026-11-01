@@ -1,6 +1,7 @@
 import type { GeneratorCallback } from '@nx/devkit';
 import {
   addDependenciesToPackageJson,
+  joinPathFragments,
   readNxJson,
   Tree,
   updateNxJson,
@@ -9,21 +10,45 @@ import * as path from 'node:path';
 import { NormalizedProjectGeneratorSchema } from '../types';
 import { PLUGIN_NAME } from '../constants/versions';
 
+export interface UpdateDependenciesOptions {
+  /** Project whose package.json to update (default: the workspace root) */
+  projectRoot?: string;
+  /**
+   * Raise a package that's already installed at a lower version, for
+   * generated code that needs a minimum version. Never downgrades. By
+   * default an installed package keeps whatever version it has.
+   */
+  updateExistingVersions?: boolean;
+}
+
+/**
+ * [update-dependencies]
+ * Adds dependencies to a package.json and returns the install task. The last
+ * argument is the options, or a project root (kept for older callers).
+ */
 export function updateDependencies(
   tree: Tree,
   dependencies: Record<string, string>,
   devDependencies: Record<string, string>,
-  projectRoot?: string
+  options: UpdateDependenciesOptions | string = {}
 ): GeneratorCallback {
-  const task: GeneratorCallback = addDependenciesToPackageJson(
+  const { projectRoot, updateExistingVersions = false } =
+    typeof options === 'string' ? { projectRoot: options } : options;
+
+  const packageJsonPath = projectRoot
+    ? joinPathFragments(projectRoot, 'package.json')
+    : 'package.json';
+  if (!tree.exists(packageJsonPath)) {
+    throw new Error(`updateDependencies: ${packageJsonPath} does not exist`);
+  }
+
+  return addDependenciesToPackageJson(
     tree,
     dependencies,
     devDependencies,
-    projectRoot,
-    true
+    packageJsonPath,
+    !updateExistingVersions
   );
-
-  return task;
 }
 
 /**

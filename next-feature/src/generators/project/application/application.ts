@@ -125,7 +125,11 @@ export async function applicationGenerator(
   if (!normalizedOptions.skipLogging) {
     // instrumentation.ts calls the published package's registerPino with
     // this app's lib/config/logging.ts options.
-    dependencies['@next-feature/logging'] = PLUGIN_VERSION;
+    // lib/config/logging.ts uses this release's createPinoOptions, so raise
+    // an older @next-feature/logging
+    tasks.push(
+      updateDependencies(tree, { '@next-feature/logging': PLUGIN_VERSION }, {}, { updateExistingVersions: true })
+    );
     dependencies['pino'] = PINO_VERSION;
     dependencies['pino-http'] = PINO_HTTP_VERSION;
     devDependencies['pino-pretty'] = PINO_PRETTY_VERSION;

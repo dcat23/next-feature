@@ -1,6 +1,6 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { Tree } from '@nx/devkit';
-import { addNamedImports } from './imports';
+import { addDefaultImport, addNamedImports } from './imports';
 
 describe('addNamedImports', () => {
   let tree: Tree;
@@ -53,5 +53,41 @@ describe('addNamedImports', () => {
     addNamedImports(tree, file, './user', ['b']);
     expect(read()).toContain("import { a } from './user.action';");
     expect(read()).toContain("import { b } from './user';");
+  });
+
+  it('should merge into a default import from the same module', () => {
+    tree.write(file, "import api from '../config/client';\n");
+    addNamedImports(tree, file, '../config/client', ['payments']);
+    expect(read()).toBe("import api, { payments } from '../config/client';\n");
+    addNamedImports(tree, file, '../config/client', ['search']);
+    expect(read()).toBe("import api, { payments, search } from '../config/client';\n");
+  });
+});
+
+describe('addDefaultImport', () => {
+  let tree: Tree;
+  const file = 'src/a.ts';
+  const read = () => tree.read(file, 'utf-8');
+
+  beforeEach(() => {
+    tree = createTreeWithEmptyWorkspace();
+  });
+
+  it('should add a default import after the last import', () => {
+    tree.write(file, "import 'server-only';\n\nexport const a = 1;\n");
+    addDefaultImport(tree, file, '../config/client', 'api');
+    expect(read()).toBe("import 'server-only';\nimport api from '../config/client';\n\nexport const a = 1;\n");
+  });
+
+  it('should leave an existing default import unchanged', () => {
+    tree.write(file, "import client, { payments } from '../config/client';\n");
+    addDefaultImport(tree, file, '../config/client', 'api');
+    expect(read()).toBe("import client, { payments } from '../config/client';\n");
+  });
+
+  it('should merge into a named import from the same module', () => {
+    tree.write(file, "import { payments } from '../config/client';\n");
+    addDefaultImport(tree, file, '../config/client', 'api');
+    expect(read()).toBe("import api, { payments } from '../config/client';\n");
   });
 });

@@ -1,11 +1,13 @@
+import type { NormalizedCodeGeneratorSchema } from '../../../../../lib/types';
 import type { ClientConfigGeneratorSchema } from '../../schema.d';
 
 export interface NormalizedClientConfigGeneratorSchema
-  extends ClientConfigGeneratorSchema {
-  projectPath: string;
-  sourceRoot: string;
+  extends NormalizedCodeGeneratorSchema<ClientConfigGeneratorSchema & { name: string }> {
+  /** Exported const, e.g. `api`, `payments` */
+  clientName: string;
+  /** Whether this is the project's default client (`api`) */
+  isDefault: boolean;
   clientImportPath: string;
-  apiKeyName: string;
 }
 
 export type { ClientConfigGeneratorSchema };

@@ -142,7 +142,7 @@ describe('next-feature', () => {
 
   describe('application', () => {
     it(
-      'should generate an application with logging that passes next build',
+      'should generate an application with logging and two API clients that passes next build',
       () => {
         run('pnpm exec nx g next-feature:application web --no-interactive');
 
@@ -153,6 +153,16 @@ describe('next-feature', () => {
         expect(read('apps/web/lib/config/logging.ts')).toContain("createPinoOptions({ service: 'web' })");
         // logging env vars are optional overrides: documented, never required
         expect(read('apps/web/.env.example')).toContain('NEXT_PUBLIC_LOGGING_BEACON_PATH=/api/log');
+
+        // two API clients in an app without src/: the default (from the
+        // first action) and a named one, each with its own base URL var
+        run('pnpm exec nx g next-feature:action getUsers -p web --no-interactive');
+        run('pnpm exec nx g next-feature:action getPayments -p web --apiClient=payments --no-interactive');
+        const config = read('apps/web/lib/config/client.ts');
+        expect(config).toContain('export default api;');
+        expect(config).toContain('export const payments = new ApiClient({');
+        expect(read('apps/web/lib/actions/payment.ts')).toContain("import { payments } from '../config/client';");
+        expect(read('apps/web/.env')).toMatch(/^PAYMENTS_API_URL=/m);
         expect(readJson('package.json').dependencies['@next-feature/logging']).toBe('0.0.0-e2e');
 
         run('pnpm exec nx build web');

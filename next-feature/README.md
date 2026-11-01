@@ -87,11 +87,7 @@ When you create your first action, the **client-config generator** automatically
 npx nx g next-feature:action --name=getUser --actionType=api --projectName=users
 ```
 
-This automatically creates `lib/config/client.ts` with:
-- API base URL configuration
-- Interceptor examples
-- Error handling setup
-- Ready to customize
+This automatically creates `lib/config/client.ts` with a default `api` client whose base URL comes from `<PROJECT>_API_URL`. Add more clients to the same file with `npx nx g next-feature:client-config <name> -p users`, and call one from an action with `--apiClient=<name>`.
 
 ### 🎯 Generator Chaining
 
@@ -371,19 +367,24 @@ npx nx g next-feature:feature --name=users [options]
 | --type | enum | "generic" | Type: generic, logging, client, auth, or ui |
 | --orgName | string | - | Scoped organization name |
 
-`--type=client` registers a `<NAME>_API_URL` variable in this feature's `.env`/`.env.example`. `--type=ui` registers a `shadcn` executor target on the project (see [Executors](#executors)).
+`--type=client` documents an optional `<NAME>_API_URL` fallback for `ApiClient`'s `baseURL` in `.env.example` (projects pass their own, see Client-Config). `--type=ui` registers a `shadcn` executor target on the project (see [Executors](#executors)).
 
 ### Client-Config Generator
 
 ```bash
-npx nx g next-feature:client-config --projectName=users [options]
+npx nx g next-feature:client-config [name] --projectName=users [options]
 ```
+
+Adds a named `ApiClient` to `lib/config/client.ts` (the first one is also the default export). A missing project is created as a feature.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| --clientPackage | string | "@next-feature/client" | Client to configure |
-| --baseUrl | string | "process.env.NEXT_PUBLIC_API_URL" | API base URL |
-| --includeInterceptors | boolean | true | Include interceptor examples |
+| name | string | "api" | Client name (exported const) |
+| --envVar | string | `<PROJECT>_API_URL` for `api`, else `<NAME>_API_URL` | Base URL env var |
+| --clientPackage | string | "@next-feature/client" | Package `ApiClient` is imported from |
+| --export | boolean | false | Export the clients from `server.ts` (libraries) |
+
+See the [client-config README](src/generators/misc/client-config/README.md).
 
 ## API Reference
 

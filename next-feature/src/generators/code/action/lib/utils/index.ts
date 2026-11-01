@@ -28,10 +28,13 @@ function relativeImport(fromPackage: string, toPackage: string, fileName: string
   return importPath.startsWith('.') ? importPath : `./${importPath}`;
 }
 
+/** Client config (and prisma) location, see the client-config generator */
+export const CONFIG_PACKAGE = 'lib/config';
+export const DEFAULT_CLIENT_NAME = 'api';
+
 function handleConfigImportPath(options: ActionGeneratorSchema) {
-  return ["..","config",
-    options.actionType === "db" ? "prisma" : "client"
-  ].join("/");
+  const configFile = options.actionType === 'db' ? 'prisma' : 'client';
+  return relativeImport(options.package, CONFIG_PACKAGE, configFile);
 }
 
 /**
@@ -62,6 +65,12 @@ export function normalize(
   const hasRequestBody = /(post|put|patch)/.test(httpMethod);
   const mapperName = 'mapTo'.concat(normalized.names.className);
   const configImportPath = handleConfigImportPath(normalized)
+  // db actions keep importing ../config/prisma's default export
+  const requestedClient = normalized.actionType === 'db' || !options.apiClient
+    ? DEFAULT_CLIENT_NAME
+    : names(options.apiClient).propertyName;
+  const useNamedClient = requestedClient !== DEFAULT_CLIENT_NAME;
+  const clientName = requestedClient;
   // db/none actions return their result directly instead of wrapping it in withApi
   const useApi = /(api|form)/.test(normalized.actionType);
   const schemaName = methodName + 'Schema';
@@ -96,6 +105,8 @@ export function normalize(
     mapperName,
     domain,
     configImportPath,
+    clientName,
+    useNamedClient,
     useApi,
     schemaName,
     requestType,

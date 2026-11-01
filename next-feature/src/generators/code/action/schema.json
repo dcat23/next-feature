@@ -99,6 +99,10 @@
       "alias": "client",
       "default": "@next-feature/client"
     },
+    "apiClient": {
+      "type": "string",
+      "description": "Named API client from lib/config/client.ts to call (e.g. payments). Created with the client-config generator if missing. Default: the file's default export"
+    },
     "export": {
       "type": "boolean",
       "description": "Export the generated action from project root src/server.ts (default: true)",
@@ -108,4 +112,3 @@
   },
   "required": ["name", "projectName"]
 }
-

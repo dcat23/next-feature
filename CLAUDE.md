@@ -69,7 +69,7 @@ The plugin follows an Nx plugin structure with generators organized by category:
 - `declaration` - Generates a declaration by `kind`: `data-type` (TypeScript types), `constant` or `utility`. Data types and constants are exported from `index.ts`, utilities from `server.ts`
 
 **Misc Generators** (`src/generators/misc/`)
-- `client-config` - Creates centralized API client configuration (auto-invoked by action generator)
+- `client-config` - Adds a named, configured `ApiClient` (`name`, default `api`) to `lib/config/client.ts`, a regular code generator (`initializeCodeGenerator()`, appended via `writeCodeFile()`). The first client in the file is also its `default` export (what actions import); more clients are appended as named exports and never change the default. Each reads its base URL from its own env var: `<PROJECT>_API_URL` for `api`, `<NAME>_API_URL` otherwise, or `envVar`. Files from earlier versions (one unnamed default client) count as the `api` client. Auto-invoked by the action generator
 - `dotenv` - Creates, updates, or removes environment variables across a project's `.env*` files, optionally syncing the same change to other projects, and keeps `lib/config/env.ts`'s zod schema/accessors in sync (see `src/lib/dotenv/`)
 
 **Tool Generators** (`src/generators/tool/`)
@@ -95,7 +95,7 @@ Unlike generators (which scaffold files once), executors run as Nx targets (`nx 
 - `initializeProjectGenerator()` - Initializes project generators and updates Nx configuration.
 - `updateDependencies()` - Updates package.json dependencies.
 - `addToGitignore()` - Adds entries to .gitignore files (idempotent - safe to call repeatedly).
-- `addNamedImports()` (`lib/utils/imports.ts`) - Adds named specifiers to a file, merging into an existing import from the same module. Used to accumulate per-action imports when several actions share one file.
+- `addNamedImports()` / `addDefaultImport()` (`lib/utils/imports.ts`) - Adds named specifiers / a default import to a file, merging into an existing import from the same module (including `Default, { named }` forms). Used to accumulate per-action imports when several actions share one file.
 - `exportFile()` (`lib/export-file.ts`) - Adds a sorted `export *` to `index.ts` or `server.ts`; for `server.ts` it also ensures `import 'server-only'` at the top.
 
 **Dotenv Utilities** (`src/lib/dotenv/`)
@@ -130,7 +130,7 @@ All generators follow a consistent pattern:
 
 **Code Generators:**
 - `name` (required) - Base name for generated code (normalized to className, propertyName, fileName)
-- `projectName` (required) - Target project, from `-p`, the interactive prompt (existing projects only) or the generator's `nx.json` default (Nx merges `nx.json` defaults before prompting and validating; `nx.json` keys must be camelCase). Auto-creates a feature if the named project doesn't exist (except `client-config`, which needs an existing project)
+- `projectName` (required) - Target project, from `-p`, the interactive prompt (existing projects only) or the generator's `nx.json` default (Nx merges `nx.json` defaults before prompting and validating; `nx.json` keys must be camelCase). Auto-creates a feature if the named project doesn't exist
 - `package` - Subdirectory within `src/` (default: 'lib')
 - `file` - Custom file name (overrides derived fileName)
 - `export` - Whether to add export to package index (default: false)
@@ -142,6 +142,7 @@ All generators follow a consistent pattern:
 - `useTypes` - Auto-generate a data-type interface, appended to the contract file `lib/types/<file>.ts`
 - `useConstant` - Auto-generate constants
 - `useMapper` - Auto-generate a mapper in `lib/utils/<file>.ts`, imported and applied by the action
+- `apiClient` - Named client from `lib/config/client.ts` to call (`import { <name> }`), created via `client-config` if missing; default: the file's default export (`import api`). The config import path is computed from `package`. Several clients in one action file merge into `import api, { payments } from ...` (`addDefaultImport()`/`addNamedImports()`)
 - `useHook` - Auto-generate a TanStack Query hook (`hooks/use-<name>.ts`) and the `<file>.action.ts` `'use server'` wrapper it calls; ignored when `actionType` is `form`
 
 **Hook Generator Specific:**
@@ -157,7 +158,7 @@ All generators follow a consistent pattern:
 ### Generator Chaining
 
 Generators can invoke other generators via `runTasksInSerial()`:
-- Action generator auto-creates client-config if it doesn't exist
+- Action generator auto-creates client-config if it doesn't exist, or the named client when `apiClient` is set
 - Action generator can chain data-type, constant, and utility declarations based on options. It passes the bare file name (declarations add `.ts`) and `package: 'lib'` for data-type/utility so they land in `lib/types/<file>.ts` / `lib/utils/<file>.ts`
 - Declaration exports follow `DECLARATION_KINDS[kind].exportFile`: data-type and constant go to `index.ts`, utility to `server.ts`
 - Action generator chains the `hook` generator when `useHook` is set (ignored for `actionType=form`), scaffolding a `useQuery`/`useMutation` hook that wraps the generated action

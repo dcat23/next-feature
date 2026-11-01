@@ -633,12 +633,14 @@ describe('feature generator', () => {
       expect(dotenv).not.toContain('API_URL');
     });
 
-    it('registers the API URL var in .env/.env.example for client-type features', async () => {
+    it('documents the client-type fallback API URL var in .env.example only, typed optional', async () => {
       await featureGenerator(tree, { name: 'apiClient', type: 'client', skipFormat: true });
-      const dotenv = tree.read('features/apiClient/.env', 'utf-8');
-      expect(dotenv).toContain('API_URL');
-      const dotenvExample = tree.read('features/apiClient/.env.example', 'utf-8');
-      expect(dotenvExample).toContain('API_URL');
+      // projects pass their own baseURL from lib/config/client.ts (client-config)
+      expect(tree.read('features/apiClient/.env', 'utf-8') ?? '').not.toContain('API_URL');
+      expect(tree.read('features/apiClient/.env.example', 'utf-8')).toContain('API_CLIENT_API_URL=');
+      const env = tree.read('features/apiClient/src/lib/config/env.ts', 'utf-8');
+      expect(env).toContain('API_CLIENT_API_URL: z.string().optional(),');
+      expect(tree.read('features/apiClient/src/lib/client.ts', 'utf-8')).toContain('baseURL: API_CLIENT_API_URL');
     });
 
     it('does not register the API URL var for other feature types', async () => {

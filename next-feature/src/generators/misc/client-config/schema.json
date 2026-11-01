@@ -2,14 +2,27 @@
   "$schema": "https://json-schema.org/schema",
   "$id": "ClientConfig",
   "title": "API Client Configuration Generator",
-  "description": "Generate a centralized API client configuration at lib/config/client.ts with ApiClient initialization, interceptor examples, and utility re-exports. Auto-invoked by action generator on first use.",
+  "description": "Generate or extend lib/config/client.ts with a named, configured ApiClient. Run it again with another name to add more clients to the same file. Auto-invoked by the action generator.",
   "type": "object",
   "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the API client, exported from lib/config/client.ts (e.g. api, payments, search). The first client in a project is also the file's default export. Default: api",
+      "default": "api",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      }
+    },
     "projectName": {
       "type": "string",
-      "description": "Target project name where config will be generated at src/lib/config/client.ts. Required (or set it as this generator's default in nx.json); must be an existing project.",
+      "description": "Target project name where lib/config/client.ts is generated. Required (or set it as this generator's default in nx.json); the prompt lists existing projects; pass a new name with -p to create it as a feature library.",
       "alias": "p",
       "x-prompt": "Which project should the client config be generated in?"
+    },
+    "envVar": {
+      "type": "string",
+      "description": "Env var holding this client's base URL, registered in .env/.env.example and lib/config/env.ts. Default: <PROJECT>_API_URL for the default client (api), <NAME>_API_URL otherwise"
     },
     "clientPackage": {
       "type": "string",
@@ -32,6 +45,12 @@
       "type": "boolean",
       "description": "Skip prettier code formatting (used internally for chained generators)",
       "default": false
+    },
+    "export": {
+      "type": "boolean",
+      "description": "Export the clients from the library's server.ts so other projects can reuse them (ignored for applications)",
+      "default": false,
+      "alias": "e"
     }
   },
   "required": ["projectName"]

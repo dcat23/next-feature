@@ -17,7 +17,7 @@ const VAR_LINE_IDENTIFIER = /^export const ([A-Za-z_][A-Za-z0-9_]*) = process\.e
 const BASE_ENV_CONFIG = [
   "import { z } from 'zod';",
   '',
-  'const envSchema = z.object({',
+  'export const envSchema = z.object({',
   "  NODE_ENV: z.enum(['development', 'production']),",
   `  ${SCHEMA_START}`,
   `  ${SCHEMA_END}`,

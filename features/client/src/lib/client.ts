@@ -292,6 +292,8 @@ export class ApiClient {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  /* eslint-disable @typescript-eslint/no-explicit-any -- T defaults to any so
+     callers that omit it keep an untyped response, as before */
   /**
    * HTTP Methods with proper typing
    */
@@ -303,7 +305,7 @@ export class ApiClient {
 
   async post<T = any>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<T> {
     const response = await this.instance.post<T>(url, data, config);
@@ -312,7 +314,7 @@ export class ApiClient {
 
   async put<T = any>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<T> {
     const response = await this.instance.put<T>(url, data, config);
@@ -321,7 +323,7 @@ export class ApiClient {
 
   async patch<T = any>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig,
   ): Promise<T> {
     const response = await this.instance.patch<T>(url, data, config);
@@ -332,6 +334,8 @@ export class ApiClient {
     const response = await this.instance.delete<T>(url, config);
     return response.data;
   }
+
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   /**
    * Get the underlying Axios instance for advanced usage

@@ -27,7 +27,10 @@
         "{workspaceRoot}/.eslintrc.json",
         "{workspaceRoot}/.eslintignore",
         "{workspaceRoot}/eslint.config.mjs"
-      ]
+      ],
+      "options": {
+        "maxWarnings": 0
+      }
     },
     "@nx/jest:jest": {
       "cache": true,
@@ -50,6 +53,11 @@
     "@nx/vitest:test": {
       "cache": true,
       "inputs": ["default", "^production"]
+    },
+    "eslint:lint": {
+      "options": {
+        "args": ["--max-warnings=0"]
+      }
     }
   },
   "release": {

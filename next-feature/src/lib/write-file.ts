@@ -6,7 +6,6 @@ import type {
 } from './types';
 import { PLUGIN_NAME, PLUGIN_VERSION } from './constants/versions';
 import moment = require('moment');
-import path = require('path');
 
 
 const identifier = (options: NormalizedCodeGeneratorSchema<CodeGeneratorSchema>) => {

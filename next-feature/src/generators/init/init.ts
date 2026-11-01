@@ -12,9 +12,8 @@ import {
   PLUGIN_NAME,
   PLUGIN_VERSION,
 } from '../../lib/constants/versions';
-import type { InitGeneratorSchema } from './schema';
-
-export async function initGenerator(tree: Tree, options: InitGeneratorSchema) {
+// init has no options (schema.json is empty)
+export async function initGenerator(tree: Tree) {
   const nxJson = readNxJson(tree) || {};
   const hasPlugin = nxJson.plugins?.some((p) =>
     typeof p === 'string' ? p === PLUGIN_NAME : p.plugin === PLUGIN_NAME

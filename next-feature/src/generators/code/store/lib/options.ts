@@ -1,5 +1,4 @@
 import { names } from '@nx/devkit';
-import { singularize } from '../../../../lib/utils/string';
 
 interface CreateMethodOptions {
   className: string;

@@ -8,17 +8,17 @@ interface WithApiOptions<T> {
   successMessage?: string;
 }
 
-export function withApi<F extends (...args: any[]) => Promise<any>>(
-  fn: F,
-  options?: WithApiOptions<Awaited<ReturnType<F>>>,
-): (...args: Parameters<F>) => Promise<ApiResponse<Awaited<ReturnType<F>>>> {
+export function withApi<Args extends unknown[], Result>(
+  fn: (...args: Args) => Promise<Result>,
+  options?: WithApiOptions<Result>,
+): (...args: Args) => Promise<ApiResponse<Result>> {
   const opts = {
-    fallbackData: {} as Awaited<ReturnType<F>>,
+    fallbackData: {} as Result,
     successMessage: 'success',
     ...options,
   };
 
-  return async (...args: Parameters<F>) => {
+  return async (...args: Args) => {
     try {
       const response = await fn(...args);
       return {

@@ -11,7 +11,7 @@ import { isProblemDetail } from './problem-detail';
  * January 11th 2026, 9:11:27 pm
  */
 function extractProblemDetail(
-  response: AxiosResponse<unknown, any>
+  response: AxiosResponse<unknown>
 ): ProblemDetail | null {
   return isProblemDetail(response.data) ? response.data : null;
 }

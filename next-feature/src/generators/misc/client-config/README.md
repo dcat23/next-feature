@@ -83,17 +83,19 @@ import 'server-only';
 
 import { type ApiResponse, ApiError } from '@next-feature/client';
 import { ApiClient } from '@next-feature/client/server';
-
-const baseURL = process.env.NEXT_PUBLIC_API_URL;
+import { MYFEATURE_API_URL } from './env'; // <PROJECT>_API_URL, kept in sync by the dotenv generator
 
 const apiClient = new ApiClient({
-  baseURL,
-  // Add other config options here
+  baseURL: MYFEATURE_API_URL,
+  onAuthenticated: async (config) => {
+    // runs before every request: attach auth headers, log, ...
+  },
 });
+
+apiClient.axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 // Re-export commonly used utilities
 export { ApiError, type ApiResponse };
-export { getErrorMessage, formatProblemDetail, extractValidationErrors } from '@next-feature/client';
 
 export default apiClient;
 ```
@@ -128,7 +130,7 @@ export async function getUsers(): Promise<ApiResponse<User[]>> {
 
 ```typescript
 // src/lib/config/client.ts
-apiClient.getAxiosInstance().interceptors.request.use((config) => {
+apiClient.axios.interceptors.request.use((config) => {
   // Add auth token
   const token = getToken();
   if (token) {
@@ -142,7 +144,7 @@ apiClient.getAxiosInstance().interceptors.request.use((config) => {
 
 ```typescript
 // src/lib/config/client.ts
-apiClient.getAxiosInstance().interceptors.response.use(
+apiClient.axios.interceptors.response.use(
   (response) => response,
   (error) => {
     // Handle 401 errors globally
@@ -158,7 +160,7 @@ apiClient.getAxiosInstance().interceptors.response.use(
 
 ```typescript
 // src/lib/config/client.ts
-apiClient.getAxiosInstance().interceptors.response.use(
+apiClient.axios.interceptors.response.use(
   (response) => response,
   (error) => {
     const apiError = ApiError.of(error);

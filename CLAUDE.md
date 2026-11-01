@@ -165,6 +165,7 @@ Generators can invoke other generators via `runTasksInSerial()`:
 - Action generator chains the `hook` generator when `useHook` is set (ignored for `actionType=form`), scaffolding a `useQuery`/`useMutation` hook that wraps the generated action
 - `<NAME>_API_URL` vars come from `client-config` (one per client, also run by the first action); `feature`/`application` have no `env` option
 - Application generator creates a sibling `auth`-type feature (if missing) when `useAuth` is set
+- Application generator always writes `proxy.ts` (Next 16 middleware) with a matcher for API routes and pages, skipping `_next` and static files; with `useAuth` it's `auth((request) => ...)` from the auth feature's `/server` entry (the proxy runs on Node.js and Next allows `server-only` in it; the auth feature's `index.ts` exports types only, since `authConfig` reaches server code), which refreshes the session cookie without redirecting (a custom handler makes next-auth ignore `authorized`'s `false`)
 - Application generator wires `@next-feature/logging` unless `skipLogging`: `instrumentation.ts` dynamically imports `registerPino` from `@next-feature/logging/server` on the `nodejs` runtime and passes the app's `lib/config/logging.ts` options (`createPinoOptions({ service: '<name>' })`, plus a server `logger`); `app/api/log/route.ts` receives browser beacons. These files, and the logger import in `error.tsx`, only exist when logging is enabled
 - This avoids duplication and ensures consistent setup
 

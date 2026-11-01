@@ -1,6 +1,6 @@
 import { execSync } from 'child_process';
 import { join, dirname } from 'path';
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 // pnpm 11 fails installs on unapproved dependency build scripts (e.g. nx's
 // postinstall), which the generated test workspace doesn't approve
 process.env.pnpm_config_strict_dep_builds = 'false';
@@ -181,6 +181,39 @@ describe('next-feature', () => {
         expect(readJson('package.json').dependencies['@next-feature/logging']).toBe('0.0.0-e2e');
 
         run('pnpm exec nx build web');
+      },
+      SLOW
+    );
+
+    it(
+      'should generate an application with auth whose API client uses getAccessToken() and passes next build',
+      () => {
+        run('pnpm exec nx g next-feature:application portal --useAuth --skipLogging --no-interactive');
+
+        expect(read('apps/portal/proxy.ts')).toContain('export const proxy = auth((request) => {');
+        // backend tokens never reach the session (and so the browser)
+        const callbacks = read('features/auth/src/lib/auth/callbacks.ts');
+        const sessionCallback = callbacks.slice(callbacks.indexOf('export const session'), callbacks.indexOf('export const redirect'));
+        expect(sessionCallback).not.toMatch(/accessToken|refreshToken/);
+
+        run('pnpm exec nx g next-feature:action getProfile -p portal --no-interactive');
+        const configPath = 'apps/portal/lib/config/client.ts';
+        const config = read(configPath);
+        expect(config).toContain('//   const token = await getAccessToken();');
+        // use the documented example for real: must type-check in next build
+        writeFileSync(
+          join(projectDirectory, configPath),
+          config
+            .replace("import 'server-only';", "import 'server-only';\nimport { getAccessToken } from '@feature/auth/server';")
+            .replace(/\n\s*\/\/ onAuthenticated[\s\S]*?\/\/ \},/, `
+  onAuthenticated: async (config) => {
+    const token = await getAccessToken();
+    if (token) config.headers.Authorization = \`Bearer \${token}\`;
+  },`)
+        );
+        expect(read(configPath)).toContain('onAuthenticated: async (config) => {\n    const token');
+
+        run('pnpm exec nx build portal');
       },
       SLOW
     );

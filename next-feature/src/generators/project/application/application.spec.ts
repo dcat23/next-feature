@@ -20,6 +20,33 @@ describe('application generator', () => {
     expect(config.targets?.shadcn?.executor).toBe('next-feature:shadcn');
   });
 
+  describe('proxy', () => {
+    const matcher = String.raw`'/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)'`;
+
+    it('should generate a passthrough proxy.ts with the matcher config by default', async () => {
+      await applicationGenerator(tree, options);
+      const proxy = tree.read('apps/test/proxy.ts', 'utf-8');
+      expect(proxy).toContain('export function proxy(request: NextRequest)');
+      expect(proxy).not.toContain('next-auth');
+      expect(proxy).toContain(matcher);
+      expect(proxy).toContain("'/(api)(.*)'");
+    });
+
+    it('should wrap the proxy with the auth feature\'s auth() when useAuth is true', async () => {
+      await applicationGenerator(tree, { name: 'test', useAuth: true });
+      const proxy = tree.read('apps/test/proxy.ts', 'utf-8');
+      expect(proxy).toContain("import { auth } from '@feature/auth/server';");
+      expect(proxy).not.toContain('NextAuth(');
+      expect(proxy).toContain('export const proxy = auth((request) => {');
+      expect(proxy).toContain(matcher);
+    });
+
+    it('should put proxy.ts in src/ with useSrc', async () => {
+      await applicationGenerator(tree, { name: 'test', useSrc: true });
+      expect(tree.exists('apps/test/src/proxy.ts')).toBeTruthy();
+    });
+  });
+
   describe('useAuth option', () => {
     it('should not generate the auth route or feature by default', async () => {
       await applicationGenerator(tree, { name: 'test' });

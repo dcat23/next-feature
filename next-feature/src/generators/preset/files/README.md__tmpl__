@@ -69,7 +69,7 @@ apps/<%= name %>/
 │   │
 │   ├── public/                    # Static assets
 │   ├── styles/                    # Global styles
-│   └── middleware.ts              # Next.js middleware (optional)
+│   └── proxy.ts                   # Next.js proxy (auth() with --useAuth)
 │
 ├── .env.example                   # Environment variables template
 ├── .env.local                     # Environment variables (gitignored)

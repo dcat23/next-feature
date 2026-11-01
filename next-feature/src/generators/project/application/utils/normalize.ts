@@ -16,6 +16,7 @@ export function normalizeApplicationGeneratorSchema(
   const normalized = normalizeProjectGeneratorSchema(options, "app");
   normalized.useSrc = Boolean(options.useSrc);
   normalized.skipLogging = Boolean(options.skipLogging);
+  normalized.useAuth = Boolean(options.useAuth);
   normalized.sourceRoot = normalized.useSrc 
     ? path.join(normalized.projectRoot, "src")
     : normalized.projectRoot

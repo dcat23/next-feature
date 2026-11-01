@@ -95,13 +95,11 @@ Include NextAuth.js authentication setup.
 npx nx g next-feature:application --name=web --useAuth=true
 ```
 
-This creates `src/lib/auth/` with:
-- NextAuth route handlers (`/api/auth/[...nextauth]`)
-- Session provider setup
-- Auth configuration and callbacks
-- .env configuration for:
-  - NEXTAUTH_URL
-  - NEXTAUTH_SECRET
+This adds:
+- the NextAuth route handler (`app/api/auth/[...nextauth]/route.ts`), from the sibling `auth` feature (created if missing; see the [feature generator](../feature/README.md#auth-type--additional-files) for its callbacks, token refresh and `getAccessToken()`)
+- `SessionProvider` in `app/providers.tsx`
+- `proxy.ts` wrapped in the auth feature's `auth()` (see [Proxy](#proxy))
+- `.env` entries for `NEXTAUTH_URL` and `AUTH_SECRET` (generated). Outside Vercel, also set `AUTH_URL` and `AUTH_TRUST_HOST=true`
 
 #### `orgName`
 
@@ -130,10 +128,10 @@ apps/[name]/
 │   │   │   ├── log/route.ts       # Browser log beacon endpoint (unless --skipLogging)
 │   │   │   └── auth/              # NextAuth routes (if --useAuth)
 │   │   │       └── [...nextauth]/route.ts
-│   │   ├── middleware.ts          # Edge middleware
 │   │   └── [slug]/
 │   │       └── page.tsx           # Dynamic routes
 │   ├── instrumentation.ts         # registerPino() on the Node.js runtime
+│   ├── proxy.ts                   # Next.js proxy (auth() with --useAuth)
 │   ├── lib/
 │   │   ├── config/logging.ts      # createPinoOptions({ service: '[name]' }) + server logger
 │   │   ├── actions/               # Server actions
@@ -141,10 +139,7 @@ apps/[name]/
 │   │   ├── stores/                # Zustand stores
 │   │   ├── types/                 # TypeScript types
 │   │   ├── constants/             # Constants and enums
-│   │   ├── utils/                 # Utility functions
-│   │   └── auth/                  # Auth setup (if --useAuth)
-│   │       ├── authOptions.ts
-│   │       └── routes.ts
+│   │   └── utils/                 # Utility functions
 │   ├── public/                    # Static assets
 │   └── styles/                    # CSS modules
 ├── .env.local                     # Environment variables
@@ -395,22 +390,33 @@ mkdir users
 touch users/route.ts
 ```
 
-### Middleware
+### Proxy
+
+Every app gets a `proxy.ts` (Next.js 16's renamed middleware) next to `instrumentation.ts`. Its matcher runs it for all API routes and every page, skipping Next.js internals (`_next`) and static files unless they appear in the search params:
 
 ```typescript
-// apps/[name]/src/middleware.ts
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-
-export function middleware(request: NextRequest) {
-  // Add your middleware logic
-  return NextResponse.next()
-}
-
 export const config = {
-  matcher: ['/admin/:path*']
-}
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
+    '/(api)(.*)',
+  ],
+};
 ```
+
+Without `--useAuth` the proxy passes every request through. With `--useAuth` it's wrapped in the auth feature's `auth()`. Next.js 16 runs the proxy on the Node.js runtime and allows `server-only` imports there, so it uses the same NextAuth instance as the rest of the app:
+
+```typescript
+import { auth } from '@feature/auth/server';
+
+export const proxy = auth((request) => {
+  // request.auth is the session (null when signed out)
+  return NextResponse.next();
+});
+```
+
+That reads the session on each matched request and runs the `jwt` callback, so an expired access token is refreshed and the cookie saved before server components render. It doesn't redirect anyone by default (with a custom handler, next-auth ignores a `false` from `authorized`): add route protection in the handler. The proxy only covers matched routes, so server actions, route handlers and data access still check `auth()` themselves.
 
 ## Database Integration
 

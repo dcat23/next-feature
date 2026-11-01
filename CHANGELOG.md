@@ -1,3 +1,15 @@
+## 0.2.0 (2026-11-01)
+
+### 🩹 Fixes
+
+- **client:** keep zod issues without a path under FORM_ERROR_KEY ([#20](https://github.com/dcat23/next-feature/issues/20))
+- **feature:** externalize whatever a feature's package.json declares ([#21](https://github.com/dcat23/next-feature/issues/21))
+
+### ❤️ Thank You
+
+- Claude Opus 5.5
+- Devin Catuns
+
 ## 0.2.0-beta.0 (2026-11-01)
 
 ### 🚀 Features

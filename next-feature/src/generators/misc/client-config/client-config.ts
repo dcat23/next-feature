@@ -3,12 +3,14 @@ import {
   generateFiles,
   type GeneratorCallback,
   joinPathFragments,
+  logger,
   runTasksInSerial,
   Tree,
 } from '@nx/devkit';
 import * as path from 'path';
 import type { ClientConfigGeneratorSchema } from './schema';
-import { asClientEnvVar, normalize } from './lib/utils';
+import { asClientEnvVar, DEFAULT_CLIENT_PACKAGE, normalize } from './lib/utils';
+import { asCaretRange, updatePackageJsonDependencies } from '../../project/feature/utils';
 import { clientContent, defaultExportContent } from './lib/utils/content';
 import { PLUGIN_VERSION, SERVER_ONLY_VERSION } from '../../../lib/constants/versions';
 import { updateEnvConfig } from '../../../lib/dotenv/env-config';
@@ -27,6 +29,26 @@ function isDotenvKeyDefined(tree: Tree, projectRoot: string, key: string) {
   return ['.env', '.env.example'].some((file) =>
     pattern.test(tree.read(joinPathFragments(projectRoot, file), 'utf-8') ?? '')
   );
+}
+
+/**
+ * A feature library's vite build only externalizes what its own package.json
+ * declares, so an undeclared client package would be bundled into dist/.
+ * Custom client packages (clientPackage) are left for the project to declare:
+ * their version isn't known here.
+ */
+function declareClientDependency(tree: Tree, projectRoot: string, clientImportPath: string) {
+  if (clientImportPath !== DEFAULT_CLIENT_PACKAGE) {
+    logger.warn(
+      `client-config: declare ${clientImportPath} in ${joinPathFragments(projectRoot, 'package.json')} ` +
+      'so the library build keeps it external.'
+    );
+    return;
+  }
+  updatePackageJsonDependencies(tree, projectRoot, {
+    [DEFAULT_CLIENT_PACKAGE]: asCaretRange(PLUGIN_VERSION),
+    'server-only': SERVER_ONLY_VERSION,
+  }, {});
 }
 
 /** Whether lib/config/client.ts already declares this client. */
@@ -61,16 +83,21 @@ export async function clientConfigGenerator(
   const configPath = path.join(configDirectory, outputFileName);
   const isNewFile = !tree.exists(configPath);
 
-  if (!isNewFile && hasClient(tree.read(configPath, 'utf-8'), clientName, isDefault)) {
-    return runTasksInSerial(...tasks);
-  }
-
+  // Before the early return, so re-running fixes libraries created before
+  // the dependency was declared
   tasks.push(
     updateDependencies(tree, {
       '@next-feature/client': PLUGIN_VERSION,
       'server-only': SERVER_ONLY_VERSION,
     }, {})
   );
+  if (projectType === 'library') {
+    declareClientDependency(tree, projectRoot, normalizedOptions.clientImportPath);
+  }
+
+  if (!isNewFile && hasClient(tree.read(configPath, 'utf-8'), clientName, isDefault)) {
+    return runTasksInSerial(...tasks);
+  }
 
   const envVar = asClientEnvVar(projectName, clientName, options.envVar);
   if (!isDotenvKeyDefined(tree, projectRoot, envVar)) {

@@ -32,14 +32,14 @@
     },
     "baseUrl": {
       "type": "string",
-      "description": "Base URL for API requests. Use environment variable reference (default: process.env.NEXT_PUBLIC_API_URL) or hardcoded URL",
-      "default": "process.env.NEXT_PUBLIC_API_URL"
+      "description": "Deprecated and ignored: each client reads its base URL from its env var (see envVar)",
+      "x-deprecated": "Ignored: each client reads its base URL from its env var (see envVar)."
     },
     "includeInterceptors": {
       "type": "boolean",
-      "description": "Include example request/response interceptor setup for adding authentication headers, logging, and custom error handling",
-      "default": true,
-      "alias": "i"
+      "description": "Deprecated and ignored: the generated file has no interceptor examples",
+      "alias": "i",
+      "x-deprecated": "Ignored: the generated file has no interceptor examples; see the client-config README."
     },
     "skipFormat": {
       "type": "boolean",

@@ -104,6 +104,11 @@ describe('next-feature', () => {
         expect(read('features/users/src/server.ts')).toMatch(/^import 'server-only';/);
 
         run('pnpm exec nx build users');
+
+        // @next-feature/client is declared in the feature, so the build keeps
+        // it external instead of bundling it (and axios) into dist/
+        expect(readJson('features/users/package.json').dependencies['@next-feature/client']).toBe('^0.0.0-e2e');
+        expect(bareImports(join(projectDirectory, 'dist/features/users'))).toContain('@next-feature/client/server');
       },
       SLOW
     );

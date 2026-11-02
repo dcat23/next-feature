@@ -65,6 +65,11 @@
       "factory": "./src/generators/misc/docker/docker",
       "schema": "./src/generators/misc/docker/schema.json",
       "description": "Dockerfile (standalone, multi-stage), .dockerignore and a root compose.yaml service for a Next.js application"
+    },
+    "vercel": {
+      "factory": "./src/generators/misc/vercel/vercel",
+      "schema": "./src/generators/misc/vercel/schema.json",
+      "description": "vercel.json for a Next.js application: workspace-root install, nx build, Nx output directory, skip unaffected deployments"
     }
   }
 }

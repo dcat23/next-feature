@@ -21,3 +21,8 @@ export const REACT_PEER_VERSION = "^19.0.0";
  * Registry content is fetched live regardless; bump deliberately and run the e2e.
  */
 export const SHADCN_CLI_VERSION = "4.23.0";
+/**
+ * nx-ignore (nrwl/nx-labs) version the vercel generator runs in `ignoreCommand`
+ * (`npx nx-ignore@<version> <app>`); it installs the workspace's own Nx version.
+ */
+export const NX_IGNORE_VERSION = "19.8.0";

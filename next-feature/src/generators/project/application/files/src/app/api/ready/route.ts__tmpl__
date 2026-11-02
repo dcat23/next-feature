@@ -1,0 +1,41 @@
+<% if (!skipLogging) { %>import { logger } from '../../../lib/config/logging';
+<% } %>import { READINESS_TIMEOUT_MS, readinessChecks } from '../../../lib/config/health';
+
+// Readiness: can this instance serve traffic, i.e. are its dependencies
+// reachable. Runs the checks in lib/config/health.ts in parallel and returns
+// 503 with the failing ones, so a load balancer or Kubernetes stops routing
+// to the instance without restarting it. Skipped by proxy.ts.
+export const dynamic = 'force-dynamic';
+
+type CheckStatus = 'ok' | 'error';
+
+async function runCheck(name: string, check: () => unknown): Promise<[string, CheckStatus]> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      Promise.resolve().then(check),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`timed out after ${READINESS_TIMEOUT_MS}ms`)), READINESS_TIMEOUT_MS);
+      }),
+    ]);
+    return [name, 'ok'];
+  } catch (error) {
+    // Details stay in the server log: the response is public
+<% if (!skipLogging) { %>    logger.warn({ check: name, err: error }, 'Readiness check failed');
+<% } else { %>    console.warn(`Readiness check "${name}" failed`, error);
+<% } %>    return [name, 'error'];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export async function GET() {
+  const checks = Object.fromEntries(
+    await Promise.all(Object.entries(readinessChecks).map(([name, check]) => runCheck(name, check)))
+  );
+  const ready = Object.values(checks).every((status) => status === 'ok');
+  return Response.json(
+    { status: ready ? 'ok' : 'error', checks },
+    { status: ready ? 200 : 503, headers: { 'Cache-Control': 'no-store' } }
+  );
+}

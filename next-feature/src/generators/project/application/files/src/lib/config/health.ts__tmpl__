@@ -1,0 +1,25 @@
+import 'server-only';
+
+/**
+ * A readiness check: resolves when the dependency is usable, throws (or
+ * rejects) when it isn't. Keep checks cheap; probes run every few seconds.
+ */
+export type ReadinessCheck = () => unknown | Promise<unknown>;
+
+/** Per-check limit; a check that takes longer counts as failed */
+export const READINESS_TIMEOUT_MS = 2000;
+
+/**
+ * Checks run by /api/ready, by name (the name appears in the response). Add
+ * the dependencies this app can't serve requests without, e.g. its backend
+ * API through the configured client:
+ *
+ * ```ts
+ * import api from './client';
+ *
+ * export const readinessChecks: Record<string, ReadinessCheck> = {
+ *   api: () => api.get('/actuator/health'),
+ * };
+ * ```
+ */
+export const readinessChecks: Record<string, ReadinessCheck> = {};

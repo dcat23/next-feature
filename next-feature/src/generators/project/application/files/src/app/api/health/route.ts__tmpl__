@@ -1,0 +1,8 @@
+// Liveness: is the process up and serving requests. No dependencies, so a
+// slow backend never restarts a healthy instance (use /api/ready for that).
+// Used by the Docker HEALTHCHECK; skipped by proxy.ts and not logged.
+export const dynamic = 'force-dynamic';
+
+export function GET() {
+  return Response.json({ status: 'ok' }, { headers: { 'Cache-Control': 'no-store' } });
+}

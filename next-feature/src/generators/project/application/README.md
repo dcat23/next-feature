@@ -126,6 +126,8 @@ apps/[name]/
 │   │   ├── page.tsx               # Home page
 │   │   ├── error.tsx              # Error boundary (reports via the browser logger)
 │   │   ├── api/
+│   │   │   ├── health/route.ts    # Liveness probe: 200 { status: 'ok' }
+│   │   │   ├── ready/route.ts     # Readiness probe: runs lib/config/health.ts checks, 503 on failure
 │   │   │   ├── log/route.ts       # Browser log beacon endpoint (unless --skipLogging)
 │   │   │   └── auth/              # NextAuth routes (if --useAuth)
 │   │   │       └── [...nextauth]/route.ts
@@ -135,6 +137,7 @@ apps/[name]/
 │   ├── proxy.ts                   # Next.js proxy (auth() with --useAuth)
 │   ├── lib/
 │   │   ├── config/logging.ts      # createPinoOptions({ service: '[name]' }) + server logger
+│   │   ├── config/health.ts       # readinessChecks run by /api/ready
 │   │   ├── actions/               # Server actions
 │   │   ├── components/            # React components
 │   │   ├── stores/                # Zustand stores
@@ -403,6 +406,26 @@ npx nx run [name]:shadcn --args="button"
 
 Avoid `shadcn init` (`--args="init --force"`): it rewrites `components.json`, and in an Nx workspace its aliases come from the first tsconfig path, i.e. possibly another project. Change the style with `--action=apply --preset=<preset>`.
 
+### Health checks
+
+Every app gets two probe routes, both `force-dynamic`, `Cache-Control: no-store`, outside the proxy's matcher (so auth redirects never apply) and not logged when they succeed:
+
+| Route | Use for | Response |
+|-------|---------|----------|
+| `/api/health` | Liveness: Docker `HEALTHCHECK`, Kubernetes `livenessProbe`, uptime monitors | Always `200 { "status": "ok" }`; no dependencies, so a slow backend never restarts a healthy instance |
+| `/api/ready` | Readiness: Kubernetes `readinessProbe`, load balancer target health | `200 { "status": "ok", "checks": { "api": "ok" } }`, or `503` with `"status": "error"` and the failing checks |
+
+Readiness runs the checks in `lib/config/health.ts` in parallel. A check resolves when its dependency is usable and throws (or times out after `READINESS_TIMEOUT_MS`, 2 s) when it isn't. The response only names the checks; the errors are logged at `warn`. There are none by default; add the dependencies the app can't serve requests without:
+
+```typescript
+// lib/config/health.ts
+import api from './client';
+
+export const readinessChecks: Record<string, ReadinessCheck> = {
+  api: () => api.get('/actuator/health'),
+};
+```
+
 ### Docker
 
 `npx nx g next-feature:docker [name]` adds a Dockerfile (standalone server, non-root), the workspace `.dockerignore` and the app's service in the root `compose.yaml`. See the [docker generator](../../misc/docker/README.md).
@@ -413,15 +436,16 @@ Avoid `shadcn init` (`--args="init --force"`): it rewrites `components.json`, an
 
 ### Proxy
 
-Every app gets a `proxy.ts` (Next.js 16's renamed middleware) next to `instrumentation.ts`. Its matcher runs it for all API routes and every page, skipping Next.js internals (`_next`) and static files unless they appear in the search params:
+Every app gets a `proxy.ts` (Next.js 16's renamed middleware) next to `instrumentation.ts`. Its matcher runs it for all API routes and every page, skipping Next.js internals (`_next`), the health probes (`/api/health`, `/api/ready`) and static files unless they appear in the search params:
 
 ```typescript
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
-    '/(api)(.*)',
+    // Skip Next.js internals, the health probes (/api/health, /api/ready) and
+    // all static files, unless found in search params
+    '/((?!_next|api/(?:health|ready)(?:/|$)|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes, except the health probes
+    '/(api/(?!(?:health|ready)(?:/|$)).*)',
   ],
 };
 ```

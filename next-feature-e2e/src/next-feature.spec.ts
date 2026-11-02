@@ -190,6 +190,8 @@ describe('next-feature', () => {
         expect(readJson('package.json').dependencies['@next-feature/logging']).toBe('0.0.0-e2e');
         // @nx/next's sample route is removed
         expect(existsSync(join(projectDirectory, 'apps/web/app/api/hello'))).toBe(false);
+        expect(existsSync(join(projectDirectory, 'apps/web/app/api/health/route.ts'))).toBe(true);
+        expect(existsSync(join(projectDirectory, 'apps/web/app/api/ready/route.ts'))).toBe(true);
 
         run('pnpm exec nx build web');
       },
@@ -217,6 +219,7 @@ describe('next-feature', () => {
       () => {
         run('pnpm exec nx g next-feature:docker web --no-interactive');
         expect(read('apps/web/Dockerfile')).toContain('RUN pnpm exec nx build web --skip-nx-cache');
+        expect(read('apps/web/Dockerfile')).toContain("+ '/api/health')");
         expect(read('compose.yaml')).toContain('dockerfile: apps/web/Dockerfile');
         expect(read('.dockerignore')).toContain('**/.env');
         // standalone only when the Dockerfile asks for it: a plain build is unchanged
@@ -239,6 +242,9 @@ describe('next-feature', () => {
         try {
           run('docker run -d --name next-feature-e2e-web -p 3999:3000 next-feature-e2e-web');
           expect(waitForStatus('http://127.0.0.1:3999/', 200)).toBe(true);
+          // liveness and readiness (no checks configured), which the HEALTHCHECK uses
+          expect(waitForStatus('http://127.0.0.1:3999/api/health', 200)).toBe(true);
+          expect(waitForStatus('http://127.0.0.1:3999/api/ready', 200)).toBe(true);
         } finally {
           execSync('docker rm -f next-feature-e2e-web', { stdio: 'ignore' });
         }

@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1
+# <%- projectName %>: build from the workspace root, e.g.
+#   docker build -f <%- projectRoot %>/Dockerfile -t <%- projectName %> .
+#   docker compose up <%- projectName %>
+ARG NODE_VERSION=<%- nodeVersion %>
+
+FROM node:${NODE_VERSION}-alpine AS base
+RUN apk add --no-cache libc6-compat
+
+FROM base AS builder
+WORKDIR /workspace
+ENV NX_DAEMON=false NX_NO_CLOUD=true NEXT_TELEMETRY_DISABLED=1
+<% if (packageManagerSetup) { %>RUN <%- packageManagerSetup %>
+<% } %>COPY . .
+RUN <% if (cacheMount) { %>--mount=type=cache,id=<%- packageManager %>-cache,target=<%- cacheMount %> <% } %><%- installCommand %>
+# NEXT_PUBLIC_* values are inlined at build time: declare them as build args, e.g.
+#   ARG NEXT_PUBLIC_EXAMPLE
+#   ENV NEXT_PUBLIC_EXAMPLE=$NEXT_PUBLIC_EXAMPLE
+# Server-side variables are read at runtime (compose env_file / docker run --env-file).
+# NEXT_OUTPUT=standalone switches next.config.js to a self-contained server
+ENV NEXT_OUTPUT=standalone
+RUN <%- execCommand %> nx build <%- projectName %> --skip-nx-cache
+
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
+# Standalone output mirrors the workspace layout: the server at <%- projectRoot %>/server.js,
+# its build in <%- outputPath %>/.next
+COPY --from=builder --chown=node:node /workspace/<%- outputPath %>/.next/standalone ./
+COPY --from=builder --chown=node:node /workspace/<%- outputPath %>/.next/static ./<%- outputPath %>/.next/static
+<% if (hasPublic) { %>COPY --from=builder --chown=node:node /workspace/<%- projectRoot %>/public ./<%- projectRoot %>/public
+<% } %>USER node
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:' + (process.env.PORT || 3000) + '<%- healthPath %>').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+CMD ["node", "<%- projectRoot %>/server.js"]

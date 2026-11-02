@@ -403,6 +403,10 @@ npx nx run [name]:shadcn --args="button"
 
 Avoid `shadcn init` (`--args="init --force"`): it rewrites `components.json`, and in an Nx workspace its aliases come from the first tsconfig path, i.e. possibly another project. Change the style with `--action=apply --preset=<preset>`.
 
+### Docker
+
+`npx nx g next-feature:docker [name]` adds a Dockerfile (standalone server, non-root), the workspace `.dockerignore` and the app's service in the root `compose.yaml`. See the [docker generator](../../misc/docker/README.md).
+
 ### Proxy
 
 Every app gets a `proxy.ts` (Next.js 16's renamed middleware) next to `instrumentation.ts`. Its matcher runs it for all API routes and every page, skipping Next.js internals (`_next`) and static files unless they appear in the search params:

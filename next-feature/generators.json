@@ -60,6 +60,11 @@
       "factory": "./src/generators/misc/client-config/client-config",
       "schema": "./src/generators/misc/client-config/schema.json",
       "description": "client config generator"
+    },
+    "docker": {
+      "factory": "./src/generators/misc/docker/docker",
+      "schema": "./src/generators/misc/docker/schema.json",
+      "description": "Dockerfile (standalone, multi-stage), .dockerignore and a root compose.yaml service for a Next.js application"
     }
   }
 }

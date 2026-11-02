@@ -188,8 +188,44 @@ describe('next-feature', () => {
         expect(read('apps/web/lib/actions/payment.ts')).toContain("import { payments } from '../config/client';");
         expect(read('apps/web/.env')).toMatch(/^PAYMENTS_API_URL=/m);
         expect(readJson('package.json').dependencies['@next-feature/logging']).toBe('0.0.0-e2e');
+        // @nx/next's sample route is removed
+        expect(existsSync(join(projectDirectory, 'apps/web/app/api/hello'))).toBe(false);
 
         run('pnpm exec nx build web');
+      },
+      SLOW
+    );
+
+    it(
+      'should containerize the application with a standalone build',
+      () => {
+        run('pnpm exec nx g next-feature:docker web --no-interactive');
+        expect(read('apps/web/Dockerfile')).toContain('RUN pnpm exec nx build web --skip-nx-cache');
+        expect(read('compose.yaml')).toContain('dockerfile: apps/web/Dockerfile');
+        expect(read('.dockerignore')).toContain('**/.env');
+        // standalone only when the Dockerfile asks for it: a plain build is unchanged
+        run('pnpm exec nx build web --skip-nx-cache');
+        expect(existsSync(join(projectDirectory, 'dist/apps/web/.next/standalone'))).toBe(false);
+
+        if (!hasDocker()) {
+          console.warn('Docker is not available: skipping the image build');
+          return;
+        }
+        // Test-only: the image installs from the local registry on the host
+        // (--network=host), with the pnpm settings the suite sets via env vars
+        writeFileSync(
+          join(projectDirectory, 'pnpm-workspace.yaml'),
+          read('pnpm-workspace.yaml').replace(/: set this to true or false/g, ': true') +
+            'strictDepBuilds: false\nminimumReleaseAge: 0\n'
+        );
+        writeFileSync(join(projectDirectory, '.npmrc'), `registry=${process.env.pnpm_config_registry}\n`);
+        run('docker build --network=host -f apps/web/Dockerfile -t next-feature-e2e-web .');
+        try {
+          run('docker run -d --name next-feature-e2e-web -p 3999:3000 next-feature-e2e-web');
+          expect(waitForStatus('http://127.0.0.1:3999/', 200)).toBe(true);
+        } finally {
+          execSync('docker rm -f next-feature-e2e-web', { stdio: 'ignore' });
+        }
       },
       SLOW
     );
@@ -231,6 +267,29 @@ describe('next-feature', () => {
     );
   });
 });
+
+function hasDocker(): boolean {
+  try {
+    execSync('docker info', { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Polls `url` until it answers with `status` (about 60s) */
+function waitForStatus(url: string, status: number): boolean {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    try {
+      const code = execSync(`curl -s -o /dev/null -w "%{http_code}" ${url}`, { encoding: 'utf-8' }).trim();
+      if (Number(code) === status) return true;
+    } catch {
+      // not up yet
+    }
+    execSync('sleep 1');
+  }
+  return false;
+}
 
 /** Bare module specifiers imported by the built JS files under `dir`. */
 function bareImports(dir: string): string[] {

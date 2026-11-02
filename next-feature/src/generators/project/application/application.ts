@@ -58,6 +58,9 @@ export async function applicationGenerator(
 
   const { sourceRoot, projectRoot, importPath } = normalizedOptions;
 
+  // @nx/next's sample route handler
+  tree.delete(joinPathFragments(sourceRoot, 'app/api/hello'));
+
   generateFiles(
     tree,
     path.join(__dirname, 'files/src'),

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "Docker",
+  "title": "Docker",
+  "description": "Generates a Dockerfile for a Next.js application (standalone output, multi-stage, non-root), a workspace .dockerignore, and the application's service in the root compose.yaml.",
+  "type": "object",
+  "properties": {
+    "projectName": {
+      "type": "string",
+      "description": "Application to containerize.",
+      "alias": "p",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "Which application should get a Dockerfile?"
+    },
+    "port": {
+      "type": "number",
+      "description": "Host port the compose service publishes (the container always listens on 3000).",
+      "default": 3000
+    },
+    "compose": {
+      "type": "boolean",
+      "description": "Add the application's service to the workspace root compose.yaml.",
+      "default": true
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip formatting files.",
+      "default": false
+    }
+  },
+  "required": ["projectName"]
+}

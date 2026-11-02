@@ -26,6 +26,11 @@ describe('application generator', () => {
     expect(config.targets?.shadcn?.executor).toBe('next-feature:shadcn');
   });
 
+  it("should remove @nx/next's sample hello route", async () => {
+    await applicationGenerator(tree, options);
+    expect(tree.exists('apps/test/app/api/hello/route.ts')).toBe(false);
+  });
+
   describe('styles and shadcn', () => {
     it('should not generate a CSS module or a Tailwind v3 config', async () => {
       await applicationGenerator(tree, options);

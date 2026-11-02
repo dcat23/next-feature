@@ -197,6 +197,22 @@ describe('next-feature', () => {
     );
 
     it(
+      'should configure Vercel with a build command whose output is in outputDirectory',
+      () => {
+        run('pnpm exec nx g next-feature:vercel web --no-interactive');
+        const config = JSON.parse(read('apps/web/vercel.json'));
+        expect(config.framework).toBe('nextjs');
+        expect(config.ignoreCommand).toMatch(/npx -y nx-ignore@[\d.]+ web$/);
+        // Vercel runs the commands in the Root Directory (apps/web) and reads .next from outputDirectory
+        const appDirectory = join(projectDirectory, 'apps/web');
+        rmSync(join(projectDirectory, 'dist/apps/web'), { recursive: true, force: true });
+        execSync(config.buildCommand, { cwd: appDirectory, stdio: 'inherit', env: process.env });
+        expect(existsSync(join(appDirectory, config.outputDirectory, 'routes-manifest.json'))).toBe(true);
+      },
+      SLOW
+    );
+
+    it(
       'should containerize the application with a standalone build',
       () => {
         run('pnpm exec nx g next-feature:docker web --no-interactive');

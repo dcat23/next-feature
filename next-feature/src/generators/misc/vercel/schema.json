@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "Vercel",
+  "title": "Vercel",
+  "description": "Generates a vercel.json for a Next.js application in this workspace: install at the workspace root, nx build, Nx's output directory, and an ignore step that skips deployments when the application isn't affected.",
+  "type": "object",
+  "properties": {
+    "projectName": {
+      "type": "string",
+      "description": "Application to deploy.",
+      "alias": "p",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "Which application should get a vercel.json?"
+    },
+    "ignoreUnaffected": {
+      "type": "boolean",
+      "description": "Skip the deployment when the commit doesn't affect the application (ignoreCommand with nx-ignore).",
+      "default": true
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip formatting files.",
+      "default": false
+    }
+  },
+  "required": ["projectName"]
+}

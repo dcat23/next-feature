@@ -20,7 +20,6 @@
 
 ### ❤️ Thank You
 
-- Claude Opus 5.5
 - Devin Catuns
 
 ## 0.2.0 (2026-11-01)
@@ -32,7 +31,6 @@
 
 ### ❤️ Thank You
 
-- Claude Opus 5.5
 - Devin Catuns
 
 ## 0.2.0-beta.0 (2026-11-01)
@@ -70,7 +68,6 @@
 
 ### ❤️ Thank You
 
-- Claude Opus 5.5
 - Devin Catuns
 
 ## 0.1.4 (2026-10-31)
@@ -81,7 +78,6 @@
 
 ### ❤️ Thank You
 
-- Claude Opus 5.5
 - Devin Catuns
 
 ## 0.1.4-beta.1 (2026-10-21)
@@ -100,7 +96,6 @@
 
 ### ❤️ Thank You
 
-- Claude Opus 5.5
 - Devin Catuns
 
 ## 0.1.4-beta.0 (2026-10-20)
@@ -111,5 +106,4 @@
 
 ### ❤️ Thank You
 
-- Claude Opus 5.5
 - Devin Catuns

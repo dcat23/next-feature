@@ -75,6 +75,7 @@
     "changelog": {
       "workspaceChangelog": {
         "file": "{workspaceRoot}/CHANGELOG.md",
+        "renderer": "{workspaceRoot}/tools/release/changelog-renderer.ts",
         "createRelease": "github"
       },
       "projectChangelogs": false

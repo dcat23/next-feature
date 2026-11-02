@@ -17,6 +17,7 @@ export function normalizeApplicationGeneratorSchema(
   normalized.useSrc = Boolean(options.useSrc);
   normalized.skipLogging = Boolean(options.skipLogging);
   normalized.useAuth = Boolean(options.useAuth);
+  normalized.skipShadcn = Boolean(options.skipShadcn);
   normalized.sourceRoot = normalized.useSrc 
     ? path.join(normalized.projectRoot, "src")
     : normalized.projectRoot

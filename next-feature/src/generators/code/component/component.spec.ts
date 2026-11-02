@@ -3,7 +3,7 @@ import { Tree, logger, readProjectConfiguration } from '@nx/devkit';
 import { spawnSync } from 'child_process';
 import { componentGenerator } from './component';
 import { ComponentGeneratorSchema } from './schema';
-import { syncShadcnDependencies } from '../../../lib/utils/shadcn';
+import { ensureShadcnBase, SHADCN_CLI, syncShadcnDependencies } from '../../../lib/utils/shadcn';
 
 jest.mock('child_process', () => ({
   ...jest.requireActual('child_process'),
@@ -13,6 +13,7 @@ jest.mock('child_process', () => ({
 jest.mock('../../../lib/utils/shadcn', () => ({
   ...jest.requireActual('../../../lib/utils/shadcn'),
   syncShadcnDependencies: jest.fn(),
+  ensureShadcnBase: jest.fn(),
 }));
 
 describe('component generator', () => {
@@ -269,11 +270,30 @@ describe('component generator', () => {
   describe('ui componentType', () => {
     const mockedSpawnSync = spawnSync as jest.Mock;
     const mockedSyncShadcnDependencies = syncShadcnDependencies as jest.Mock;
+    const mockedEnsureShadcnBase = ensureShadcnBase as jest.Mock;
 
     beforeEach(() => {
       mockedSpawnSync.mockReset();
       mockedSpawnSync.mockReturnValue({ status: 0 });
       mockedSyncShadcnDependencies.mockReset();
+      mockedEnsureShadcnBase.mockReset();
+      mockedEnsureShadcnBase.mockReturnValue({ success: true });
+    });
+
+    it('installs the style base before adding the component', async () => {
+      const task = await componentGenerator(tree, { projectName: 'ui', name: 'Button', componentType: 'ui' });
+      await task();
+
+      expect(mockedEnsureShadcnBase).toHaveBeenCalledWith('features/ui');
+      expect(mockedEnsureShadcnBase.mock.invocationCallOrder[0]).toBeLessThan(mockedSpawnSync.mock.invocationCallOrder[0]);
+    });
+
+    it('does not add the component when the style base can\'t be installed', async () => {
+      mockedEnsureShadcnBase.mockReturnValue({ success: false });
+
+      const task = await componentGenerator(tree, { projectName: 'ui', name: 'Button', componentType: 'ui' });
+      expect(() => task()).toThrow('Failed to install the shadcn style base in features/ui');
+      expect(mockedSpawnSync).not.toHaveBeenCalled();
     });
 
     it('does not write a template file, and creates the ui project as type "ui" on demand', async () => {
@@ -290,7 +310,7 @@ describe('component generator', () => {
 
       expect(mockedSpawnSync).toHaveBeenCalledWith(
         'npx',
-        ['shadcn@latest', 'add', 'button', '--yes'],
+        [SHADCN_CLI, 'add', 'button', '--yes'],
         expect.objectContaining({ cwd: 'features/ui' })
       );
       expect(mockedSyncShadcnDependencies).toHaveBeenCalledWith(tree.root, 'features/ui');
@@ -311,7 +331,7 @@ describe('component generator', () => {
 
       expect(mockedSpawnSync).toHaveBeenCalledWith(
         'npx',
-        ['shadcn@latest', 'add', 'alert-dialog', '--yes'],
+        [SHADCN_CLI, 'add', 'alert-dialog', '--yes'],
         expect.anything()
       );
     });

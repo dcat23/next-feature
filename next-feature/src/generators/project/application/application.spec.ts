@@ -2,6 +2,12 @@ import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { Tree, readJson, readProjectConfiguration } from '@nx/devkit';
 import { applicationGenerator } from './application';
 import { ApplicationGeneratorSchema } from './schema';
+import { installShadcnBaseTask } from '../../../lib/utils/shadcn';
+
+jest.mock('../../../lib/utils/shadcn', () => ({
+  ...jest.requireActual('../../../lib/utils/shadcn'),
+  installShadcnBaseTask: jest.fn(() => jest.fn()),
+}));
 describe('application generator', () => {
   let tree: Tree;
   const options: ApplicationGeneratorSchema = { name: 'test' };
@@ -18,6 +24,47 @@ describe('application generator', () => {
     await applicationGenerator(tree, options);
     const config = readProjectConfiguration(tree, 'test');
     expect(config.targets?.shadcn?.executor).toBe('next-feature:shadcn');
+  });
+
+  describe('styles and shadcn', () => {
+    it('should not generate a CSS module or a Tailwind v3 config', async () => {
+      await applicationGenerator(tree, options);
+      expect(tree.exists('apps/test/app/page.module.css')).toBeFalsy();
+      expect(tree.exists('apps/test/tailwind.config.js')).toBeFalsy();
+      const postcss = tree.read('apps/test/postcss.config.js', 'utf-8');
+      expect(postcss).toContain("'@tailwindcss/postcss': {}");
+      expect(postcss).not.toContain('autoprefixer');
+    });
+
+    it('should @source the feature libraries from app/global.css', async () => {
+      await applicationGenerator(tree, options);
+      const css = tree.read('apps/test/app/global.css', 'utf-8');
+      expect(css).toContain("@import 'tailwindcss';");
+      expect(css).toContain('@source "../../../features";');
+    });
+
+    it('should point components.json at src/app/global.css with useSrc', async () => {
+      await applicationGenerator(tree, { name: 'test', useSrc: true });
+      expect(readJson(tree, 'apps/test/components.json').tailwind.css).toBe('src/app/global.css');
+      expect(tree.read('apps/test/src/app/global.css', 'utf-8')).toContain('@source "../../../../features";');
+    });
+
+    it('should point components.json at app/global.css without useSrc', async () => {
+      await applicationGenerator(tree, options);
+      expect(readJson(tree, 'apps/test/components.json').tailwind.css).toBe('app/global.css');
+    });
+
+    it('should install the shadcn style base after the install task', async () => {
+      (installShadcnBaseTask as jest.Mock).mockClear();
+      await applicationGenerator(tree, options);
+      expect(installShadcnBaseTask).toHaveBeenCalledWith(tree.root, 'apps/test', 'test');
+    });
+
+    it('should skip the style base with skipShadcn', async () => {
+      (installShadcnBaseTask as jest.Mock).mockClear();
+      await applicationGenerator(tree, { ...options, skipShadcn: true });
+      expect(installShadcnBaseTask).not.toHaveBeenCalled();
+    });
   });
 
   describe('proxy', () => {

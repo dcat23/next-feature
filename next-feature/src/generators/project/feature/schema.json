@@ -35,6 +35,11 @@
       "default": "generic",
       "alias": "t"
     },
+    "skipShadcn": {
+      "type": "boolean",
+      "description": "ui type only: skip installing the shadcn style base (shadcn add index: the packages components import, cn() and the theme CSS) after generation. It needs the network; without it, the shadcn target installs the base before the first add.",
+      "default": false
+    },
     "skipFormat": {
       "type": "boolean",
       "description": "Skip prettier code formatting (used internally for chained generators)",

@@ -33,6 +33,11 @@
       "description": "Skip Pino logging setup: by default, every app gets registerPino() wired into instrumentation.ts, a sibling '@next-feature/logging' library (via next-feature:feature --type=logging) created if missing, and pino/pino-http/pino-pretty marked as serverExternalPackages in next.config.js. Set this to opt out.",
       "default": false
     },
+    "skipShadcn": {
+      "type": "boolean",
+      "description": "Skip installing the shadcn style base (shadcn add index: the packages components import, cn() and the theme CSS in app/global.css) after generation. It needs the network; without it, the shadcn target installs the base before the first add.",
+      "default": false
+    },
     "orgName": {
       "type": "string",
       "description": "Organization name for scoped import paths (e.g., @myorg creates @myorg/[name] path alias)",

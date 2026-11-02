@@ -11,7 +11,7 @@ import { initializeProjectGenerator, updateDependencies } from '../../../lib/uti
 import { externalizeDeclaredDependencies, preserveUseClientBoundaries } from '../../../lib/utils/vite-config';
 import { FeatureGeneratorSchema } from './schema';
 import { asApiKeyName, asCaretRange, includeSourceInReleaseManifests, updatePackageJsonDependencies, updatePackageJsonExports } from './utils';
-import { addShadcnTarget } from '../../../lib/utils/shadcn';
+import { addShadcnTarget, installShadcnBaseTask } from '../../../lib/utils/shadcn';
 import { normalizeFeatureGenerator } from './utils/normalize';
 import { LOGGING, OPTIONAL_ENV_SCHEMA } from '../../../lib/dotenv/constants/defaults';
 
@@ -120,8 +120,9 @@ export async function featureGenerator(
       extraExternals.push('next', 'node:async_hooks');
       break;
     case 'ui':
-      // shadcn init/add installs the packages its components need into this
-      // project's package.json, which keeps them external automatically
+      // shadcn add installs the packages its components need into this
+      // project's package.json, which keeps them external automatically.
+      // The style base is installed after the install task (below).
       addShadcnTarget(tree, projectRoot);
       break;
   }
@@ -169,6 +170,12 @@ export async function featureGenerator(
   tree.delete(path.join(sourceRoot, "lib", "hello-server.tsx"));
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
+
+  // After the install: shadcn add index installs the style base (packages,
+  // cn() at the utils alias, theme CSS) using the generated components.json
+  if (type === 'ui' && !normalizedOptions.skipShadcn) {
+    tasks.push(installShadcnBaseTask(tree.root, projectRoot, normalizedOptions.name));
+  }
 
   return runTasksInSerial(...tasks);
 }

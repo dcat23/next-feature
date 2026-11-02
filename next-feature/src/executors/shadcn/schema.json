@@ -2,18 +2,18 @@
   "$schema": "https://json-schema.org/schema",
   "version": 2,
   "title": "Shadcn",
-  "description": "Runs the shadcn CLI (npx shadcn@latest <action> [--preset=<preset>] [args]) against this project's root, where components.json lives.",
+  "description": "Runs the shadcn CLI (npx shadcn@<major> <action> [--preset=<preset>] [args]) against this project's root, where components.json lives. Installs the style base (shadcn add index) before the first add.",
   "cli": "nx",
   "type": "object",
   "properties": {
     "action": {
       "type": "string",
-      "description": "shadcn CLI command to run. Defaults to \"add\" (not set as a schema default, so legacy args like \"add button\" can be detected).",
+      "description": "shadcn CLI command to run. Defaults to \"add\" (not set as a schema default, so legacy args like \"add button\" can be detected). \"init\" installs the style base into the existing components.json (shadcn add index --yes) instead of running shadcn init, which would overwrite it; pass args=\"init --force\" for a real init.",
       "enum": ["add", "init", "apply"]
     },
     "preset": {
       "type": "string",
-      "description": "Preset passed as --preset=<preset>. Only supported with the \"init\" or \"apply\" action."
+      "description": "Preset passed as --preset=<preset>. Only supported with the \"apply\" action (and a real init via args)."
     },
     "args": {
       "type": "string",

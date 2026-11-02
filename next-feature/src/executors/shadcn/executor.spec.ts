@@ -1,7 +1,7 @@
 import type { ExecutorContext } from '@nx/devkit';
 import { spawnSync } from 'child_process';
 import runExecutor from './executor';
-import { syncShadcnDependencies } from '../../lib/utils/shadcn';
+import { ensureShadcnBase, SHADCN_CLI, syncShadcnDependencies } from '../../lib/utils/shadcn';
 
 jest.mock('child_process', () => ({
   ...jest.requireActual('child_process'),
@@ -11,11 +11,13 @@ jest.mock('child_process', () => ({
 jest.mock('../../lib/utils/shadcn', () => ({
   ...jest.requireActual('../../lib/utils/shadcn'),
   syncShadcnDependencies: jest.fn(),
+  ensureShadcnBase: jest.fn(),
 }));
 
 describe('shadcn executor', () => {
   const mockedSpawnSync = spawnSync as jest.Mock;
   const mockedSyncShadcnDependencies = syncShadcnDependencies as jest.Mock;
+  const mockedEnsureShadcnBase = ensureShadcnBase as jest.Mock;
 
   const context: ExecutorContext = {
     root: '/workspace',
@@ -36,14 +38,70 @@ describe('shadcn executor', () => {
     mockedSpawnSync.mockReset();
     mockedSpawnSync.mockReturnValue({ status: 0 });
     mockedSyncShadcnDependencies.mockReset();
+    mockedEnsureShadcnBase.mockReset();
+    mockedEnsureShadcnBase.mockReturnValue({ success: true });
   });
 
-  it('runs npx shadcn@latest with the given args in the project root, then syncs dependencies to the root', async () => {
+  describe('style base', () => {
+    it('installs the style base before adding components', async () => {
+      await runExecutor({ args: 'button' }, context);
+
+      expect(mockedEnsureShadcnBase).toHaveBeenCalledWith('/workspace/features/ui');
+      expect(mockedEnsureShadcnBase.mock.invocationCallOrder[0]).toBeLessThan(mockedSpawnSync.mock.invocationCallOrder[0]);
+    });
+
+    it('installs it for legacy "add ..." args too', async () => {
+      await runExecutor({ args: 'add button' }, context);
+      expect(mockedEnsureShadcnBase).toHaveBeenCalled();
+    });
+
+    it('fails without adding when the base can\'t be installed', async () => {
+      mockedEnsureShadcnBase.mockReturnValue({ success: false });
+
+      const result = await runExecutor({ args: 'button' }, context);
+
+      expect(result.success).toBe(false);
+      expect(mockedSpawnSync).not.toHaveBeenCalled();
+    });
+
+    it('does not check the base for other commands', async () => {
+      await runExecutor({ args: 'diff' }, context);
+      expect(mockedEnsureShadcnBase).not.toHaveBeenCalled();
+    });
+
+    it('maps the init action to adding the style base, keeping components.json', async () => {
+      const result = await runExecutor({ action: 'init' }, context);
+
+      expect(result.success).toBe(true);
+      expect(mockedSpawnSync).toHaveBeenCalledWith(
+        'npx',
+        [SHADCN_CLI, 'add', 'index', '--yes'],
+        expect.objectContaining({ cwd: '/workspace/features/ui' })
+      );
+      expect(mockedSyncShadcnDependencies).toHaveBeenCalledWith('/workspace', 'features/ui');
+    });
+
+    it('rejects a preset with the init action, pointing at apply', async () => {
+      const result = await runExecutor({ action: 'init', preset: 'nova' }, context);
+
+      expect(result.success).toBe(false);
+      expect(mockedSpawnSync).not.toHaveBeenCalled();
+    });
+
+    it('still passes a real init through as legacy args', async () => {
+      await runExecutor({ args: 'init --force' }, context);
+
+      expect(mockedSpawnSync).toHaveBeenCalledWith('npx', [SHADCN_CLI, 'init', '--force'], expect.anything());
+      expect(mockedEnsureShadcnBase).not.toHaveBeenCalled();
+    });
+  });
+
+  it('runs the shadcn CLI with the given args in the project root, then syncs dependencies to the root', async () => {
     const result = await runExecutor({ args: 'add button' }, context);
 
     expect(mockedSpawnSync).toHaveBeenCalledWith(
       'npx',
-      ['shadcn@latest', 'add', 'button'],
+      [SHADCN_CLI, 'add', 'button'],
       expect.objectContaining({ cwd: '/workspace/features/ui' })
     );
     expect(result.success).toBe(true);
@@ -55,7 +113,7 @@ describe('shadcn executor', () => {
 
     expect(mockedSpawnSync).toHaveBeenCalledWith(
       'npx',
-      ['shadcn@latest', 'add'],
+      [SHADCN_CLI, 'add'],
       expect.anything()
     );
   });
@@ -74,7 +132,7 @@ describe('shadcn executor', () => {
 
     expect(mockedSpawnSync).toHaveBeenCalledWith(
       'npx',
-      ['shadcn@latest', 'add', 'button', 'card'],
+      [SHADCN_CLI, 'add', 'button', 'card'],
       expect.anything()
     );
   });
@@ -84,7 +142,7 @@ describe('shadcn executor', () => {
 
     expect(mockedSpawnSync).toHaveBeenCalledWith(
       'npx',
-      ['shadcn@latest', 'add', 'button'],
+      [SHADCN_CLI, 'add', 'button'],
       expect.anything()
     );
   });
@@ -94,27 +152,27 @@ describe('shadcn executor', () => {
 
     expect(mockedSpawnSync).toHaveBeenCalledWith(
       'npx',
-      ['shadcn@latest', 'diff'],
+      [SHADCN_CLI, 'diff'],
       expect.anything()
     );
   });
 
-  it.each(['init', 'apply'] as const)('appends --preset to the %s action', async (action) => {
-    await runExecutor({ action, preset: 'nova', args: '--yes' }, context);
+  it('appends --preset to the apply action', async () => {
+    await runExecutor({ action: 'apply', preset: 'nova', args: '--yes' }, context);
 
     expect(mockedSpawnSync).toHaveBeenCalledWith(
       'npx',
-      ['shadcn@latest', action, '--preset=nova', '--yes'],
+      [SHADCN_CLI, 'apply', '--preset=nova', '--yes'],
       expect.anything()
     );
   });
 
   it('omits --preset when preset is empty', async () => {
-    await runExecutor({ action: 'init', preset: '' }, context);
+    await runExecutor({ action: 'apply', preset: '' }, context);
 
     expect(mockedSpawnSync).toHaveBeenCalledWith(
       'npx',
-      ['shadcn@latest', 'init'],
+      [SHADCN_CLI, 'apply'],
       expect.anything()
     );
   });

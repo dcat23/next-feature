@@ -120,16 +120,19 @@ describe('next-feature', () => {
   });
 
   describe('ui feature', () => {
-    // Skipped until #35: `shadcn add` without `init` installs the unrelated
-    // `cn` package and not the component's dependencies, and `init` prompts to
-    // overwrite the generated components.json, so neither runs in CI
-    it.skip(
+    it(
       'should keep the packages shadcn installs external and declared',
       () => {
+        // the generator installs the style base (shadcn add index), keeping components.json
         run('pnpm exec nx g next-feature:feature ui --type=ui --no-interactive');
         expect(read('features/ui/vite.config.mts')).toContain('external: isExternal');
+        expect(readJson('features/ui/components.json').aliases.utils).toBe('@feature/ui/lib/ui/utils');
+        expect(read('features/ui/src/styles/globals.css')).toContain('shadcn/tailwind.css');
+        expect(read('features/ui/src/lib/ui/utils.ts')).toContain('cn');
 
         run('pnpm exec nx run ui:shadcn --args="button --yes"');
+        // dist/ only holds what the entry points reach
+        writeFileSync(join(projectDirectory, 'features/ui/src/index.ts'), "export * from './components/ui/common/button';\n");
         run('pnpm exec nx build ui');
 
         const declared = (() => {
@@ -141,7 +144,8 @@ describe('next-feature', () => {
           (id) => !declared.some((name) => id === name || id.startsWith(`${name}/`))
         );
 
-        // shadcn installed something for the button, and none of it was bundled
+        // shadcn installed the style base for the button, and none of it was bundled
+        expect(declared).toEqual(expect.arrayContaining(['class-variance-authority', 'cn', 'radix-ui']));
         expect(declared.length).toBeGreaterThan(4);
         expect(imports.length).toBeGreaterThan(0);
         expect(undeclared).toEqual([]);
@@ -166,6 +170,11 @@ describe('next-feature', () => {
         // the server-component root layout renders the package's client
         // component: only builds if 'use client' survived the library build
         expect(read('apps/web/app/layout.tsx')).toContain('<GlobalErrorHandler />');
+        // Tailwind v4 in CSS, with the shadcn style base installed and the features @source'd
+        expect(existsSync(join(projectDirectory, 'apps/web/tailwind.config.js'))).toBe(false);
+        expect(read('apps/web/app/global.css')).toContain('@source "../../../features";');
+        expect(read('apps/web/app/global.css')).toContain('shadcn/tailwind.css');
+        expect(readJson('apps/web/components.json').aliases.utils).toBe('@app/web/lib/ui/utils');
         expect(read('node_modules/@next-feature/logging/components/global-error-handler.js')).toMatch(/^["']use client["'];/);
         expect(read('node_modules/@next-feature/client/hooks/use-api-error.js')).toMatch(/^["']use client["'];/);
 

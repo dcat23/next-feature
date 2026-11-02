@@ -15,3 +15,9 @@ export const NEXT_THEMES_VERSION = "^0.4.0";
 export const SERVER_ONLY_VERSION = "^0.0.1";
 /** React range published feature libraries declare as a peer dependency */
 export const REACT_PEER_VERSION = "^19.0.0";
+/**
+ * shadcn CLI version run by the shadcn executor and generators (`npx shadcn@<version>`).
+ * Pinned exactly: minors change the CLI's behaviour and output (e.g. the `cn` package).
+ * Registry content is fetched live regardless; bump deliberately and run the e2e.
+ */
+export const SHADCN_CLI_VERSION = "4.23.0";

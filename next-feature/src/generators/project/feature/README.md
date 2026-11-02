@@ -10,7 +10,7 @@ Feature libraries are domain-scoped code modules (users, products, auth) created
 - **`logging`** — Adds pino-based server + browser logging with correlation ID support
 - **`client`** — Adds a reusable API client (Axios wrapper, `ApiError`, hooks, error boundary)
 - **`auth`** — Adds a NextAuth.js configuration with credential + OAuth providers, token refresh and a server-only `getAccessToken()`
-- **`ui`** — Adds a shadcn-ready component library (`components.json`, `cn()` util, Tailwind entry) plus a `shadcn` target for pulling in components
+- **`ui`** — Adds a shadcn component library (`components.json`, Tailwind entry, the style base installed with `shadcn add index`) plus a `shadcn` target for pulling in components
 
 Type is inferred automatically from the feature name: `--name=logging` sets `type=logging`, `--name=client` sets `type=client`, `--name=auth` sets `type=auth`, `--name=ui` sets `type=ui`.
 
@@ -275,16 +275,20 @@ features/[name]/
 
 Unlike the other types, `components.json` is generated at the **project root**, not under `src/` — the shadcn CLI expects it next to `package.json`.
 
-No component dependencies are added up front: `shadcn init` writes the `cn()` helper and installs `clsx`/`tailwind-merge`, and `shadcn add` installs whatever each component needs (e.g. `class-variance-authority`, `lucide-react`). They're installed into this project's own `package.json`, and every feature's `vite.config.mts` externalizes whatever its `package.json` declares, so they're published as dependencies instead of being bundled into `dist/`. The `shadcn` target also mirrors them into the workspace root and, for projects generated before 0.2.0, converts the old static `external: [...]` list.
+After installing dependencies, the generator installs the style base with `shadcn add index` (the style's `registry:style` item): the packages every component of the style imports but doesn't declare (`class-variance-authority`, `cn`, `lucide-react`, `radix-ui`, plus `tw-animate-css`), the `cn()` helper at the `utils` alias (`export { cn } from "cn"`; `cn` is shadcn's own clsx + tailwind-merge replacement) and the theme in `src/styles/globals.css`. Unlike `shadcn init`, it keeps the generated `components.json`. It needs the network: `--skipShadcn` skips it, and the `shadcn` target (or `component --componentType=ui`) installs it before the first `add`, which also fixes `ui` features generated before 0.2.2. `shadcn add` then installs whatever each component needs. Everything is installed into this project's own `package.json`, and every feature's `vite.config.mts` externalizes whatever its `package.json` declares, so they're published as dependencies instead of being bundled into `dist/`. The `shadcn` target also mirrors them into the workspace root and, for projects generated before 0.2.0, converts the old static `external: [...]` list.
 
 A `shadcn` target is also registered on the project so components can be pulled in later:
 
 ```bash
-npx nx run ui:shadcn --args="add button"
-npx nx run ui:shadcn --args="add button card dialog"
+npx nx run ui:shadcn --args="button"
+npx nx run ui:shadcn --args="button card dialog"
+npx nx run ui:shadcn --action=init                         # (re)install the style base
+npx nx run ui:shadcn --action=apply --preset=<preset>      # change the style
 ```
 
-This runs `npx shadcn@latest <args>` in the project's root, where `components.json` resolves the `utils`/`ui`/`hooks` aliases to this feature's own `src/`. No components are pre-generated — this type only scaffolds the plumbing.
+This runs `npx shadcn@4.23.0 <args>` (pinned in `SHADCN_CLI_VERSION`: registry content is fetched live, but the CLI's behaviour changes between minors) in the project's root, where `components.json` resolves the `utils`/`ui`/`hooks` aliases to this feature's own `src/`. No components are pre-generated. `--action=init` installs the style base rather than running `shadcn init`, which prompts to overwrite `components.json` and, when forced, takes its aliases from the first tsconfig path (another project in an Nx workspace). A real init is still `--args="init --force"`.
+
+The app that renders these components compiles their Tailwind classes: the application generator's `app/global.css` `@source`s `features/` for that.
 
 ### `generic` type
 
@@ -306,7 +310,6 @@ features/[name]/
 │   └── server.ts               # server exports
 ├── .eslintrc.json
 ├── jest.config.ts
-├── tailwind.config.js
 ├── tsconfig.json
 ├── package.json
 └── project.json

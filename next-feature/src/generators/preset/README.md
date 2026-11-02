@@ -90,7 +90,7 @@ apps/[name]/
 │   └── styles/                # CSS modules and styles
 ├── .env.local                 # Local environment variables
 ├── next.config.js             # Next.js configuration
-├── tailwind.config.js         # TailwindCSS configuration
+├── postcss.config.js          # @tailwindcss/postcss (Tailwind v4, configured in app/global.css)
 ├── tsconfig.json              # TypeScript configuration
 ├── package.json               # Project dependencies
 └── project.json               # Nx project configuration
@@ -244,7 +244,7 @@ npx nx g next-feature:application --name=web --useAuth=true
 Update configuration files as needed:
 
 - **`next.config.js`** - Next.js configuration options
-- **`tailwind.config.js`** - Styling theme and plugins
+- **`app/global.css`** - Tailwind CSS v4 configuration and the shadcn theme
 - **`.env.local`** - Environment variables
 - **`tsconfig.json`** - TypeScript compiler options
 
@@ -261,12 +261,7 @@ cat tsconfig.base.json | grep -A 5 '"paths"'
 
 ### Issue: Styles not applying
 
-**Solution:** Verify TailwindCSS setup:
-
-```bash
-# Check tailwind.config.js content paths
-cat tailwind.config.js | grep -A 3 'content:'
-```
+**Solution:** Tailwind CSS v4 is configured in `app/global.css` (there's no `tailwind.config.js`). Check that it imports `tailwindcss`, that its `@source` covers the directories whose components use the classes (feature libraries are under `features/`), and that the shadcn theme is installed (`@import "shadcn/tailwind.css"`; otherwise run `npx nx run <app>:shadcn --action=init`).
 
 ### Issue: Path not found for preset
 

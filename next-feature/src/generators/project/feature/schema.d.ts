@@ -10,6 +10,8 @@ export interface FeatureGeneratorSchema extends ProjectGeneratorSchema {
   directory?: "features" | string;
   orgName?: "feature" | string;
   type?: FeatureType;
+  /** ui type: skip installing the shadcn style base after generation */
+  skipShadcn?: boolean;
 }
 
 export interface NormalizedFeatureGeneratorSchema extends NormalizedProjectGeneratorSchema<FeatureGeneratorSchema> {

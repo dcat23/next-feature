@@ -4,6 +4,12 @@ import { Tree, readProjectConfiguration, readJson } from '@nx/devkit';
 import { featureGenerator } from './feature';
 import { FeatureGeneratorSchema } from './schema';
 import { normalizeFeatureGenerator } from './utils/normalize';
+import { installShadcnBaseTask } from '../../../lib/utils/shadcn';
+
+jest.mock('../../../lib/utils/shadcn', () => ({
+  ...jest.requireActual('../../../lib/utils/shadcn'),
+  installShadcnBaseTask: jest.fn(() => jest.fn()),
+}));
 
 describe('feature generator', () => {
   let tree: Tree;
@@ -577,7 +583,25 @@ describe('feature generator', () => {
       expect(componentsJson.tailwind.css).toBe('src/styles/globals.css');
     });
 
-    // shadcn init writes the cn() utility to the `utils` alias itself
+    it('should install the shadcn style base after the install task', async () => {
+      (installShadcnBaseTask as jest.Mock).mockClear();
+      await featureGenerator(tree, options);
+      expect(installShadcnBaseTask).toHaveBeenCalledWith(tree.root, 'features/ui', 'ui');
+    });
+
+    it('should skip the style base with skipShadcn', async () => {
+      (installShadcnBaseTask as jest.Mock).mockClear();
+      await featureGenerator(tree, { ...options, skipShadcn: true });
+      expect(installShadcnBaseTask).not.toHaveBeenCalled();
+    });
+
+    it('should not install the style base for other feature types', async () => {
+      (installShadcnBaseTask as jest.Mock).mockClear();
+      await featureGenerator(tree, { name: 'users', skipFormat: true });
+      expect(installShadcnBaseTask).not.toHaveBeenCalled();
+    });
+
+    // shadcn add index writes the cn() utility to the `utils` alias itself
     it('should not generate the cn() utility', async () => {
       await featureGenerator(tree, options);
       expect(tree.exists('features/ui/src/lib/ui/utils/index.ts')).toBeFalsy();
@@ -595,7 +619,7 @@ describe('feature generator', () => {
       expect(tree.exists('features/ui/src/lib/client.ts')).toBeFalsy();
     });
 
-    // shadcn init/add installs these alongside the files that need them
+    // shadcn add (index, then components) installs these into the feature's package.json
     it('should not add shadcn component dependencies', async () => {
       await featureGenerator(tree, options);
       const packageJson = readJson(tree, 'package.json');

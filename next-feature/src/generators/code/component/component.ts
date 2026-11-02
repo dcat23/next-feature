@@ -4,7 +4,7 @@ import type { NormalizedComponentGeneratorSchema } from './schema';
 import { ComponentGeneratorSchema } from './schema';
 import { handleExportPath, initializeCodeGenerator, normalizeCodeGenerator } from '../../../lib/utils/code-generator';
 import { exportFile } from '../../../lib/export-file';
-import { runShadcnCli, syncShadcnDependencies } from '../../../lib/utils/shadcn';
+import { ensureShadcnBase, runShadcnCli, syncShadcnDependencies } from '../../../lib/utils/shadcn';
 import { handleComponentPackage } from './lib/utils';
 
 const KINDS_BY_TYPE: Record<ComponentGeneratorSchema['componentType'], string[]> = {
@@ -75,6 +75,10 @@ export async function componentGenerator(
     }
 
     return () => {
+      // Components import their style's base packages without declaring them
+      if (!ensureShadcnBase(projectRoot).success) {
+        throw new Error(`Failed to install the shadcn style base in ${projectRoot}`);
+      }
       const { success } = runShadcnCli(projectRoot, `add ${slug} --yes`);
       if (!success) {
         throw new Error(`Failed to add shadcn component "${slug}"`);

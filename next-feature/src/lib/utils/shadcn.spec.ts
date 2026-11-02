@@ -1,7 +1,14 @@
 import { detectPackageManager, getPackageManagerCommand } from '@nx/devkit';
 import { execSync, spawnSync } from 'child_process';
-import { readFileSync, writeFileSync } from 'fs';
-import { runShadcnCli, syncShadcnDependencies } from './shadcn';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
+import {
+  ensureShadcnBase,
+  installShadcnBaseTask,
+  isShadcnBaseInstalled,
+  runShadcnCli,
+  SHADCN_CLI,
+  syncShadcnDependencies,
+} from './shadcn';
 import { externalizeDeclaredDependenciesOnDisk } from './vite-config';
 
 jest.mock('child_process', () => ({
@@ -10,6 +17,7 @@ jest.mock('child_process', () => ({
 }));
 
 jest.mock('fs', () => ({
+  existsSync: jest.fn(),
   readFileSync: jest.fn(),
   writeFileSync: jest.fn(),
 }));
@@ -17,7 +25,7 @@ jest.mock('fs', () => ({
 jest.mock('@nx/devkit', () => ({
   detectPackageManager: jest.fn(),
   getPackageManagerCommand: jest.fn(),
-  logger: { info: jest.fn() },
+  logger: { info: jest.fn(), warn: jest.fn() },
 }));
 
 jest.mock('./vite-config', () => ({
@@ -32,12 +40,14 @@ describe('runShadcnCli', () => {
     mockedSpawnSync.mockReturnValue({ status: 0 });
   });
 
-  it('runs npx shadcn@latest with the parsed args in the given cwd', () => {
+  it('runs the pinned shadcn CLI version with the parsed args in the given cwd', () => {
+    expect(SHADCN_CLI).toBe('shadcn@4.23.0');
+
     const result = runShadcnCli('/workspace/features/ui', 'add button');
 
     expect(mockedSpawnSync).toHaveBeenCalledWith(
       'npx',
-      ['shadcn@latest', 'add', 'button'],
+      [SHADCN_CLI, 'add', 'button'],
       expect.objectContaining({ cwd: '/workspace/features/ui' })
     );
     expect(result.success).toBe(true);
@@ -48,7 +58,7 @@ describe('runShadcnCli', () => {
 
     expect(mockedSpawnSync).toHaveBeenCalledWith(
       'npx',
-      ['shadcn@latest', 'add', 'button', 'card'],
+      [SHADCN_CLI, 'add', 'button', 'card'],
       expect.anything()
     );
   });
@@ -148,5 +158,89 @@ describe('syncShadcnDependencies', () => {
       '/workspace/package.json',
       expect.stringContaining('"tw-animate-css": "^1.3.0"')
     );
+  });
+});
+
+describe('style base', () => {
+  const mockedSpawnSync = spawnSync as jest.Mock;
+  const mockedExistsSync = existsSync as jest.Mock;
+  const mockedReadFileSync = readFileSync as jest.Mock;
+  const projectDir = '/workspace/apps/web';
+
+  /** components.json pointing at app/global.css (null = no components.json), with the given CSS (undefined = missing file) */
+  function givenProject(css: string | undefined, componentsJson: object | null = { tailwind: { css: 'app/global.css' } }) {
+    mockedExistsSync.mockImplementation((p: string) =>
+      p.endsWith('components.json') ? componentsJson !== null : p.endsWith('global.css') && css !== undefined
+    );
+    mockedReadFileSync.mockImplementation((p: string) =>
+      p.endsWith('components.json') ? JSON.stringify(componentsJson) : css
+    );
+  }
+
+  beforeEach(() => {
+    mockedSpawnSync.mockReset();
+    mockedSpawnSync.mockReturnValue({ status: 0 });
+    mockedExistsSync.mockReset();
+    mockedReadFileSync.mockReset();
+  });
+
+  describe('isShadcnBaseInstalled', () => {
+    it('is false while the Tailwind CSS file only imports tailwindcss', () => {
+      givenProject("@import 'tailwindcss';\n@source \"../../../features\";");
+      expect(isShadcnBaseInstalled(projectDir)).toBe(false);
+    });
+
+    it.each(['@import "shadcn/tailwind.css";', '@import "tw-animate-css";'])('is true once the CSS has %s', (line) => {
+      givenProject(`@import 'tailwindcss';\n${line}`);
+      expect(isShadcnBaseInstalled(projectDir)).toBe(true);
+    });
+
+    it('is false when the CSS file is missing', () => {
+      givenProject(undefined);
+      expect(isShadcnBaseInstalled(projectDir)).toBe(false);
+    });
+
+    it('treats projects without components.json as having nothing to install', () => {
+      givenProject("@import 'tailwindcss';", null);
+      expect(isShadcnBaseInstalled(projectDir)).toBe(true);
+    });
+  });
+
+  describe('ensureShadcnBase', () => {
+    it('runs shadcn add index --yes when the base is missing', () => {
+      givenProject("@import 'tailwindcss';");
+      expect(ensureShadcnBase(projectDir)).toEqual({ success: true });
+      expect(mockedSpawnSync).toHaveBeenCalledWith(
+        'npx',
+        [SHADCN_CLI, 'add', 'index', '--yes'],
+        expect.objectContaining({ cwd: projectDir })
+      );
+    });
+
+    it('does nothing when the base is installed', () => {
+      givenProject('@import "shadcn/tailwind.css";');
+      expect(ensureShadcnBase(projectDir)).toEqual({ success: true });
+      expect(mockedSpawnSync).not.toHaveBeenCalled();
+    });
+
+    it('never runs shadcn init, which would rewrite components.json', () => {
+      givenProject("@import 'tailwindcss';");
+      ensureShadcnBase(projectDir);
+      expect(mockedSpawnSync.mock.calls[0][1]).not.toContain('init');
+    });
+  });
+
+  describe('installShadcnBaseTask', () => {
+    const mockedReadForSync = readFileSync as jest.Mock;
+
+    it('only warns when the base install fails (e.g. offline)', async () => {
+      const { logger } = jest.requireMock('@nx/devkit');
+      givenProject("@import 'tailwindcss';");
+      mockedSpawnSync.mockReturnValue({ status: 1 });
+
+      expect(() => installShadcnBaseTask('/workspace', 'apps/web', 'web')()).not.toThrow();
+      expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('npx nx run web:shadcn --action=init'));
+      expect(mockedReadForSync).not.toHaveBeenCalledWith(expect.stringContaining('package.json'), 'utf-8');
+    });
   });
 });

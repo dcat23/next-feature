@@ -14,7 +14,8 @@ describe('preset generator', () => {
   it('should generate root workspace files', async () => {
     await presetGenerator(tree, options);
     expect(tree.read('README.md', 'utf-8')).toContain('# test');
-    expect(tree.exists('tailwind.base.config.js')).toBeTruthy();
+    // Tailwind CSS v4 is configured in each app's CSS
+    expect(tree.exists('tailwind.base.config.js')).toBeFalsy();
   });
   it('should gitignore env files except .env.example', async () => {
     await presetGenerator(tree, options);

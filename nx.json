@@ -139,7 +139,7 @@
     },
     "@nx/next": {
       "application": {
-        "style": "tailwind",
+        "style": "none",
         "linter": "eslint"
       }
     }

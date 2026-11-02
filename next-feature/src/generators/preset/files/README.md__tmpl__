@@ -74,7 +74,8 @@ apps/<%= name %>/
 ├── .env.example                   # Environment variables template
 ├── .env.local                     # Environment variables (gitignored)
 ├── next.config.js                 # Next.js configuration
-├── tailwind.config.js             # TailwindCSS configuration
+├── postcss.config.js              # @tailwindcss/postcss (Tailwind CSS v4, configured in CSS)
+├── components.json                # shadcn config (aliases point at this app)
 ├── tsconfig.json                  # TypeScript configuration
 ├── jest.config.ts                 # Jest testing configuration
 ├── package.json                   # Dependencies and scripts
@@ -304,22 +305,14 @@ Paths are configured in `tsconfig.json`:
 }
 ```
 
-### TailwindCSS
+### Tailwind CSS and shadcn
 
-Customize styling in `tailwind.config.js`:
+Tailwind CSS v4 is configured in CSS, not a `tailwind.config.js`: `app/global.css` imports Tailwind, `@source`s the feature libraries so their classes are generated, and holds the shadcn theme (`@theme inline`, `:root`/`.dark` variables). Change colours and radius there.
 
-```javascript
-module.exports = {
-  content: ["./src/**/*.{js,ts,jsx,tsx}"],
-  theme: {
-    extend: {
-      colors: {
-        primary: '#...',
-        secondary: '#...'
-      }
-    }
-  }
-}
+The application generator installs the shadcn style base into it (`shadcn add index`); add components with:
+
+```bash
+npx nx run <%= name %>:shadcn --args="button"
 ```
 
 ## 📈 Logging
@@ -478,16 +471,7 @@ Then verify `tsconfig.json` paths configuration.
 
 ### Issue: Styles not applying
 
-**Solution:** Ensure Tailwind is configured correctly:
-
-```bash
-cat tailwind.config.js | grep -A 3 'content:'
-```
-
-Should include:
-```javascript
-content: ["./src/**/*.{js,ts,jsx,tsx}"]
-```
+**Solution:** Check `app/global.css`: it imports `tailwindcss`, its `@source` covers the directories whose components use the classes (feature libraries are under `features/`), and the shadcn theme is installed (`@import "shadcn/tailwind.css"`; otherwise run `npx nx run <app>:shadcn --action=init`).
 
 ### Issue: API calls failing
 

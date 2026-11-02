@@ -1,1 +1,4 @@
 @import 'tailwindcss';
+
+/* Classes used by feature libraries' components (e.g. a ui feature's shadcn components) */
+@source "<%= workspaceOffset %>features";

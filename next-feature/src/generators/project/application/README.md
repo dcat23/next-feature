@@ -142,13 +142,13 @@ apps/[name]/
 │   │   ├── constants/             # Constants and enums
 │   │   └── utils/                 # Utility functions
 │   ├── public/                    # Static assets
-│   └── styles/                    # CSS modules
 ├── .env.local                     # Environment variables
 ├── .env.example                   # Environment template
 ├── .eslintrc.json
+├── components.json                # shadcn config (aliases point at this app)
 ├── jest.config.ts
 ├── next.config.js
-├── tailwind.config.js
+├── postcss.config.js              # @tailwindcss/postcss (Tailwind v4, configured in app/global.css)
 ├── tsconfig.json
 ├── package.json
 └── project.json                   # Nx project configuration
@@ -391,6 +391,18 @@ mkdir users
 touch users/route.ts
 ```
 
+### Styles and shadcn
+
+Tailwind CSS v4 is configured in CSS: `app/global.css` (`src/app/global.css` with `useSrc`) imports `tailwindcss` and `@source`s `features/`, so classes used only by feature libraries' components (e.g. a `ui` feature's shadcn components) are generated too. There's no `tailwind.config.js` and no CSS module; `postcss.config.js` only loads `@tailwindcss/postcss`.
+
+`components.json` points shadcn at this app (aliases under the app's import path, CSS in `app/global.css`). After installing dependencies, the generator installs the style base with `shadcn add index`: the packages every component imports (`class-variance-authority`, `cn`, `lucide-react`, `radix-ui`, plus `tw-animate-css`), `cn()` at the `utils` alias and the theme in `app/global.css`. It needs the network; `--skipShadcn` skips it, and the `shadcn` target installs it before the first `add`. Then:
+
+```bash
+npx nx run [name]:shadcn --args="button"
+```
+
+Avoid `shadcn init` (`--args="init --force"`): it rewrites `components.json`, and in an Nx workspace its aliases come from the first tsconfig path, i.e. possibly another project. Change the style with `--action=apply --preset=<preset>`.
+
 ### Proxy
 
 Every app gets a `proxy.ts` (Next.js 16's renamed middleware) next to `instrumentation.ts`. Its matcher runs it for all API routes and every page, skipping Next.js internals (`_next`) and static files unless they appear in the search params:
@@ -583,11 +595,7 @@ npx nx build [name]
 
 ### Issue: Styles not applying
 
-**Solution:** Ensure Tailwind is configured:
-
-```bash
-cat tailwind.config.js | grep content
-```
+**Solution:** Tailwind CSS v4 is configured in `app/global.css` (there's no `tailwind.config.js`). Check that it imports `tailwindcss`, that its `@source` covers the directories whose components use the classes (feature libraries are under `features/`), and that the shadcn theme is installed (`@import "shadcn/tailwind.css"`; otherwise run `npx nx run <app>:shadcn --action=init`).
 
 ### Issue: Environment variables not loaded
 

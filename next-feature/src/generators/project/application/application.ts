@@ -1,6 +1,8 @@
 import {
   generateFiles,
   type GeneratorCallback,
+  joinPathFragments,
+  offsetFromRoot,
   readProjectConfiguration,
   runTasksInSerial,
   Tree,
@@ -24,7 +26,7 @@ import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
 import { updateDependencies } from '../../../lib/utils';
 import { addServerExternalPackages } from '../../../lib/utils/next-config';
-import { addShadcnTarget } from '../../../lib/utils/shadcn';
+import { addShadcnTarget, installShadcnBaseTask } from '../../../lib/utils/shadcn';
 import featureGenerator from '../feature/feature';
 import { ApplicationGeneratorSchema } from './schema';
 import { generateSecret } from './utils';
@@ -43,7 +45,7 @@ export async function applicationGenerator(
     await nextApplicationGenerator(tree, {
       directory: normalizedOptions.directory,
       name: normalizedOptions.name,
-      style: 'css',
+      style: 'none',
       e2eTestRunner: 'none',
       unitTestRunner: 'jest',
       src: normalizedOptions.useSrc,
@@ -60,7 +62,11 @@ export async function applicationGenerator(
     tree,
     path.join(__dirname, 'files/src'),
     sourceRoot,
-    normalizedOptions
+    {
+      ...normalizedOptions,
+      // app/global.css -> workspace root, for its @source of the feature libraries
+      workspaceOffset: offsetFromRoot(joinPathFragments(sourceRoot, 'app')),
+    }
   );
 
   generateFiles(
@@ -89,7 +95,7 @@ export async function applicationGenerator(
   const setDotenv: Record<string, string> = {
   };
 
-  
+
 
   if (normalizedOptions.useAuth) {
     // Route handler + SessionProvider wiring that expects a sibling `@feature/auth` library.
@@ -174,6 +180,12 @@ export async function applicationGenerator(
   updateEnvConfig(tree, sourceRoot, { set: Object.keys(setDotenv) });
 
   tasks.push(updateDependencies(tree, dependencies, devDependencies));
+
+  // After the install: shadcn add index installs the style base into this
+  // app's package.json and app/global.css, using the generated components.json
+  if (!normalizedOptions.skipShadcn) {
+    tasks.push(installShadcnBaseTask(tree.root, projectRoot, normalizedOptions.name));
+  }
 
   return runTasksInSerial(...tasks);
 }

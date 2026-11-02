@@ -1,3 +1,18 @@
+## 0.2.2 (2026-11-02)
+
+### 🚀 Features
+
+- **auth:** exchange OAuth sign-ins with the backend ([#52](https://github.com/dcat23/next-feature/issues/52))
+
+### 🩹 Fixes
+
+- **application:** configure Tailwind v4 in CSS and install the shadcn style base ([342de75](https://github.com/dcat23/next-feature/commit/342de75))
+- **feature:** install the shadcn style base without init ([#35](https://github.com/dcat23/next-feature/issues/35))
+
+### ❤️ Thank You
+
+- Devin Catuns
+
 ## 0.2.1 (2026-11-01)
 
 ### 🚀 Features

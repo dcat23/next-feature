@@ -1,6 +1,6 @@
 {
   "name": "@next-feature/logging",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dcat23/next-feature.git",

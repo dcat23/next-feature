@@ -12,7 +12,7 @@ body:
     id: scope
     attributes:
       label: Scope
-      options: [client, logging, feature, application, action, component, hook, declaration, store, client-config, dotenv, shadcn, core, create-next-feature, release, ci, docs]
+      options: [client, logging, auth, feature, application, action, component, hook, declaration, store, client-config, dotenv, shadcn, docker, vercel, cicd, database, preset, core, create-next-feature, release, ci, docs]
     validations:
       required: true
   - type: textarea

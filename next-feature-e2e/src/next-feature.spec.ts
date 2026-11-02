@@ -188,6 +188,8 @@ describe('next-feature', () => {
         expect(read('apps/web/lib/actions/payment.ts')).toContain("import { payments } from '../config/client';");
         expect(read('apps/web/.env')).toMatch(/^PAYMENTS_API_URL=/m);
         expect(readJson('package.json').dependencies['@next-feature/logging']).toBe('0.0.0-e2e');
+        // @nx/next's sample route is removed
+        expect(existsSync(join(projectDirectory, 'apps/web/app/api/hello'))).toBe(false);
 
         run('pnpm exec nx build web');
       },

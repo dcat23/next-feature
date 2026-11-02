@@ -87,13 +87,15 @@ describe('docker generator', () => {
       expect(dockerfile()).toContain('/workspace/apps/web/public ./apps/web/public');
     });
 
-    it('checks the health route when the app has one, else the home page', async () => {
-      await dockerGenerator(tree, { projectName: 'web', skipFormat: true });
-      expect(dockerfile()).toMatch(/HEALTHCHECK[\s\S]*\(process\.env\.PORT \|\| 3000\) \+ '\/'\)/);
-
-      tree.write('apps/web/app/api/health/route.ts', 'export const GET = () => Response.json({ status: "ok" });');
+    it("checks the app's health route", async () => {
       await dockerGenerator(tree, { projectName: 'web', skipFormat: true });
       expect(dockerfile()).toContain("+ '/api/health')");
+    });
+
+    it('checks the home page in apps without a health route', async () => {
+      tree.delete('apps/web/app/api/health');
+      await dockerGenerator(tree, { projectName: 'web', skipFormat: true });
+      expect(dockerfile()).toMatch(/HEALTHCHECK[\s\S]*\(process\.env\.PORT \|\| 3000\) \+ '\/'\)/);
     });
   });
 

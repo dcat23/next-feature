@@ -1,31 +1,27 @@
 import {
-  detectPackageManager,
   formatFiles,
   generateFiles,
-  getPackageManagerCommand,
-  getPackageManagerVersion,
   joinPathFragments,
   logger,
   type PackageManager,
-  readJson,
   readProjectConfiguration,
   Tree,
   updateProjectConfiguration,
 } from '@nx/devkit';
 import * as path from 'path';
 import { enableStandaloneOutput, STANDALONE_OUTPUT_ENV } from '../../../lib/utils/next-config';
+import {
+  frozenInstallCommand,
+  type PackageManagerSetup,
+  resolvePackageManager,
+} from '../../../lib/utils/package-manager';
 import type { DockerGeneratorSchema } from './schema';
+
+export { resolvePackageManager };
 
 const NEXT_CONFIG_FILES = ['next.config.js', 'next.config.mjs', 'next.config.ts'];
 const COMPOSE_FILES = ['compose.yaml', 'compose.yml', 'docker-compose.yaml', 'docker-compose.yml'];
 const CONTAINER_PORT = 3000;
-
-const LOCKFILES: Record<PackageManager, string[]> = {
-  pnpm: ['pnpm-lock.yaml'],
-  yarn: ['yarn.lock'],
-  npm: ['package-lock.json'],
-  bun: ['bun.lock', 'bun.lockb'],
-};
 
 /** Package manager caches mounted during install, so rebuilds reuse downloads */
 const CACHE_MOUNTS: Partial<Record<PackageManager, string>> = {
@@ -48,41 +44,6 @@ export const DOCKERIGNORE_ENTRIES = [
   '!**/.env.example',
 ];
 
-export interface PackageManagerSetup {
-  packageManager: PackageManager;
-  version?: string;
-}
-
-/**
- * The workspace's package manager and version: the root package.json
- * `packageManager` field, else the lockfile, else Nx's detection. The version
- * is pinned in the Dockerfile so corepack doesn't install a different major
- * than the one that wrote the lockfile.
- */
-export function resolvePackageManager(tree: Tree): PackageManagerSetup {
-  const field: string | undefined = tree.exists('package.json')
-    ? readJson(tree, 'package.json').packageManager
-    : undefined;
-  if (field) {
-    const [name, version] = field.split('@');
-    if (name in LOCKFILES) {
-      return { packageManager: name as PackageManager, version: version?.split('+')[0] };
-    }
-  }
-
-  const packageManager =
-    (Object.keys(LOCKFILES) as PackageManager[]).find((pm) => LOCKFILES[pm].some((file) => tree.exists(file))) ??
-    detectPackageManager(tree.root);
-
-  let version: string | undefined;
-  try {
-    version = getPackageManagerVersion(packageManager, tree.root);
-  } catch {
-    version = undefined;
-  }
-  return { packageManager, version };
-}
-
 function dockerCommands({ packageManager, version }: PackageManagerSetup, root: string) {
   const pinned = `${packageManager}@${version ?? 'latest'}`;
   const setup: Record<PackageManager, string | null> = {
@@ -92,10 +53,7 @@ function dockerCommands({ packageManager, version }: PackageManagerSetup, root: 
     bun: `npm install -g ${pinned}`,
   };
   const exec: Record<PackageManager, string> = { pnpm: 'pnpm exec', npm: 'npx', yarn: 'yarn', bun: 'bunx' };
-  const install =
-    packageManager === 'bun'
-      ? 'bun install --frozen-lockfile'
-      : getPackageManagerCommand(packageManager, root).ciInstall;
+  const install = frozenInstallCommand(packageManager, root);
 
   return {
     packageManagerSetup: setup[packageManager],

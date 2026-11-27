@@ -73,7 +73,7 @@ describe('application generator', () => {
   });
 
   describe('proxy', () => {
-    const matcher = String.raw`'/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)'`;
+    const matcher = String.raw`'/((?!_next|api/(?:health|ready)(?:/|$)|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)'`;
 
     it('should generate a passthrough proxy.ts with the matcher config by default', async () => {
       await applicationGenerator(tree, options);
@@ -81,7 +81,7 @@ describe('application generator', () => {
       expect(proxy).toContain('export function proxy(request: NextRequest)');
       expect(proxy).not.toContain('next-auth');
       expect(proxy).toContain(matcher);
-      expect(proxy).toContain("'/(api)(.*)'");
+      expect(proxy).toContain(String.raw`'/(api/(?!(?:health|ready)(?:/|$)).*)'`);
     });
 
     it('should wrap the proxy with the auth feature\'s auth() when useAuth is true', async () => {
@@ -96,6 +96,40 @@ describe('application generator', () => {
     it('should put proxy.ts in src/ with useSrc', async () => {
       await applicationGenerator(tree, { name: 'test', useSrc: true });
       expect(tree.exists('apps/test/src/proxy.ts')).toBeTruthy();
+    });
+  });
+
+  describe('health routes', () => {
+    it('should generate a dependency-free liveness route', async () => {
+      await applicationGenerator(tree, options);
+      const route = tree.read('apps/test/app/api/health/route.ts', 'utf-8');
+      expect(route).toContain("export const dynamic = 'force-dynamic';");
+      expect(route).toContain("Response.json({ status: 'ok' }");
+      expect(route).not.toContain('import');
+    });
+
+    it('should generate a readiness route that runs the checks from lib/config/health.ts and returns 503 on failure', async () => {
+      await applicationGenerator(tree, options);
+      const route = tree.read('apps/test/app/api/ready/route.ts', 'utf-8');
+      expect(route).toContain("import { READINESS_TIMEOUT_MS, readinessChecks } from '../../../lib/config/health';");
+      expect(route).toContain('status: ready ? 200 : 503');
+      expect(route).toContain("logger.warn({ check: name, err: error }, 'Readiness check failed');");
+      const config = tree.read('apps/test/lib/config/health.ts', 'utf-8');
+      expect(config).toContain("import 'server-only';");
+      expect(config).toContain('export const readinessChecks: Record<string, ReadinessCheck> = {};');
+    });
+
+    it('should log readiness failures with console when skipLogging is true', async () => {
+      await applicationGenerator(tree, { ...options, skipLogging: true });
+      const route = tree.read('apps/test/app/api/ready/route.ts', 'utf-8');
+      expect(route).not.toContain('lib/config/logging');
+      expect(route).toContain('console.warn(');
+    });
+
+    it('should put the routes in src/app with useSrc', async () => {
+      await applicationGenerator(tree, { ...options, useSrc: true });
+      expect(tree.exists('apps/test/src/app/api/health/route.ts')).toBe(true);
+      expect(tree.exists('apps/test/src/app/api/ready/route.ts')).toBe(true);
     });
   });
 

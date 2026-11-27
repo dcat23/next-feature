@@ -53,4 +53,4 @@ The major from `.nvmrc` or `.node-version`, else the Node version running the ge
 
 ## Health check
 
-The image checks `/api/health` when the app has that route, otherwise `/`.
+The image's `HEALTHCHECK` calls the app's liveness route, `/api/health` (generated with every application; apps created before it fall back to `/`). Readiness (`/api/ready`) is for orchestrators and load balancers, not the container's health: a backend outage shouldn't restart the container.

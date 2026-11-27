@@ -38,6 +38,7 @@ npx nx g next-feature:preset --help
 |--------|------|---------|-------------|
 | `--name` | string | required | Name of the project (creates `apps/[name]/`) |
 | `--directory` | string | - | Override where the project is created |
+| `--ci` | boolean | `true` | Write `.github/workflows/ci.yml` (and `.nvmrc`) with the [cicd generator](../misc/cicd/README.md): lint, test and build the affected projects |
 | `--skipFeature` | boolean | false | Skip creating default feature library structure |
 | `--skipFormat` | boolean | false | Skip prettier code formatting |
 

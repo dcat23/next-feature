@@ -1,6 +1,7 @@
 import { formatFiles, generateFiles, GeneratorCallback, names, runTasksInSerial, Tree } from '@nx/devkit';
 import * as path from 'path';
 import { addToGitignore, updateDependencies } from '../../lib/utils';
+import { cicdGenerator } from '../misc/cicd/cicd';
 import type { NormalizedPresetGeneratorSchema } from './schema';
 import { PresetGeneratorSchema } from './schema';
 import { dotEnvContent } from './utils';
@@ -46,6 +47,8 @@ export async function presetGenerator(
   const dependencies: Record<string, string> = {};
   const devDependencies: Record<string, string> = {};
   tasks.push(updateDependencies(tree, dependencies, devDependencies));
+
+  if (normalizedOptions.ci !== false) await cicdGenerator(tree, { skipFormat: true });
 
   if (!normalizedOptions.skipFormat) await formatFiles(tree);
 

@@ -55,3 +55,21 @@ export function frozenInstallCommand(packageManager: PackageManager, root: strin
     ? 'bun install --frozen-lockfile'
     : getPackageManagerCommand(packageManager, root).ciInstall;
 }
+
+/** Runs a workspace binary: `pnpm exec nx`, `npx nx`, `yarn nx`, `bunx nx` */
+export function execCommand(packageManager: PackageManager): string {
+  const exec: Record<PackageManager, string> = { pnpm: 'pnpm exec', npm: 'npx', yarn: 'yarn', bun: 'bunx' };
+  return exec[packageManager];
+}
+
+/** Node version files, in the order CI and Docker read them */
+export const NODE_VERSION_FILES = ['.nvmrc', '.node-version'];
+
+/** Node major for images and CI: .nvmrc / .node-version, else the Node running the generator */
+export function resolveNodeVersion(tree: Tree): string {
+  for (const file of NODE_VERSION_FILES) {
+    const major = tree.read(file, 'utf-8')?.trim().replace(/^v/, '').split('.')[0];
+    if (major && /^\d+$/.test(major)) return major;
+  }
+  return process.versions.node.split('.')[0];
+}

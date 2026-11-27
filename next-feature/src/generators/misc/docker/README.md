@@ -45,6 +45,10 @@ pnpm 11 refuses dependency build scripts that `pnpm-workspace.yaml` doesn't appr
 
 The major from `.nvmrc` or `.node-version`, else the Node version running the generator (`ARG NODE_VERSION` in the Dockerfile).
 
+## Publishing images
+
+`npx nx g next-feature:cicd --docker=web` adds a GitHub Actions workflow that builds this Dockerfile and pushes the image to ghcr.io after CI passes, when the app is affected (see the [cicd generator](../cicd/README.md)).
+
 ## Environment variables
 
 - **Server variables** are read at runtime. The compose service loads the app's `.env` (`env_file`, optional) and sets `PORT`; apps with `--useAuth` also get `NEXTAUTH_URL` (the published URL) and `AUTH_TRUST_HOST`. `.env` files never enter the image (`.dockerignore`).

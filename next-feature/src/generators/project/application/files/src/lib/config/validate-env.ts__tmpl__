@@ -1,0 +1,39 @@
+import { z } from 'zod';
+import { envSchema } from './env';
+
+/**
+ * The variables the server reads at runtime: env.ts's schema without
+ * NEXT_PUBLIC_* ones, which Next.js inlines into the build (they may not be
+ * set where the server runs, e.g. a Docker image built with build args).
+ */
+const runtimeEnvSchema = z.object(
+  Object.fromEntries(Object.entries(envSchema.shape).filter(([key]) => !key.startsWith('NEXT_PUBLIC_')))
+);
+
+/**
+ * Missing or invalid environment variables, as `NAME: message` lines (empty
+ * when the environment is valid). Optional variables (`z.string().optional()`,
+ * documented in .env.example only) pass when unset.
+ */
+export function findInvalidEnv(env: NodeJS.ProcessEnv = process.env): string[] {
+  const result = runtimeEnvSchema.safeParse(env);
+  if (result.success) return [];
+  return result.error.issues.map((issue) => `${issue.path.join('.') || '(environment)'}: ${issue.message}`);
+}
+
+/**
+ * Called by instrumentation.ts when the Node.js server starts: logs the
+ * missing or invalid variables and exits, so a misconfigured deployment
+ * fails its start (and health check) instead of its first requests.
+ */
+export function exitOnInvalidEnv(env: NodeJS.ProcessEnv = process.env): void {
+  const invalid = findInvalidEnv(env);
+  if (!invalid.length) return;
+  console.error(
+    [
+      'Invalid environment variables (see lib/config/env.ts and .env.example):',
+      ...invalid.map((line) => `  - ${line}`),
+    ].join('\n')
+  );
+  process.exit(1);
+}

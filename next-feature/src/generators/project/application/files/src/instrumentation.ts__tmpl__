@@ -1,5 +1,14 @@
-<% if (!skipLogging) { %>
+import { PHASE_PRODUCTION_BUILD } from 'next/constants';
+
 export async function register() {
+  // Fail fast on missing or invalid environment variables (lib/config/env.ts)
+  // instead of on the first request that reads one. Not during next build:
+  // runtime-only variables aren't set there.
+  if (process.env.NEXT_RUNTIME === 'nodejs' && process.env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD) {
+    const { exitOnInvalidEnv } = await import('./lib/config/validate-env');
+    exitOnInvalidEnv();
+  }
+<% if (!skipLogging) { %>
   // OpenTelemetry tracing over OTLP, only when an endpoint is configured
   // (OTEL_EXPORTER_OTLP_ENDPOINT): see lib/config/tracing.ts
   const { registerTracing } = await import('./lib/config/tracing');
@@ -13,9 +22,4 @@ export async function register() {
     ]);
     await registerPino(pinoOptions);
   }
-}
-<% } else { %>
-export async function register() {
-  // Logging was skipped for this app (skipLogging: true).
-}
-<% } %>
+<% } %>}

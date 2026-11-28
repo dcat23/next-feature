@@ -198,6 +198,45 @@ describe('application generator', () => {
     });
   });
 
+  describe('environment validation', () => {
+    it('should validate the environment at startup on Node.js, not during next build', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const instrumentation = tree.read('apps/test/instrumentation.ts', 'utf-8') ?? '';
+      expect(instrumentation).toContain("import { PHASE_PRODUCTION_BUILD } from 'next/constants';");
+      expect(instrumentation).toContain(
+        "if (process.env.NEXT_RUNTIME === 'nodejs' && process.env.NEXT_PHASE !== PHASE_PRODUCTION_BUILD) {"
+      );
+      expect(instrumentation).toContain("const { exitOnInvalidEnv } = await import('./lib/config/validate-env');");
+      // before tracing and logging start
+      expect(instrumentation.indexOf('exitOnInvalidEnv()')).toBeLessThan(instrumentation.indexOf('registerTracing()'));
+    });
+
+    it('should check env.ts\'s schema without the build-time NEXT_PUBLIC_* variables and exit on failure', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const validate = tree.read('apps/test/lib/config/validate-env.ts', 'utf-8');
+      expect(validate).toContain("import { envSchema } from './env';");
+      expect(validate).toContain("!key.startsWith('NEXT_PUBLIC_')");
+      expect(validate).toContain('runtimeEnvSchema.safeParse(env)');
+      expect(validate).toContain('process.exit(1);');
+    });
+
+    it('should validate even when logging is skipped', async () => {
+      await applicationGenerator(tree, { name: 'test', skipLogging: true });
+      const instrumentation = tree.read('apps/test/instrumentation.ts', 'utf-8');
+      expect(instrumentation).toContain('exitOnInvalidEnv();');
+      expect(instrumentation).not.toContain('registerTracing');
+      expect(tree.exists('apps/test/lib/config/validate-env.ts')).toBe(true);
+    });
+
+    it('should require AUTH_SECRET in env.ts with useAuth', async () => {
+      await applicationGenerator(tree, { name: 'test', useAuth: true });
+      const env = tree.read('apps/test/lib/config/env.ts', 'utf-8');
+      expect(env).toContain('AUTH_SECRET: z.string().min(1),');
+      expect(env).toContain('export const AUTH_SECRET = process.env.AUTH_SECRET;');
+      expect(env).not.toContain('NEXTAUTH_URL');
+    });
+  });
+
   describe('logging', () => {
     it('should call registerPino from @next-feature/logging/server in instrumentation.ts', async () => {
       await applicationGenerator(tree, { name: 'test' });

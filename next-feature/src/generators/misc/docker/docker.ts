@@ -186,7 +186,8 @@ export async function dockerGenerator(tree: Tree, options: DockerGeneratorSchema
       command:
         options.compose !== false
           ? `docker compose up --build ${projectName}`
-          : `docker run --rm -p ${port}:${CONTAINER_PORT} ${projectName}`,
+          : // the app's variables, as compose's env_file: the server exits on missing ones
+            `docker run --rm -p ${port}:${CONTAINER_PORT} --env-file ${projectRoot}/.env ${projectName}`,
     },
   };
   updateProjectConfiguration(tree, projectName, project);

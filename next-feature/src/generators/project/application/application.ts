@@ -121,6 +121,9 @@ export async function applicationGenerator(
         AUTH_SECRET: generateSecret(),
       },
     });
+    // Validated at startup (instrumentation.ts): Auth.js can't sign or read
+    // sessions without it. NEXTAUTH_URL isn't required (inferred on Vercel)
+    updateEnvConfig(tree, sourceRoot, { set: { AUTH_SECRET: 'z.string().min(1)' } });
 
     // Credentials for the auth feature's zero-config OAuth providers (only
     // needed for the providers kept in lib/auth/index.ts)

@@ -1,0 +1,81 @@
+name: Scheduled e2e
+
+# The e2e suite is the only test against live dependencies: shadcn registry
+# content is fetched from ui.shadcn.com whatever SHADCN_CLI_VERSION pins (#35
+# was a registry change), and the test workspace installs the latest releases
+# in the plugin's ranges. CI only runs it on pushes to main, so run it weekly
+# too. A failure opens an issue (or comments on the open one); the next
+# passing run closes it.
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays, 06:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-scheduled
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  NX_NO_CLOUD: true
+  NX_DAEMON: false
+  NX_TUI: false
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: nx e2e
+        env:
+          NODE_OPTIONS: --experimental-vm-modules
+        run: pnpm exec nx e2e next-feature-e2e
+
+  report:
+    needs: e2e
+    # failure includes a timeout; a cancelled run reports nothing
+    if: always() && (needs.e2e.result == 'failure' || needs.e2e.result == 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RESULT: ${{ needs.e2e.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      TITLE: Scheduled e2e failed on main
+    steps:
+      - name: Open, update or close the failure issue
+        run: |
+          number=$(gh issue list --state open --search "in:title \"$TITLE\"" --json number,title \
+            --jq "map(select(.title == env.TITLE)) | .[0].number // empty")
+
+          if [ "$RESULT" = failure ]; then
+            if [ -n "$number" ]; then
+              gh issue comment "$number" --body "Still failing: $RUN_URL"
+            else
+              gh issue create --title "$TITLE" --label bug --body "$(cat <<EOF
+          The scheduled e2e run failed on main: $RUN_URL
+
+          The e2e suite is the only test against the live shadcn registry and the latest dependency releases in the plugin's ranges, so check those first (e.g. a registry change to the style base or the \`cn\` package, as in #35). Rerun the workflow from Actions after a fix; the next passing run closes this issue.
+          EOF
+              )"
+            fi
+          elif [ -n "$number" ]; then
+            gh issue close "$number" --comment "Passing again: $RUN_URL"
+          fi

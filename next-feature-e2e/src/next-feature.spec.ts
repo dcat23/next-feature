@@ -353,11 +353,15 @@ export async function GET() {
       SLOW
     );
 
-    /** `next start` for the built web app, with its stdout (pino JSON lines) collected */
+    /**
+     * `next start` for the built web app, with its stdout (pino JSON lines)
+     * collected. Like @nx/next:server, it runs in the build's outputPath,
+     * where @nx/next:build writes .next and next.config.js.
+     */
     async function startWeb(port: number, env: Record<string, string>) {
       let output = '';
-      const child = spawn('pnpm', ['exec', 'next', 'start', 'apps/web', '-p', String(port)], {
-        cwd: projectDirectory,
+      const child = spawn(join(projectDirectory, 'node_modules/.bin/next'), ['start', '-p', String(port)], {
+        cwd: join(projectDirectory, 'dist/apps/web'),
         env: { ...process.env, ...env, NODE_ENV: 'production' },
         detached: true,
       });

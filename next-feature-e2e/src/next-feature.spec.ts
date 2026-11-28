@@ -1,5 +1,5 @@
 import { execSync, spawn } from 'child_process';
-import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http';
+import { createServer, request as httpRequest, type IncomingMessage, type Server, type ServerResponse } from 'http';
 import type { AddressInfo } from 'net';
 import { join, dirname } from 'path';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
@@ -303,8 +303,8 @@ export async function GET() {
             OTEL_EXPORTER_OTLP_PROTOCOL: 'http/json',
           });
           try {
-            const response = await fetch('http://127.0.0.1:3998/api/trace-probe');
-            expect(await response.json()).toEqual({ success: true, data: [] });
+            const response = await httpGet('http://127.0.0.1:3998/api/trace-probe');
+            expect(JSON.parse(response.body)).toMatchObject({ success: true, data: [] });
 
             const traceparent = String(backendHeaders[0]?.['traceparent'] ?? '');
             const [, traceId, spanId] = traceparent.split('-');
@@ -335,8 +335,8 @@ export async function GET() {
           exported.length = 0;
           const untraced = await startWeb(3998, { WEB_API_URL: `http://127.0.0.1:${backend.port}` });
           try {
-            const response = await fetch('http://127.0.0.1:3998/api/trace-probe');
-            expect(await response.json()).toEqual({ success: true, data: [] });
+            const response = await httpGet('http://127.0.0.1:3998/api/trace-probe');
+            expect(JSON.parse(response.body)).toMatchObject({ success: true, data: [] });
             expect(backendHeaders[0]?.['traceparent']).toBeUndefined();
             expect(untraced.logs().find((line) => line['msg'] === 'trace probe')).not.toHaveProperty('trace_id');
             await new Promise((resolve) => setTimeout(resolve, 6000));
@@ -376,16 +376,20 @@ export async function GET() {
           // already exited
         }
       };
+      let lastError: unknown;
       const up = await waitFor(async () => {
         try {
-          return (await fetch(`http://127.0.0.1:${port}/api/health`)).ok || undefined;
-        } catch {
+          const { status } = await httpGet(`http://127.0.0.1:${port}/api/health`);
+          lastError = `status ${status}`;
+          return status === 200 || undefined;
+        } catch (error) {
+          lastError = error;
           return undefined;
         }
       });
       if (!up) {
         stop();
-        throw new Error(`next start didn't come up:\n${output}`);
+        throw new Error(`next start didn't come up (last health check: ${String(lastError)}):\n${output}`);
       }
       const logs = () =>
         output
@@ -611,4 +615,18 @@ async function waitFor<T>(check: () => T | undefined | Promise<T | undefined>): 
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
   return undefined;
+}
+
+/** GET with Node's http client: the e2e's jest environment has no global fetch */
+function httpGet(url: string, timeoutMs = 5000) {
+  return new Promise<{ status: number; body: string }>((resolve, reject) => {
+    const request = httpRequest(url, (response) => {
+      let body = '';
+      response.on('data', (chunk) => (body += chunk));
+      response.on('end', () => resolve({ status: response.statusCode ?? 0, body }));
+    });
+    request.setTimeout(timeoutMs, () => request.destroy(new Error(`timed out after ${timeoutMs}ms`)));
+    request.on('error', reject);
+    request.end();
+  });
 }

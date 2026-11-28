@@ -46,3 +46,16 @@ export const GITHUB_ACTIONS = {
   dockerMetadata: "docker/metadata-action@v6",
   dockerBuildPush: "docker/build-push-action@v7",
 } as const;
+/**
+ * @opentelemetry/api for applications. Kept on 1.9: the stable SDK 2.x packages
+ * @vercel/otel needs (sdk-trace-base, resources, ...) peer on `<1.10.0`.
+ */
+export const OTEL_API_VERSION = "~1.9.0";
+/** @opentelemetry/api range the client and logging features declare as a peer (the app's copy holds the tracer provider) */
+export const OTEL_API_PEER_VERSION = "^1.9.0";
+/** @vercel/otel, the tracing SDK the application generator registers in instrumentation.ts */
+export const VERCEL_OTEL_VERSION = "^2.3.0";
+/** @vercel/otel's stable OpenTelemetry SDK peers: resources, sdk-metrics, sdk-trace-base (`>=2 <3`) */
+export const OTEL_SDK_VERSION = "^2.12.1";
+/** @vercel/otel's experimental OpenTelemetry peers: api-logs, sdk-logs, instrumentation (`>=0.200 <0.300`) */
+export const OTEL_EXPERIMENTAL_VERSION = "^0.223.2";

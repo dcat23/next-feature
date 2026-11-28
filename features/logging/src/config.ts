@@ -2,6 +2,7 @@ import 'server-only';
 
 import type { LevelWithSilent, LoggerOptions } from 'pino';
 import { LOGGING_SERVICE_NAME } from './lib/config/env';
+import { getTraceContext } from './lib/tracing';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -12,6 +13,12 @@ export interface CreatePinoOptions {
    */
   service?: string;
   level?: LevelWithSilent;
+  /**
+   * Add the active OpenTelemetry span's `trace_id`, `span_id` and
+   * `trace_flags` to every log line (default: true). Without registered
+   * tracing there's no active span and nothing is added.
+   */
+  traceContext?: boolean;
 }
 
 /**
@@ -22,12 +29,14 @@ export interface CreatePinoOptions {
 export function createPinoOptions({
   service,
   level = 'info',
+  traceContext = true,
 }: CreatePinoOptions = {}): LoggerOptions {
   const serviceName = LOGGING_SERVICE_NAME || service;
 
   return {
     ...(serviceName && { base: { service: serviceName } }),
     level,
+    ...(traceContext && { mixin: getTraceContext }),
     ...(isDev && {
       transport: {
         target: 'pino-pretty',

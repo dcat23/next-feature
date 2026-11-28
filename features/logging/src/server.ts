@@ -6,4 +6,5 @@ export {
   pinoOptions,
   type CreatePinoOptions,
 } from './config';
+export { getTraceContext, type LogTraceContext } from './lib/tracing';
 export * from './lib/utils';

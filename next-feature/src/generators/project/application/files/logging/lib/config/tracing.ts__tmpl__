@@ -1,0 +1,35 @@
+import { registerOTel } from '@vercel/otel';
+
+/**
+ * Where traces go: any OTLP backend (Grafana Tempo, Honeycomb, Datadog, New
+ * Relic, Axiom, an OpenTelemetry Collector, ...), configured with the standard
+ * variables only. On Vercel, its OpenTelemetry integration sets
+ * VERCEL_OTEL_ENDPOINTS instead.
+ */
+export const OTLP_ENDPOINT_ENV = [
+  'OTEL_EXPORTER_OTLP_ENDPOINT',
+  'OTEL_EXPORTER_OTLP_TRACES_ENDPOINT',
+  'VERCEL_OTEL_ENDPOINTS',
+] as const;
+
+/** True when a trace destination is configured (and OTEL_SDK_DISABLED isn't set) */
+export function isTracingConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
+  if (env.OTEL_SDK_DISABLED === 'true') return false;
+  return OTLP_ENDPOINT_ENV.some((key) => !!env[key]);
+}
+
+/**
+ * Registers OpenTelemetry tracing: Next.js' own spans for each request and
+ * render, `fetch` calls, and the ApiClient's backend calls (which send W3C
+ * `traceparent`), exported over OTLP. Log lines from @next-feature/logging
+ * carry the active span's `trace_id` / `span_id`.
+ *
+ * Without an endpoint nothing is registered, so nothing is exported and no
+ * trace headers are sent (@vercel/otel would otherwise export to
+ * localhost:4318). `OTEL_SERVICE_NAME` overrides the service name;
+ * `OTEL_EXPORTER_OTLP_HEADERS` carries the backend's API key.
+ */
+export function registerTracing(): void {
+  if (!isTracingConfigured()) return;
+  registerOTel({ serviceName: '<%= name %>' });
+}

@@ -15,3 +15,18 @@ export const LOGGING = {
     beaconPathValue: '/api/log',
     serviceNameKey: 'LOGGING_SERVICE_NAME',
 } as const;
+
+/**
+ * [tracing]
+ * Standard OpenTelemetry variables, read by the SDK (@vercel/otel), not by
+ * lib/config/env.ts. Tracing is registered only when an OTLP endpoint is set,
+ * so they're documented in `.env.example` only.
+ */
+export const TRACING = {
+    endpointKey: 'OTEL_EXPORTER_OTLP_ENDPOINT',
+    /** An OpenTelemetry Collector on this machine (OTLP over HTTP) */
+    endpointValue: 'http://localhost:4318',
+    /** e.g. `x-honeycomb-team=<key>` or `Authorization=Bearer <token>` */
+    headersKey: 'OTEL_EXPORTER_OTLP_HEADERS',
+    serviceNameKey: 'OTEL_SERVICE_NAME',
+} as const;

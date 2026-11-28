@@ -301,6 +301,7 @@ The generator:
 
 ## See Also
 
+- [Production deployment guide](../../../DEPLOYMENT.md) - Docker or Vercel, environment variables, observability, CI/CD
 - [next-feature Plugin](../../README.md) - Complete generator overview
 - [Feature Generator](../project/feature/README.md) - Create feature libraries
 - [NextFeature](../../../README.md) - Main ecosystem documentation

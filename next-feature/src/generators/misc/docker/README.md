@@ -2,6 +2,8 @@
 
 Containerizes a Next.js application: a multi-stage `Dockerfile` that builds the app with Nx and runs Next's standalone server as a non-root user, a workspace `.dockerignore`, and the app's service in the workspace root `compose.yaml`.
 
+For choosing between Docker and Vercel, and the variables each environment needs, see the [production deployment guide](../../../../DEPLOYMENT.md).
+
 ## Usage
 
 ```bash

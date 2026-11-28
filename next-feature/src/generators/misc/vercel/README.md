@@ -2,6 +2,8 @@
 
 Writes `vercel.json` for deploying a Next.js application from this Nx workspace to Vercel, so the project needs only one dashboard setting (Root Directory) and skips deployments of commits that don't affect the app.
 
+For choosing between Docker and Vercel, and the variables each environment needs, see the [production deployment guide](../../../../DEPLOYMENT.md).
+
 ## Usage
 
 ```bash

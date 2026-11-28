@@ -355,18 +355,13 @@ export async function GET() {
     );
 
     /**
-     * `next start` for the built web app, with its stdout (pino JSON lines)
-     * collected. Like @nx/next:server, it runs in the build's outputPath,
-     * where @nx/next:build writes .next and next.config.js.
+     * The built web app's production server, as users run it locally, with
+     * its output (pino JSON lines) collected. A bare `next start` can't load
+     * the build's next.config.js: withNx needs the Nx task context.
      */
     async function startWeb(port: number, env: Record<string, string>) {
       let output = '';
-      const child = spawn(join(projectDirectory, 'node_modules/.bin/next'), ['start', '-p', String(port)], {
-        cwd: join(projectDirectory, 'dist/apps/web'),
-        // the build output has no .env: pass the app's variables, then the test's
-        env: { ...process.env, ...appEnv(), ...env, NODE_ENV: 'production' },
-        detached: true,
-      });
+      const child = serveWeb(port, { ...appEnv(), ...env });
       child.stdout.on('data', (chunk) => (output += chunk));
       child.stderr.on('data', (chunk) => (output += chunk));
       const stop = () => {
@@ -402,16 +397,13 @@ export async function GET() {
         expect(read('apps/web/lib/config/env.ts')).toContain('WEB_API_URL: z.string(),');
         const env = appEnv();
         delete env['WEB_API_URL'];
-        const child = spawn(join(projectDirectory, 'node_modules/.bin/next'), ['start', '-p', '3997'], {
-          cwd: join(projectDirectory, 'dist/apps/web'),
-          env: { ...withoutAppEnv(process.env), ...env, NODE_ENV: 'production' },
-        });
+        const child = serveWeb(3997, env);
         let output = '';
         child.stdout.on('data', (chunk) => (output += chunk));
         child.stderr.on('data', (chunk) => (output += chunk));
         const code = await new Promise<number | null>((resolve) => {
           const timer = setTimeout(() => {
-            child.kill('SIGKILL');
+            process.kill(-(child.pid as number), 'SIGKILL');
             resolve(null);
           }, 60_000);
           child.on('exit', (exitCode) => {
@@ -419,7 +411,9 @@ export async function GET() {
             resolve(exitCode);
           });
         });
-        expect(code).toBe(1);
+        // the server exits with 1; Nx reports a continuous task that exited as 130
+        expect(code).not.toBeNull();
+        expect(code).not.toBe(0);
         expect(output).toContain('Invalid environment variables');
         expect(output).toMatch(/- WEB_API_URL: /);
         expect(output).not.toMatch(/- PAYMENTS_API_URL: /);
@@ -435,6 +429,31 @@ export async function GET() {
           .map((line) => line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/))
           .filter((match): match is RegExpMatchArray => !!match)
           .map(([, key, value]) => [key, value.replace(/^(['"])(.*)\1$/, '$2')])
+      );
+    }
+
+    /**
+     * `nx serve web --configuration=production` (next start on the build
+     * output) with exactly the app variables given: Nx doesn't load
+     * apps/web/.env, and the test runner's own values for them are dropped.
+     */
+    function serveWeb(port: number, env: Record<string, string>) {
+      return spawn(
+        'pnpm',
+        ['exec', 'nx', 'serve', 'web', '--configuration=production', `--port=${port}`, '--skip-nx-cache'],
+        {
+          cwd: projectDirectory,
+          // NODE_ENV as next start sets it: jest's 'test' isn't in env.ts's enum
+          env: {
+            ...withoutAppEnv(process.env),
+            ...env,
+            NODE_ENV: 'production',
+            NX_LOAD_DOT_ENV_FILES: 'false',
+            NX_DAEMON: 'false',
+            NX_TUI: 'false',
+          },
+          detached: true,
+        }
       );
     }
 

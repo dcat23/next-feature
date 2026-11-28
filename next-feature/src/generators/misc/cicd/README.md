@@ -4,6 +4,8 @@ Writes GitHub Actions workflows for the workspace: CI that lints, tests and buil
 
 GitHub Actions only for now.
 
+How the workflows fit with the deployment targets and their environment variables: see the [production deployment guide](../../../../DEPLOYMENT.md#cicd).
+
 ## Usage
 
 ```bash

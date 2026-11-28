@@ -543,35 +543,12 @@ export async function getUsers() {
 
 ## Deployment
 
-### Vercel
+See the [production deployment guide](../../../../DEPLOYMENT.md): choosing Docker or Vercel, the environment variables per environment, logging, tracing and health checks, and CI/CD. The generators:
 
 ```bash
-# Connect to Vercel
-vercel link
-
-# Deploy
-vercel deploy
-
-# Deploy to production
-vercel deploy --prod
-```
-
-### Docker
-
-Create `Dockerfile`:
-
-```dockerfile
-FROM node:18-alpine
-WORKDIR /app
-
-COPY package.json package-lock.json ./
-RUN npm ci
-
-COPY . .
-RUN npm run build
-
-EXPOSE 3000
-CMD ["npm", "start"]
+npx nx g next-feature:docker [name]                 # Dockerfile, .dockerignore, compose.yaml service
+npx nx g next-feature:vercel [name]                 # vercel.json
+npx nx g next-feature:cicd --docker=[name]          # or --vercel=[name]: GitHub Actions deploys after CI
 ```
 
 ## Best Practices

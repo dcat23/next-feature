@@ -186,6 +186,10 @@ Setup project infrastructure:
 
 - **client-config** - Centralized API configuration (auto-invoked by actions)
 - **dotenv** - Create/update/remove `.env*` vars, sync across projects, keep `env.ts` typed
+- **docker** / **vercel** - Deploy an application as a container image or to Vercel
+- **cicd** - GitHub Actions: CI for affected projects, Docker and Vercel deploy workflows
+
+Taking an app to production (deployment targets, environment variables, logging, tracing, health checks, CI/CD) is covered in the [production deployment guide](./DEPLOYMENT.md).
 
 NextAuth.js authentication is a `feature` type (`--type=auth`), not a separate misc generator.
 

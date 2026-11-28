@@ -70,6 +70,11 @@
       "factory": "./src/generators/misc/vercel/vercel",
       "schema": "./src/generators/misc/vercel/schema.json",
       "description": "vercel.json for a Next.js application: workspace-root install, nx build, Nx output directory, skip unaffected deployments"
+    },
+    "cicd": {
+      "factory": "./src/generators/misc/cicd/cicd",
+      "schema": "./src/generators/misc/cicd/schema.json",
+      "description": "GitHub Actions workflows: CI for affected projects, opt-in Docker (GHCR) and Vercel deploys, optional Dependabot"
     }
   }
 }

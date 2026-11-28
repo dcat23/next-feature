@@ -434,6 +434,10 @@ export const readinessChecks: Record<string, ReadinessCheck> = {
 
 `npx nx g next-feature:vercel [name]` writes `vercel.json` for deploying the app from this workspace (install at the workspace root, `nx build`, Nx's output directory) and skips deployments of commits that don't affect the app. Set the Vercel project's Root Directory to the app. See the [vercel generator](../../misc/vercel/README.md).
 
+### CI/CD
+
+`npx nx g next-feature:cicd --docker=[name]` or `--vercel=[name]` adds a GitHub Actions workflow that deploys the app after CI passes on the main branch, when the app is affected (Docker: image pushed to ghcr.io; Vercel: CLI production and preview deploys). See the [cicd generator](../../misc/cicd/README.md).
+
 ### Proxy
 
 Every app gets a `proxy.ts` (Next.js 16's renamed middleware) next to `instrumentation.ts`. Its matcher runs it for all API routes and every page, skipping Next.js internals (`_next`), the health probes (`/api/health`, `/api/ready`) and static files unless they appear in the search params:

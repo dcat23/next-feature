@@ -24,11 +24,18 @@
       "description": "Skip creating the feature library structure within the application",
       "default": false
     },
+    "ci": {
+      "type": "boolean",
+      "description": "Generate a GitHub Actions CI workflow (next-feature:cicd): lint, test and build the affected projects. Add deploy workflows later with nx g next-feature:cicd --docker=<app> or --vercel=<app>.",
+      "default": true
+    },
     "skipFormat": {
       "type": "boolean",
       "description": "Skip prettier code formatting",
       "default": false
     }
   },
-  "required": ["name"]
+  "required": [
+    "name"
+  ]
 }

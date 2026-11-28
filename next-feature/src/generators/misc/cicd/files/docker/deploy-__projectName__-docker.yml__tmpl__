@@ -1,0 +1,95 @@
+name: Deploy <%- projectName %> (Docker)
+
+# Builds <%- dockerfile %> and pushes the image to the GitHub Container Registry
+# (ghcr.io/<owner>/<repo>/<%- projectName %>, tagged with the commit SHA and latest)
+# after <%- ciWorkflow %> passes on <%- mainBranch %>, when the commits since the last
+# deployment affect <%- projectName %>. Run it manually to push the current commit regardless.
+on:
+  workflow_run:
+    workflows: [<%- ciWorkflow %>]
+    types: [completed]
+    branches: [<%- mainBranch %>]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-<%- projectName %>-docker
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read # nx-set-shas looks up the last successful deployment
+  packages: write # push to ghcr.io with GITHUB_TOKEN
+
+env:
+  NX_DAEMON: false
+  NX_TUI: false
+<% if (noCloud) { %>  NX_NO_CLOUD: true
+<% } %>
+jobs:
+  deploy:
+    # workflow_run also fires for pull requests from branches named <%- mainBranch %>
+    # (forks included): only pushes deploy
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: <%- actions.checkout %>
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+
+<%- setupSteps %>
+
+      - uses: <%- actions.nxSetShas %>
+        if: github.event_name == 'workflow_run'
+        with:
+          main-branch-name: <%- mainBranch %>
+          last-successful-event: workflow_run
+
+      - name: Check whether <%- projectName %> is affected
+        id: affected
+        env:
+          FORCE: ${{ github.event_name == 'workflow_dispatch' }}
+        # exact line match: the package manager may print install output too; no grep -q,
+        # which can end the pipe early and fail it under the default pipefail
+        run: |
+          if [ "$FORCE" = true ] || <%- nx %> show projects --affected --projects=<%- projectName %> | grep -x '<%- projectName %>' > /dev/null; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "<%- projectName %> isn't affected since the last deployment, skipping" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - uses: <%- actions.dockerSetupBuildx %>
+        if: steps.affected.outputs.deploy == 'true'
+
+      - uses: <%- actions.dockerLogin %>
+        if: steps.affected.outputs.deploy == 'true'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: <%- actions.dockerMetadata %>
+        if: steps.affected.outputs.deploy == 'true'
+        with:
+          # git: the checked-out commit, not the default branch head workflow_run runs on
+          context: git
+          images: ghcr.io/${{ github.repository }}/<%- projectName %>
+          tags: |
+            type=sha,format=long
+            type=raw,value=latest
+
+      - uses: <%- actions.dockerBuildPush %>
+        if: steps.affected.outputs.deploy == 'true'
+        with:
+          context: .
+          file: <%- dockerfile %>
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # NEXT_PUBLIC_* values are inlined at build time: pass them as build args
+          # (declared in the Dockerfile), e.g. build-args: NEXT_PUBLIC_EXAMPLE=${{ vars.NEXT_PUBLIC_EXAMPLE }}
+          cache-from: type=gha,scope=<%- projectName %>
+          cache-to: type=gha,mode=max,scope=<%- projectName %>

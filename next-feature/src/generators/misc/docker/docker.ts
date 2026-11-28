@@ -11,13 +11,15 @@ import {
 import * as path from 'path';
 import { enableStandaloneOutput, STANDALONE_OUTPUT_ENV } from '../../../lib/utils/next-config';
 import {
+  execCommand,
   frozenInstallCommand,
   type PackageManagerSetup,
+  resolveNodeVersion,
   resolvePackageManager,
 } from '../../../lib/utils/package-manager';
 import type { DockerGeneratorSchema } from './schema';
 
-export { resolvePackageManager };
+export { resolveNodeVersion, resolvePackageManager };
 
 const NEXT_CONFIG_FILES = ['next.config.js', 'next.config.mjs', 'next.config.ts'];
 const COMPOSE_FILES = ['compose.yaml', 'compose.yml', 'docker-compose.yaml', 'docker-compose.yml'];
@@ -52,24 +54,14 @@ function dockerCommands({ packageManager, version }: PackageManagerSetup, root: 
     npm: null,
     bun: `npm install -g ${pinned}`,
   };
-  const exec: Record<PackageManager, string> = { pnpm: 'pnpm exec', npm: 'npx', yarn: 'yarn', bun: 'bunx' };
   const install = frozenInstallCommand(packageManager, root);
 
   return {
     packageManagerSetup: setup[packageManager],
     installCommand: install,
-    execCommand: exec[packageManager],
+    execCommand: execCommand(packageManager),
     cacheMount: CACHE_MOUNTS[packageManager] ?? null,
   };
-}
-
-/** Node major for the image: .nvmrc / .node-version, else the Node running the generator */
-export function resolveNodeVersion(tree: Tree): string {
-  for (const file of ['.nvmrc', '.node-version']) {
-    const major = tree.read(file, 'utf-8')?.trim().replace(/^v/, '').split('.')[0];
-    if (major && /^\d+$/.test(major)) return major;
-  }
-  return process.versions.node.split('.')[0];
 }
 
 /** Adds entries to the workspace .dockerignore, keeping existing ones */

@@ -30,4 +30,13 @@ describe('preset generator', () => {
     expect(getProjects(tree).size).toBe(0);
     expect(tree.exists('apps/test')).toBeFalsy();
   });
+  it('should write the CI workflow unless ci is false', async () => {
+    await presetGenerator(tree, options);
+    expect(tree.read('.github/workflows/ci.yml', 'utf-8')).toContain('affected -t lint test build');
+    expect(tree.exists('.nvmrc')).toBe(true);
+
+    const other = createTreeWithEmptyWorkspace();
+    await presetGenerator(other, { ...options, ci: false });
+    expect(other.exists('.github/workflows/ci.yml')).toBe(false);
+  });
 });

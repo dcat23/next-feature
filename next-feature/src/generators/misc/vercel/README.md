@@ -59,6 +59,10 @@ Commit messages can override the ignore step: `[nx deploy]` / `[nx deploy web]` 
 - **Auth.js:** don't add `NEXTAUTH_URL`, `AUTH_URL` or `AUTH_TRUST_HOST`. On Vercel, Auth.js trusts the host and takes the URL from the request, which is what makes preview deployments work. The `NEXTAUTH_URL=http://localhost:4200` in `.env` is for local development only. Generate a separate `AUTH_SECRET` per environment (`npx auth secret`).
 - **`NEXT_PUBLIC_*`** values are inlined at build time: changing one needs a redeploy.
 
+## Deploying from GitHub Actions
+
+To build on GitHub Actions after CI passes instead of on Vercel's Git integration, run `npx nx g next-feature:cicd --vercel=web` (see the [cicd generator](../cicd/README.md)).
+
 ## Verify locally
 
 ```bash

@@ -1,0 +1,88 @@
+name: Deploy <%- projectName %> (Vercel)
+
+# Builds <%- projectName %> with the Vercel CLI on the runner and deploys the prebuilt
+# output: to production after <%- ciWorkflow %> passes on <%- mainBranch %>, and as a preview for
+# pull requests from this repository, when the changes affect <%- projectName %>. Run it
+# manually to deploy the current commit to production regardless.
+# Replaces Vercel's Git integration (vercel.json sets git.deploymentEnabled: false).
+#
+# Repository secrets: VERCEL_TOKEN (vercel.com/account/tokens), VERCEL_ORG_ID and
+# <%- projectIdSecret %> (orgId / projectId in .vercel/project.json after `vercel link`).
+on:
+  workflow_run:
+    workflows: [<%- ciWorkflow %>]
+    types: [completed]
+    branches: [<%- mainBranch %>]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-<%- projectName %>-vercel-${{ github.event.pull_request.number || 'production' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  actions: read # nx-set-shas looks up the last successful deployment
+
+env:
+  NX_DAEMON: false
+  NX_TUI: false
+<% if (noCloud) { %>  NX_NO_CLOUD: true
+<% } %>  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.<%- projectIdSecret %> }}
+
+jobs:
+  deploy:
+    # Previews only for pull requests from this repository: forks and Dependabot
+    # runs get no secrets. workflow_run also fires for pull requests from branches
+    # named <%- mainBranch %> (forks included): only pushes deploy to production.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]') ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event_name == 'pull_request' && 'Preview' || 'Production' }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: <%- actions.checkout %>
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          fetch-depth: 0
+
+<%- setupSteps %>
+
+      - uses: <%- actions.nxSetShas %>
+        if: github.event_name != 'workflow_dispatch'
+        with:
+          main-branch-name: <%- mainBranch %>
+          last-successful-event: workflow_run
+
+      - name: Check whether <%- projectName %> is affected
+        id: affected
+        env:
+          FORCE: ${{ github.event_name == 'workflow_dispatch' }}
+        # exact line match: the package manager may print install output too; no grep -q,
+        # which can end the pipe early and fail it under the default pipefail
+        run: |
+          if [ "$FORCE" = true ] || <%- nx %> show projects --affected --projects=<%- projectName %> | grep -x '<%- projectName %>' > /dev/null; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "<%- projectName %> isn't affected, skipping" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # Run from the repository root: the CLI builds the project's Root Directory
+      # with vercel.json's install and build commands
+      - name: Deploy
+        id: deploy
+        if: steps.affected.outputs.deploy == 'true'
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          PRODUCTION: ${{ github.event_name != 'pull_request' }}
+        run: |
+          if [ "$PRODUCTION" = true ]; then environment=production; prod=--prod; else environment=preview; prod=; fi
+          npx -y <%- vercelCli %> pull --yes --environment="$environment" --token="$VERCEL_TOKEN"
+          npx -y <%- vercelCli %> build $prod --token="$VERCEL_TOKEN"
+          url=$(npx -y <%- vercelCli %> deploy --prebuilt $prod --token="$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployed <%- projectName %> ($environment): $url" >> "$GITHUB_STEP_SUMMARY"

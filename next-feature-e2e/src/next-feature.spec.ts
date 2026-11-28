@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 import { join, dirname } from 'path';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { parse } from 'yaml';
 // pnpm 11 fails installs on unapproved dependency build scripts (e.g. nx's
 // postinstall), which the generated test workspace doesn't approve
 process.env.pnpm_config_strict_dep_builds = 'false';
@@ -248,6 +249,35 @@ describe('next-feature', () => {
         } finally {
           execSync('docker rm -f next-feature-e2e-web', { stdio: 'ignore' });
         }
+      },
+      SLOW
+    );
+
+    it(
+      'should generate CI and deploy workflows whose affected check finds the app',
+      () => {
+        run('pnpm exec nx g next-feature:cicd --docker=web --vercel=web --dependencyUpdates=dependabot --no-interactive');
+        const ci = parse(read('.github/workflows/ci.yml'));
+        const ciRuns = ci.jobs.main.steps.flatMap((step: { run?: string }) => (step.run ? [step.run] : []));
+        expect(ciRuns).toEqual(['pnpm install --frozen-lockfile', 'pnpm exec nx affected -t lint test build']);
+        expect(existsSync(join(projectDirectory, '.github/dependabot.yml'))).toBe(true);
+        expect(readJson('apps/web/vercel.json').git).toEqual({ deploymentEnabled: false });
+
+        // the deploy workflows' affected check, with the changed files given directly (no git in this workspace)
+        const docker = parse(read('.github/workflows/deploy-web-docker.yml'));
+        const check = docker.jobs.deploy.steps.find((step: { id?: string }) => step.id === 'affected').run as string;
+        const [, command, filter] = check.match(/(pnpm exec nx show projects --affected --projects=web) \| (grep -x 'web' > \/dev\/null)/) ?? [];
+        expect(command).toBeDefined();
+        const affected = (files: string) => {
+          try {
+            execSync(`${command} --files=${files} | ${filter}`, { cwd: projectDirectory, stdio: 'pipe', env: process.env });
+            return true;
+          } catch {
+            return false;
+          }
+        };
+        expect(affected('apps/web/next.config.js')).toBe(true);
+        expect(affected('README.md')).toBe(false);
       },
       SLOW
     );

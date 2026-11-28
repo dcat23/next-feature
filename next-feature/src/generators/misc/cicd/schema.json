@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/schema",
+  "$id": "Cicd",
+  "title": "CI/CD",
+  "description": "Generates GitHub Actions workflows: CI for the affected projects (lint, test, build), opt-in deploy workflows (Docker image to GHCR, Vercel prebuilt deploys) and an optional Dependabot configuration.",
+  "type": "object",
+  "properties": {
+    "docker": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Applications whose Docker image is built and pushed to ghcr.io after CI passes on the main branch. Runs next-feature:docker for apps without a Dockerfile.",
+      "default": []
+    },
+    "vercel": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Applications deployed to Vercel with the Vercel CLI (production after CI passes on the main branch, previews for pull requests), replacing Vercel's Git integration. Runs next-feature:vercel for apps without a vercel.json.",
+      "default": []
+    },
+    "e2e": {
+      "type": "boolean",
+      "description": "Add a CI job running the e2e target of the affected projects.",
+      "default": false
+    },
+    "dependencyUpdates": {
+      "type": "string",
+      "enum": ["none", "dependabot"],
+      "description": "Dependency update configuration: dependabot writes .github/dependabot.yml (packages, except Nx, and GitHub Actions, weekly).",
+      "default": "none"
+    },
+    "skipFormat": {
+      "type": "boolean",
+      "description": "Skip formatting files.",
+      "default": false
+    }
+  },
+  "required": []
+}

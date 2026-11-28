@@ -14,7 +14,11 @@ import {
   NEXT_THEMES_VERSION,
   PINO_VERSION,
   PINO_HTTP_VERSION,
+  OTEL_API_VERSION,
+  OTEL_EXPERIMENTAL_VERSION,
+  OTEL_SDK_VERSION,
   PINO_PRETTY_VERSION,
+  VERCEL_OTEL_VERSION,
   PLUGIN_VERSION,
   SONNER_VERSION,
   TAILWIND_VERSION,
@@ -31,7 +35,7 @@ import featureGenerator from '../feature/feature';
 import { ApplicationGeneratorSchema } from './schema';
 import { generateSecret } from './utils';
 import { normalizeApplicationGeneratorSchema } from './utils/normalize';
-import { LOGGING } from '../../../lib/dotenv/constants/defaults';
+import { LOGGING, TRACING } from '../../../lib/dotenv/constants/defaults';
 
 
 export async function applicationGenerator(
@@ -154,6 +158,17 @@ export async function applicationGenerator(
     dependencies['pino'] = PINO_VERSION;
     dependencies['pino-http'] = PINO_HTTP_VERSION;
     devDependencies['pino-pretty'] = PINO_PRETTY_VERSION;
+    // Tracing (lib/config/tracing.ts): @vercel/otel and its OpenTelemetry
+    // peers. @opentelemetry/api is the copy the client and logging features
+    // (peer dependency) read the registered tracer provider from
+    dependencies['@vercel/otel'] = VERCEL_OTEL_VERSION;
+    dependencies['@opentelemetry/api'] = OTEL_API_VERSION;
+    for (const name of ['resources', 'sdk-metrics', 'sdk-trace-base']) {
+      dependencies[`@opentelemetry/${name}`] = OTEL_SDK_VERSION;
+    }
+    for (const name of ['api-logs', 'sdk-logs', 'instrumentation']) {
+      dependencies[`@opentelemetry/${name}`] = OTEL_EXPERIMENTAL_VERSION;
+    }
 
     addServerExternalPackages(tree, projectRoot, ['pino', 'pino-http', 'pino-pretty', 'thread-stream']);
 
@@ -171,6 +186,17 @@ export async function applicationGenerator(
       set: {
         [LOGGING.beaconPathKey]: LOGGING.beaconPathValue,
         [LOGGING.serviceNameKey]: normalizedOptions.name,
+      },
+      skipExisting: true,
+    });
+
+    // Tracing is off until an OTLP endpoint is set: documented only, read
+    // by the OpenTelemetry SDK (not lib/config/env.ts)
+    updateDotenv(tree, { projectRoot, section: 'tracing', exampleOnly: true }, {
+      set: {
+        [TRACING.endpointKey]: TRACING.endpointValue,
+        [TRACING.headersKey]: '',
+        [TRACING.serviceNameKey]: normalizedOptions.name,
       },
       skipExisting: true,
     });

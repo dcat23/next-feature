@@ -37,6 +37,13 @@ export interface ApiClientConfig {
   /** Defaults to the console */
   logger?: ApiClientLogger;
   /**
+   * OpenTelemetry client spans for each request, with the trace context sent
+   * to the backend (W3C `traceparent`). No-op unless the app registers
+   * tracing (instrumentation.ts, OTLP endpoint configured). Default: true;
+   * set false when an HTTP instrumentation already traces outgoing requests.
+   */
+  tracing?: boolean;
+  /**
    * Paths that should skip the refresh token logic on 401.
    * Useful for login/register endpoints that expect 401 as a valid response.
    */

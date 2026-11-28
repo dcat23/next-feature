@@ -1,4 +1,5 @@
 import { LOGGING } from '../../../lib/dotenv/constants/defaults';
+import { OTEL_API_PEER_VERSION, OTEL_API_VERSION } from '../../../lib/constants/versions';
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { Tree, readProjectConfiguration, readJson } from '@nx/devkit';
 import { featureGenerator } from './feature';
@@ -263,7 +264,7 @@ describe('feature generator', () => {
       expect(content).toContain('./lib/server');
     });
 
-    it.each(['config.ts', 'lib/server.ts', 'lib/utils/index.ts'])(
+    it.each(['config.ts', 'lib/server.ts', 'lib/utils/index.ts', 'lib/tracing.ts'])(
       'should mark %s as server-only',
       async (file) => {
         await featureGenerator(tree, options);
@@ -277,6 +278,33 @@ describe('feature generator', () => {
       for (const file of ['index.ts', 'lib/client.ts', 'lib/correlation.ts', 'components/global-error-handler.tsx']) {
         expect(tree.read(`features/logger/src/${file}`, 'utf-8')).not.toContain('server-only');
       }
+    });
+  });
+
+  describe('logging trace correlation', () => {
+    const options: FeatureGeneratorSchema = { name: 'logger', type: 'logging', skipFormat: true };
+
+    it('should add the active span ids to log lines through a pino mixin', async () => {
+      await featureGenerator(tree, options);
+      const config = tree.read('features/logger/src/config.ts', 'utf-8');
+      expect(config).toContain("import { getTraceContext } from './lib/tracing';");
+      expect(config).toContain('...(traceContext && { mixin: getTraceContext })');
+      const tracing = tree.read('features/logger/src/lib/tracing.ts', 'utf-8');
+      expect(tracing).toContain('trace_id: spanContext.traceId');
+      expect(tracing).toContain('isSpanContextValid(spanContext)');
+      expect(tree.read('features/logger/src/server.ts', 'utf-8')).toContain(
+        "export { getTraceContext, type LogTraceContext } from './lib/tracing';"
+      );
+      // the client-safe entry stays free of OpenTelemetry
+      expect(tree.read('features/logger/src/index.ts', 'utf-8')).not.toContain('tracing');
+    });
+
+    it('should declare @opentelemetry/api as a peer dependency', async () => {
+      await featureGenerator(tree, options);
+      const packageJson = readJson(tree, 'features/logger/package.json');
+      expect(packageJson.peerDependencies['@opentelemetry/api']).toBe(OTEL_API_PEER_VERSION);
+      expect(packageJson.dependencies?.['@opentelemetry/api']).toBeUndefined();
+      expect(readJson(tree, 'package.json').dependencies['@opentelemetry/api']).toBe(OTEL_API_VERSION);
     });
   });
 
@@ -354,7 +382,7 @@ describe('feature generator', () => {
       expect(index).toContain("export * from './lib/utils/problem-detail'");
     });
 
-    it.each(['lib/client.ts', 'lib/actions/with-api.ts'])(
+    it.each(['lib/client.ts', 'lib/actions/with-api.ts', 'lib/tracing.ts'])(
       'should mark %s as server-only',
       async (file) => {
         await featureGenerator(tree, options);
@@ -374,6 +402,28 @@ describe('feature generator', () => {
       await featureGenerator(tree, options);
       const tsConfig = tree.read('tsconfig.base.json', 'utf-8');
       expect(tsConfig).toContain('@feature/apiClient');
+    });
+  });
+
+  describe('client tracing', () => {
+    const options: FeatureGeneratorSchema = { name: 'apiClient', type: 'client', skipFormat: true };
+
+    it('should trace requests in the axios interceptors unless tracing is false', async () => {
+      await featureGenerator(tree, options);
+      const client = tree.read('features/apiClient/src/lib/client.ts', 'utf-8');
+      expect(client).toContain("import { endRequestSpan, startRequestSpan } from './tracing';");
+      expect(client).toContain('if (this.config.tracing !== false) {');
+      expect(client).toContain('endRequestSpan(response.config, response.status);');
+      expect(client).toContain('endRequestSpan(originalRequest, error.response?.status, error);');
+      const tracing = tree.read('features/apiClient/src/lib/tracing.ts', 'utf-8');
+      expect(tracing).toContain('propagation.inject(');
+      expect(tracing).toContain('kind: SpanKind.CLIENT');
+    });
+
+    it('should declare @opentelemetry/api as a peer dependency', async () => {
+      await featureGenerator(tree, options);
+      const packageJson = readJson(tree, 'features/apiClient/package.json');
+      expect(packageJson.peerDependencies['@opentelemetry/api']).toBe(OTEL_API_PEER_VERSION);
     });
   });
 

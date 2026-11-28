@@ -10,6 +10,7 @@ import axios, {
 } from 'axios';
 import type { ApiClientConfig, ApiClientLogger } from './types/client';
 import handleApiError from './utils/error';
+import { endRequestSpan, startRequestSpan } from './tracing';
 import { CLIENT_API_URL } from './config/env';
 
 type RetryableRequest = InternalAxiosRequestConfig & {
@@ -120,6 +121,9 @@ export class ApiClient {
         'onAuthenticated failed; sending the request without it',
       );
     }
+    if (this.config.tracing !== false) {
+      startRequestSpan(config, this.instance.getUri(config));
+    }
     return config;
   }
 
@@ -129,6 +133,7 @@ export class ApiClient {
   }
 
   private handleResponseFulfilled(response: AxiosResponse): AxiosResponse {
+    endRequestSpan(response.config, response.status);
     return response;
   }
 
@@ -147,6 +152,10 @@ export class ApiClient {
    */
   private async handleResponseRejected(error: AxiosError): Promise<unknown> {
     const originalRequest = error.config as RetryableRequest | undefined;
+    // This attempt's span; a retry or the refreshed request starts its own
+    if (originalRequest) {
+      endRequestSpan(originalRequest, error.response?.status, error);
+    }
 
     if (!originalRequest) {
       return Promise.reject(handleApiError(error));

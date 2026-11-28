@@ -91,9 +91,10 @@ features/[name]/src/
 │   ├── client.ts           # Browser pino logger ('use client', transmit config)
 │   ├── constants.ts        # DEFAULT_LOGGING_BEACON_PATH ('/api/log')
 │   ├── correlation.ts      # getCorrelationId / setCorrelationId (sessionStorage)
+│   ├── tracing.ts          # getTraceContext(): active OpenTelemetry span ids for log lines (server-only)
 │   └── utils/index.ts      # registerPino(options?) for instrumentation.ts (server-only)
 ├── index.ts                # Client-safe: browser logger, GlobalErrorHandler, constants, correlation utilities
-└── server.ts               # 'server-only': server logger, createPinoOptions, pinoOptions, registerPino
+└── server.ts               # 'server-only': server logger, createPinoOptions, pinoOptions, registerPino, getTraceContext
 ```
 
 **Additional dependencies added:**
@@ -134,6 +135,10 @@ import { createPinoOptions, registerPino } from '@feature/logging/server';
 const pinoOptions = createPinoOptions({ service: 'web', level: 'debug' });
 await registerPino(pinoOptions); // defaults to pinoOptions (env-only service) when omitted
 ```
+
+**Trace correlation.** `createPinoOptions()` adds a pino `mixin` (`getTraceContext()`) that puts the active OpenTelemetry span's `trace_id`, `span_id` and `trace_flags` on every server log line, the field names of OpenTelemetry's pino instrumentation, so observability backends link the line to its trace. Without registered tracing there's no active span and the fields are left out. `createPinoOptions({ traceContext: false })` turns it off.
+
+`@opentelemetry/api` is a **peer dependency** of the `logging` and `client` features: the tracer provider the app registers lives in the app's copy of the API, so the libraries must share it (a second copy would see no provider). The application generator installs it.
 
 ### `'use client'` in the build
 
@@ -188,6 +193,7 @@ features/[name]/src/
 | `onRefreshToken` | - | Returns the new token. Throwing or returning an empty token fails the refresh |
 | `onUnauthorized` / `onRefreshTokenExpired` | - | Called when the refresh fails / when the refreshed token is rejected too |
 | `skipRefreshPaths` | `[]` | URL patterns (e.g. login) that never trigger a refresh |
+| `tracing` | `true` | OpenTelemetry client span per request attempt, and W3C `traceparent` sent to the backend. No-op until the app registers tracing (see the [application generator](../application/README.md#tracing)). Set `false` if an HTTP instrumentation already traces outgoing requests |
 
 Clients in `lib/config/client.ts` are module-level, so one instance serves every request the server handles. Token refreshes are keyed by the request's expired `Authorization` header: concurrent requests with the same token share one refresh, and requests from other users are never retried with it.
 

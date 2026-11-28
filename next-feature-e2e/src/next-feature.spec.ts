@@ -1,4 +1,6 @@
-import { execSync } from 'child_process';
+import { execSync, spawn } from 'child_process';
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'http';
+import type { AddressInfo } from 'net';
 import { join, dirname } from 'path';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { parse } from 'yaml';
@@ -254,6 +256,140 @@ describe('next-feature', () => {
     );
 
     it(
+      'should trace a request through the ApiClient call to an OTLP collector, with the trace_id in its log lines',
+      async () => {
+        // test-only route: an ApiClient call (getUsers, from the first test) and a log line
+        mkdirSync(join(projectDirectory, 'apps/web/app/api/trace-probe'), { recursive: true });
+        writeFileSync(
+          join(projectDirectory, 'apps/web/app/api/trace-probe/route.ts'),
+          `import { NextResponse } from 'next/server';
+import { getUsers } from '../../../lib/actions/user';
+import { logger } from '../../../lib/config/logging';
+
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
+  const result = await getUsers();
+  logger.info({ success: result.success }, 'trace probe');
+  return NextResponse.json(result);
+}
+`
+        );
+        run('pnpm exec nx build web --skip-nx-cache');
+
+        const backendHeaders: Record<string, string | string[] | undefined>[] = [];
+        const exported: OtlpTraces[] = [];
+        const backend = await listen((request, response) => {
+          backendHeaders.push(request.headers);
+          response.setHeader('content-type', 'application/json');
+          response.end('[]');
+        });
+        const collector = await listen((request, response) => {
+          let body = '';
+          request.on('data', (chunk) => (body += chunk));
+          request.on('end', () => {
+            exported.push(JSON.parse(body));
+            response.setHeader('content-type', 'application/json');
+            response.end('{}');
+          });
+        });
+
+        try {
+          // with an OTLP endpoint (JSON, so the test can read it)
+          const traced = await startWeb(3998, {
+            WEB_API_URL: `http://127.0.0.1:${backend.port}`,
+            OTEL_EXPORTER_OTLP_ENDPOINT: `http://127.0.0.1:${collector.port}`,
+            OTEL_EXPORTER_OTLP_PROTOCOL: 'http/json',
+          });
+          try {
+            const response = await fetch('http://127.0.0.1:3998/api/trace-probe');
+            expect(await response.json()).toEqual({ success: true, data: [] });
+
+            const traceparent = String(backendHeaders[0]?.['traceparent'] ?? '');
+            const [, traceId, spanId] = traceparent.split('-');
+            expect(traceparent).toMatch(/^00-[0-9a-f]{32}-[0-9a-f]{16}-01$/);
+
+            // BatchSpanProcessor exports every 5s
+            const clientSpan = await waitFor(() =>
+              exported
+                .flatMap((traces) => traces.resourceSpans)
+                .flatMap((resource) => resource.scopeSpans)
+                .filter((scope) => scope.scope.name === '@next-feature/client')
+                .flatMap((scope) => scope.spans)
+                .find((span) => span.spanId === spanId)
+            );
+            expect(clientSpan).toMatchObject({ traceId, name: 'GET', kind: 3 });
+            const allSpans = exported.flatMap((traces) => traces.resourceSpans).flatMap((r) => r.scopeSpans).flatMap((s) => s.spans);
+            // Next.js' own request span is the client span's ancestor, in the same trace
+            expect(allSpans.some((span) => span.spanId === clientSpan?.parentSpanId)).toBe(true);
+
+            const probeLog = traced.logs().find((line) => line['msg'] === 'trace probe');
+            expect(probeLog).toMatchObject({ service: 'web', trace_id: traceId });
+          } finally {
+            traced.stop();
+          }
+
+          // without the OTLP variables: nothing exported, no trace headers, no startup error
+          backendHeaders.length = 0;
+          exported.length = 0;
+          const untraced = await startWeb(3998, { WEB_API_URL: `http://127.0.0.1:${backend.port}` });
+          try {
+            const response = await fetch('http://127.0.0.1:3998/api/trace-probe');
+            expect(await response.json()).toEqual({ success: true, data: [] });
+            expect(backendHeaders[0]?.['traceparent']).toBeUndefined();
+            expect(untraced.logs().find((line) => line['msg'] === 'trace probe')).not.toHaveProperty('trace_id');
+            await new Promise((resolve) => setTimeout(resolve, 6000));
+            expect(exported).toEqual([]);
+            expect(untraced.output()).not.toMatch(/Error:|ECONNREFUSED|OTLP/);
+          } finally {
+            untraced.stop();
+          }
+        } finally {
+          backend.server.close();
+          collector.server.close();
+          rmSync(join(projectDirectory, 'apps/web/app/api/trace-probe'), { recursive: true, force: true });
+        }
+      },
+      SLOW
+    );
+
+    /** `next start` for the built web app, with its stdout (pino JSON lines) collected */
+    async function startWeb(port: number, env: Record<string, string>) {
+      let output = '';
+      const child = spawn('pnpm', ['exec', 'next', 'start', 'apps/web', '-p', String(port)], {
+        cwd: projectDirectory,
+        env: { ...process.env, ...env, NODE_ENV: 'production' },
+        detached: true,
+      });
+      child.stdout.on('data', (chunk) => (output += chunk));
+      child.stderr.on('data', (chunk) => (output += chunk));
+      const stop = () => {
+        try {
+          process.kill(-(child.pid as number), 'SIGTERM');
+        } catch {
+          // already exited
+        }
+      };
+      const up = await waitFor(async () => {
+        try {
+          return (await fetch(`http://127.0.0.1:${port}/api/health`)).ok || undefined;
+        } catch {
+          return undefined;
+        }
+      });
+      if (!up) {
+        stop();
+        throw new Error(`next start didn't come up:\n${output}`);
+      }
+      const logs = () =>
+        output
+          .split('\n')
+          .filter((line) => line.startsWith('{'))
+          .map((line) => JSON.parse(line) as Record<string, unknown>);
+      return { stop, logs, output: () => output };
+    }
+
+    it(
       'should generate CI and deploy workflows whose affected check finds the app',
       () => {
         run('pnpm exec nx g next-feature:cicd --docker=web --vercel=web --dependencyUpdates=dependabot --no-interactive');
@@ -390,4 +526,34 @@ function createTestProject() {
   );
   console.log(`Created test project in "${projectDirectory}"`);
   return projectDirectory;
+}
+
+interface OtlpSpan {
+  traceId: string;
+  spanId: string;
+  parentSpanId?: string;
+  name: string;
+  kind: number;
+}
+/** OTLP/JSON trace export request body */
+interface OtlpTraces {
+  resourceSpans: { scopeSpans: { scope: { name: string }; spans: OtlpSpan[] }[] }[];
+}
+
+/** An HTTP server on a free local port */
+function listen(handler: (request: IncomingMessage, response: ServerResponse) => void) {
+  return new Promise<{ server: Server; port: number }>((resolve) => {
+    const server = createServer(handler);
+    server.listen(0, '127.0.0.1', () => resolve({ server, port: (server.address() as AddressInfo).port }));
+  });
+}
+
+/** Polls `check` until it returns a value (about 30s), without blocking the event loop */
+async function waitFor<T>(check: () => T | undefined | Promise<T | undefined>): Promise<T | undefined> {
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const value = await check();
+    if (value !== undefined) return value;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  return undefined;
 }

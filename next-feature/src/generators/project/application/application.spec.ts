@@ -1,6 +1,7 @@
 import { createTreeWithEmptyWorkspace } from '@nx/devkit/testing';
 import { Tree, readJson, readProjectConfiguration } from '@nx/devkit';
 import { applicationGenerator } from './application';
+import { OTEL_API_VERSION, VERCEL_OTEL_VERSION } from '../../../lib/constants/versions';
 import { ApplicationGeneratorSchema } from './schema';
 import { installShadcnBaseTask } from '../../../lib/utils/shadcn';
 
@@ -206,6 +207,40 @@ describe('application generator', () => {
       expect(instrumentation).toContain('await registerPino(pinoOptions);');
     });
 
+    it('should register tracing before pino, only when an OTLP endpoint is configured', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const instrumentation = tree.read('apps/test/instrumentation.ts', 'utf-8') ?? '';
+      expect(instrumentation).toContain("const { registerTracing } = await import('./lib/config/tracing');");
+      expect(instrumentation.indexOf('registerTracing()')).toBeLessThan(instrumentation.indexOf('registerPino('));
+      const tracing = tree.read('apps/test/lib/config/tracing.ts', 'utf-8');
+      expect(tracing).toContain("import { registerOTel } from '@vercel/otel';");
+      expect(tracing).toContain("registerOTel({ serviceName: 'test' });");
+      expect(tracing).toContain('if (!isTracingConfigured()) return;');
+      expect(tracing).toContain("'OTEL_EXPORTER_OTLP_ENDPOINT',");
+      expect(tracing).toContain("env.OTEL_SDK_DISABLED === 'true'");
+    });
+
+    it('should add @vercel/otel with OpenTelemetry peers on @opentelemetry/api 1.9', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const { dependencies } = readJson(tree, 'package.json');
+      expect(dependencies['@vercel/otel']).toBe(VERCEL_OTEL_VERSION);
+      expect(dependencies['@opentelemetry/api']).toBe(OTEL_API_VERSION);
+      for (const name of ['resources', 'sdk-metrics', 'sdk-trace-base', 'api-logs', 'sdk-logs', 'instrumentation']) {
+        expect(dependencies[`@opentelemetry/${name}`]).toBeDefined();
+      }
+    });
+
+    it('should document the OTLP variables in .env.example only', async () => {
+      await applicationGenerator(tree, { name: 'test' });
+      const example = tree.read('apps/test/.env.example', 'utf-8');
+      expect(example).toContain('OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318');
+      expect(example).toContain('OTEL_EXPORTER_OTLP_HEADERS=');
+      expect(example).toContain('OTEL_SERVICE_NAME=test');
+      // tracing stays off until the endpoint is set
+      expect(tree.read('apps/test/.env', 'utf-8') ?? '').not.toContain('OTEL_');
+      expect(tree.read('apps/test/lib/config/env.ts', 'utf-8')).not.toContain('OTEL_');
+    });
+
     it('should configure the app as the service in lib/config/logging.ts instead of copying registerPino', async () => {
       await applicationGenerator(tree, { name: 'test' });
       const logging = tree.read('apps/test/lib/config/logging.ts', 'utf-8');
@@ -254,7 +289,10 @@ describe('application generator', () => {
       await applicationGenerator(tree, { name: 'test', skipLogging: true });
       const instrumentation = tree.read('apps/test/instrumentation.ts', 'utf-8');
       expect(instrumentation).not.toContain('@next-feature/logging');
+      expect(instrumentation).not.toContain('registerTracing');
+      expect(tree.exists('apps/test/lib/config/tracing.ts')).toBe(false);
       const packageJson = readJson(tree, 'package.json');
+      expect(packageJson.dependencies?.['@vercel/otel']).toBeUndefined();
       expect(packageJson.dependencies?.['@next-feature/logging']).toBeUndefined();
       const nextConfig = tree.read('apps/test/next.config.js', 'utf-8');
       expect(nextConfig).not.toContain('serverExternalPackages');

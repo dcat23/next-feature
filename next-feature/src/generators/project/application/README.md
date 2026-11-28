@@ -248,7 +248,8 @@ Unless `--skipLogging` is set, the app is wired to the published [`@next-feature
 
 | File | Purpose |
 |------|---------|
-| `instrumentation.ts` | On the Node.js runtime only, calls the library's `registerPino()` with this app's options (pino-http request logging) |
+| `instrumentation.ts` | Registers [tracing](#tracing) when an OTLP endpoint is configured; on the Node.js runtime, calls the library's `registerPino()` with this app's options (pino-http request logging) |
+| `lib/config/tracing.ts` | `registerTracing()`: `@vercel/otel`'s `registerOTel({ serviceName: '[name]' })`, only when an OTLP endpoint is set |
 | `lib/config/logging.ts` | This app's pino options, `createPinoOptions({ service: '[name]' })`, and a server `logger` built from them. Customise the level or service here |
 | `app/api/log/route.ts` | Receives the browser logger's beacons and writes them to the server logger |
 | `app/error.tsx` | Reports render errors with the browser logger (`console.error` with `--skipLogging`) |
@@ -262,6 +263,29 @@ Both logging env vars are **optional overrides**. Their defaults live in code, s
 | `LOGGING_SERVICE_NAME` | the `service` passed in `lib/config/logging.ts` (the app name) | one build is deployed as several services, or the name should differ per environment. Read at runtime |
 
 The route's URL comes from its file location, not from the env var: if you set `NEXT_PUBLIC_LOGGING_BEACON_PATH`, move the route to match.
+
+### Tracing
+
+With logging (unless `--skipLogging`), the app also gets OpenTelemetry tracing over OTLP, **off until an endpoint is configured**. `instrumentation.ts` calls `registerTracing()` from `lib/config/tracing.ts`, which registers [`@vercel/otel`](https://github.com/vercel/otel) only when `OTEL_EXPORTER_OTLP_ENDPOINT` (or `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT`, or Vercel's OpenTelemetry integration, `VERCEL_OTEL_ENDPOINTS`) is set and `OTEL_SDK_DISABLED` isn't `true`. Without one nothing is registered: nothing is exported, no trace headers are sent, and the app behaves as without tracing (`@vercel/otel` would otherwise export to `localhost:4318`).
+
+Once enabled, a trace covers:
+- Next.js' own spans for each request, route handler and render, and `fetch` calls
+- every `ApiClient` request (a CLIENT span per attempt, `http.request.method`, `url.full` without the query string, `http.response.status_code`), with W3C `traceparent` sent to the backend so its spans join the trace (`tracing: false` per client turns this off)
+- server log lines from `@next-feature/logging`, which carry the active span's `trace_id` / `span_id`
+
+Configuration uses the standard OpenTelemetry variables only, so any OTLP backend works (Grafana Tempo/Cloud, Honeycomb, Datadog, New Relic, Axiom, an OpenTelemetry Collector, ...). They're documented in `.env.example` under `### TRACING ###`:
+
+| Variable | Example | Purpose |
+|----------|---------|---------|
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4318`, `https://api.honeycomb.io` | Turns tracing on. OTLP over HTTP: traces go to `<endpoint>/v1/traces` |
+| `OTEL_EXPORTER_OTLP_HEADERS` | `x-honeycomb-team=<key>`, `Authorization=Bearer <token>` | The backend's credentials (comma-separated `key=value` pairs) |
+| `OTEL_SERVICE_NAME` | `[name]` | Overrides the service name passed in `lib/config/tracing.ts` |
+| `OTEL_EXPORTER_OTLP_PROTOCOL` | `http/protobuf` (default), `http/json` | gRPC isn't supported by `@vercel/otel` |
+| `OTEL_TRACES_SAMPLER` / `OTEL_TRACES_SAMPLER_ARG` | `parentbased_traceidratio` / `0.1` | Sample a share of traces in busy production apps |
+
+They're read at runtime, so set them per environment (Docker `env_file`, Vercel project settings) without rebuilding. To try it locally, run a collector or Jaeger (`docker run -p 16686:16686 -p 4318:4318 jaegertracing/jaeger`, UI on port 16686) and set `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318` in `.env`.
+
+The app's dependencies include `@vercel/otel` and its OpenTelemetry peers, on `@opentelemetry/api` 1.9 (the stable 2.x SDK packages don't accept 1.10 yet). Sentry and vendor SDKs aren't wired; most vendors accept OTLP directly.
 
 ## Common Workflows
 

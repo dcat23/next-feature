@@ -3,7 +3,7 @@ import { formatFiles, generateFiles, runTasksInSerial, Tree } from '@nx/devkit';
 import { libraryGenerator } from '@nx/next';
 import { existsSync } from 'fs';
 import * as path from 'path';
-import { AXIOS_VERSION, NEXTAUTH_VERSION, PINO_HTTP_VERSION, PINO_PRETTY_VERSION, PINO_VERSION, REACT_PEER_VERSION, SERVER_ONLY_VERSION, SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
+import { AXIOS_VERSION, NEXTAUTH_VERSION, OTEL_API_PEER_VERSION, OTEL_API_VERSION, PINO_HTTP_VERSION, PINO_PRETTY_VERSION, PINO_VERSION, REACT_PEER_VERSION, SERVER_ONLY_VERSION, SONNER_VERSION, ZOD_VERSION } from '../../../lib/constants/versions';
 import { updateDotenv } from '../../../lib/dotenv/dot-env';
 import { updateEnvConfig } from '../../../lib/dotenv/env-config';
 import { writeWildCardPathToTsConfig } from '../../../lib/ts-config';
@@ -91,6 +91,10 @@ export async function featureGenerator(
       libraryDependencies['pino'] = PINO_VERSION;
       libraryDependencies['pino-http'] = PINO_HTTP_VERSION;
       libraryDependencies['pino-pretty'] = PINO_PRETTY_VERSION;
+      // getTraceContext() reads the active span through the app's
+      // @opentelemetry/api, which holds the registered tracer provider
+      dependencies['@opentelemetry/api'] = OTEL_API_VERSION;
+      libraryPeerDependencies['@opentelemetry/api'] = OTEL_API_PEER_VERSION;
       
       optionalDotenv[LOGGING.beaconPathKey] = LOGGING.beaconPathValue;
       optionalDotenv[LOGGING.serviceNameKey] = normalizedOptions.name;
@@ -100,6 +104,9 @@ export async function featureGenerator(
         // Handle client-specific logic
         dependencies['axios'] = AXIOS_VERSION;
         libraryDependencies['axios'] = asCaretRange(AXIOS_VERSION);
+        // Request spans and traceparent go through the app's tracer provider
+        dependencies['@opentelemetry/api'] = OTEL_API_VERSION;
+        libraryPeerDependencies['@opentelemetry/api'] = OTEL_API_PEER_VERSION;
         // ApiError checks axios/zod errors by shape, so an app on another
         // version doesn't need the same copy
 

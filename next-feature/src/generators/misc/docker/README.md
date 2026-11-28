@@ -12,6 +12,7 @@ npx nx g next-feature:docker web --compose=false    # Dockerfile only
 docker compose up --build            # every app in compose.yaml
 npx nx run web:docker-run            # docker compose up --build web
 npx nx run web:docker-build          # docker build -f apps/web/Dockerfile -t web .
+# with --compose=false, docker-run is: docker run --rm -p 3000:3000 --env-file apps/web/.env web
 ```
 
 ## Options
@@ -51,7 +52,7 @@ The major from `.nvmrc` or `.node-version`, else the Node version running the ge
 
 ## Environment variables
 
-- **Server variables** are read at runtime. The compose service loads the app's `.env` (`env_file`, optional) and sets `PORT`; apps with `--useAuth` also get `NEXTAUTH_URL` (the published URL) and `AUTH_TRUST_HOST`. `.env` files never enter the image (`.dockerignore`).
+- **Server variables** are read at runtime. The compose service loads the app's `.env` (`env_file`, optional) and sets `PORT`; apps with `--useAuth` also get `NEXTAUTH_URL` (the published URL) and `AUTH_TRUST_HOST`. `.env` files never enter the image (`.dockerignore`). The server [validates its variables at startup](../../project/application/README.md#validation-at-startup) and exits when a required one is missing, so a container run without them stops right away.
 - **`localhost` inside the container is the container itself.** A backend on your machine is `http://host.docker.internal:<port>` (the service maps it to the host gateway, also on Linux); another compose service is `http://<service>:<port>`. Override the app's URL variables in the service's `environment`.
 - **`NEXT_PUBLIC_*`** values are inlined at build time: declare them as build args in the Dockerfile (`ARG` + `ENV`) and pass them with `build.args` in compose.
 

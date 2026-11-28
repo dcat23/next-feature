@@ -242,6 +242,20 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 
 `lib/config/env.ts` is generated alongside these files and gets a typed `<NAME>_API_URL` accessor once an API client exists (see [API clients](#api-clients)), kept in sync by the [dotenv generator](../../misc/dotenv/README.md)'s marker-based sync. Add further vars later with `npx nx g next-feature:dotenv --projectName=[name] --set=KEY=VALUE`.
 
+#### Validation at startup
+
+`instrumentation.ts` checks the environment against `lib/config/env.ts`'s zod schema when the Node.js server starts (`lib/config/validate-env.ts`). If a variable is missing or invalid, the server logs every failing variable and exits with code 1, so a misconfigured deployment fails its start and health check instead of the first request that reads the variable:
+
+```
+Invalid environment variables (see lib/config/env.ts and .env.example):
+  - WEB_API_URL: Required
+```
+
+- **What's required:** whatever the schema requires: `<NAME>_API_URL` per API client, plus `AUTH_SECRET` with `--useAuth` (`NEXTAUTH_URL` isn't: Auth.js infers it on Vercel). Optional variables (`z.string().optional()`, documented in `.env.example` only, e.g. `LOGGING_SERVICE_NAME`) pass when unset. Tighten a schema entry (`z.string().url()`) to also reject bad values.
+- **`next build` isn't checked** (`NEXT_PHASE`): runtime-only variables usually aren't set in CI or image builds.
+- **`NEXT_PUBLIC_*` variables aren't checked at startup:** Next.js inlines them into the build, so they may be absent where the server runs (e.g. a Docker image built with build args).
+- **Where the server reads them:** `nx serve` and `next start` in the app directory load its `.env`; the build output (`dist/apps/[name]`), Docker images and Vercel don't, so set the variables in that environment (compose `env_file`, `docker run --env-file`, Vercel project settings).
+
 ### Logging
 
 Unless `--skipLogging` is set, the app is wired to the published [`@next-feature/logging`](../feature/README.md#logging-type--additional-files) library:

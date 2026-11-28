@@ -243,7 +243,8 @@ describe('next-feature', () => {
         writeFileSync(join(projectDirectory, '.npmrc'), `registry=${process.env.pnpm_config_registry}\n`);
         run('docker build --network=host -f apps/web/Dockerfile -t next-feature-e2e-web .');
         try {
-          run('docker run -d --name next-feature-e2e-web -p 3999:3000 next-feature-e2e-web');
+          // the app's .env, as compose's env_file: the server exits on missing variables
+          run('docker run -d --name next-feature-e2e-web -p 3999:3000 --env-file apps/web/.env next-feature-e2e-web');
           expect(waitForStatus('http://127.0.0.1:3999/', 200)).toBe(true);
           // liveness and readiness (no checks configured), which the HEALTHCHECK uses
           expect(waitForStatus('http://127.0.0.1:3999/api/health', 200)).toBe(true);
@@ -353,12 +354,17 @@ export async function GET() {
       SLOW
     );
 
-    /** `next start` for the built web app, with its stdout (pino JSON lines) collected */
+    /**
+     * `next start` for the built web app, with its stdout (pino JSON lines)
+     * collected. Like @nx/next:server, it runs in the build's outputPath,
+     * where @nx/next:build writes .next and next.config.js.
+     */
     async function startWeb(port: number, env: Record<string, string>) {
       let output = '';
-      const child = spawn('pnpm', ['exec', 'next', 'start', 'apps/web', '-p', String(port)], {
-        cwd: projectDirectory,
-        env: { ...process.env, ...env, NODE_ENV: 'production' },
+      const child = spawn(join(projectDirectory, 'node_modules/.bin/next'), ['start', '-p', String(port)], {
+        cwd: join(projectDirectory, 'dist/apps/web'),
+        // the build output has no .env: pass the app's variables, then the test's
+        env: { ...process.env, ...appEnv(), ...env, NODE_ENV: 'production' },
         detached: true,
       });
       child.stdout.on('data', (chunk) => (output += chunk));
@@ -387,6 +393,55 @@ export async function GET() {
           .filter((line) => line.startsWith('{'))
           .map((line) => JSON.parse(line) as Record<string, unknown>);
       return { stop, logs, output: () => output };
+    }
+
+    it(
+      'should exit at startup naming a missing required environment variable',
+      async () => {
+        // the trace probe test above built web; env.ts requires WEB_API_URL (client-config)
+        expect(read('apps/web/lib/config/env.ts')).toContain('WEB_API_URL: z.string(),');
+        const env = appEnv();
+        delete env['WEB_API_URL'];
+        const child = spawn(join(projectDirectory, 'node_modules/.bin/next'), ['start', '-p', '3997'], {
+          cwd: join(projectDirectory, 'dist/apps/web'),
+          env: { ...withoutAppEnv(process.env), ...env, NODE_ENV: 'production' },
+        });
+        let output = '';
+        child.stdout.on('data', (chunk) => (output += chunk));
+        child.stderr.on('data', (chunk) => (output += chunk));
+        const code = await new Promise<number | null>((resolve) => {
+          const timer = setTimeout(() => {
+            child.kill('SIGKILL');
+            resolve(null);
+          }, 60_000);
+          child.on('exit', (exitCode) => {
+            clearTimeout(timer);
+            resolve(exitCode);
+          });
+        });
+        expect(code).toBe(1);
+        expect(output).toContain('Invalid environment variables');
+        expect(output).toMatch(/- WEB_API_URL: /);
+        expect(output).not.toMatch(/- PAYMENTS_API_URL: /);
+      },
+      SLOW
+    );
+
+    /** The web app's .env, as `next start` would load it in the app directory */
+    function appEnv(): Record<string, string> {
+      return Object.fromEntries(
+        read('apps/web/.env')
+          .split('\n')
+          .map((line) => line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/))
+          .filter((match): match is RegExpMatchArray => !!match)
+          .map(([, key, value]) => [key, value.replace(/^(['"])(.*)\1$/, '$2')])
+      );
+    }
+
+    /** process.env without the app's own variables, in case the test runner has any set */
+    function withoutAppEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+      const keys = new Set(Object.keys(appEnv()));
+      return Object.fromEntries(Object.entries(env).filter(([key]) => !keys.has(key)));
     }
 
     it(

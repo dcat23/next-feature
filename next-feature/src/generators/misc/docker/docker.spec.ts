@@ -178,7 +178,7 @@ describe('docker generator', () => {
       await dockerGenerator(tree, { projectName: 'web', compose: false, skipFormat: true });
       expect(tree.exists('compose.yaml')).toBe(false);
       expect(readProjectConfiguration(tree, 'web').targets?.['docker-run']?.options.command).toBe(
-        'docker run --rm -p 3000:3000 web'
+        'docker run --rm -p 3000:3000 --env-file apps/web/.env web'
       );
     });
   });
